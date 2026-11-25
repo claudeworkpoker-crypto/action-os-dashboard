@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Action OS">
+<title>Action OS</title>
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --panel2:#f0efeb; --line:#e3e1db; --text:#1d1d1f; --sub:#6b6a66; --faint:#9a9893;
+  --accent:#2f6fde; --accent-soft:#e6eefc;
+  --red:#d33f3f; --red-soft:#fbe9e9; --amber:#b7791f; --amber-soft:#fbf1df; --green:#2e8b57; --green-soft:#e4f3ea;
+  --c-p2:#c2577a; --c-p1:#3f6fd1; --c-p3:#c7862b; --c-p4:#3a9a6a; --c-misc:#8a8780; --c-p5:#7a5cc7; --c-p6:#2a9aa8; --c-p7:#b5583a;
+  --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#16171a; --panel:#1f2024; --panel2:#26272c; --line:#33343a; --text:#ececee; --sub:#a3a3aa; --faint:#75757d;
+    --accent:#6b9cff; --accent-soft:#22304d;
+    --red:#ff6b6b; --red-soft:#3a2224; --amber:#f0b44c; --amber-soft:#3a3020; --green:#5cc98a; --green-soft:#1f3328;
+    --c-p2:#e07fa0; --c-p1:#6f98f0; --c-p3:#e5a64f; --c-p4:#5cc98a; --c-misc:#a3a19a; --c-p5:#a58cf0; --c-p6:#4fc3d0; --c-p7:#e08a6a;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;touch-action:manipulation}
+/* iOS は16px未満の入力欄にフォーカスすると自動で拡大するため、入力欄は常に16px以上にする */
+input,select,textarea{font-size:16px !important}
+body{background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+
+/* ヘッダ */
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+.hd{display:flex;align-items:center;gap:10px;height:56px}
+.brand{font-weight:700;font-size:17px;letter-spacing:.02em}
+.today{color:var(--sub);font-size:13px}
+.sp{flex:1}
+.iconbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--sub)}
+.iconbtn:hover{color:var(--text)}
+.iconbtn svg{width:18px;height:18px}
+.spin svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* サマリー */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0 12px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;text-align:left;box-shadow:var(--shadow)}
+.stat .n{font-size:24px;font-weight:700;line-height:1.1}
+.stat .l{font-size:12px;color:var(--sub);margin-top:2px}
+.stat.on{outline:2px solid var(--accent);outline-offset:-1px}
+.stat.red .n{color:var(--red)} .stat.amber .n{color:var(--amber)}
+
+/* タブ */
+.tabs{display:flex;gap:4px;background:var(--panel2);padding:4px;border-radius:12px;width:max-content;max-width:100%;overflow-x:auto}
+.tab{border:0;background:transparent;padding:7px 14px;border-radius:9px;color:var(--sub);font-size:14px;white-space:nowrap}
+.tab.on{background:var(--panel);color:var(--text);box-shadow:var(--shadow);font-weight:600}
+.tab .cnt{font-size:12px;color:var(--faint);margin-left:4px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.filterchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--accent-soft);color:var(--accent);border:0;border-radius:999px;padding:5px 10px}
+
+/* Inbox */
+.inbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.inbox h3{margin:0 0 8px;font-size:14px}
+.ibrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0;border-top:1px solid var(--line)}
+.ibrow:first-of-type{border-top:0}
+.ibrow .t{flex:1 1 200px;min-width:0}
+.ibrow .b{font-size:12px;color:var(--sub);white-space:pre-wrap;word-break:break-word}
+
+/* カテゴリボード */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;align-items:start}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.colhd{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-top:4px solid var(--cc)}
+.colhd .name{font-weight:700}
+.colhd .iconbtn.sm{width:26px;height:26px;border:0;background:transparent;color:var(--faint)}
+.colhd .iconbtn.sm:hover{color:var(--red);background:var(--red-soft)}
+.colhd .iconbtn.sm svg{width:14px;height:14px}
+.addcat{background:transparent;border:2px dashed var(--line);box-shadow:none;padding:6px}
+.addcat input{width:100%;border:0;background:transparent;padding:10px;font-size:15px;font-weight:600}
+.addcat input:focus{outline:none}
+.addcat:focus-within{border-color:var(--accent)}
+.colhd .count{font-size:12px;color:var(--sub);background:var(--panel2);border-radius:999px;padding:1px 8px}
+.list{padding:2px 6px 6px}
+.empty{color:var(--faint);font-size:13px;padding:6px 10px 10px}
+.quick{display:flex;gap:6px;padding:0 10px 12px}
+.quick input{flex:1;min-width:0;border:1px dashed var(--line);background:transparent;border-radius:10px;padding:8px 10px;font-size:14px}
+.quick input:focus{outline:none;border-style:solid;border-color:var(--accent);background:var(--panel)}
+
+/* タスク行 */
+.task{display:flex;align-items:flex-start;gap:10px;padding:8px;border-radius:10px}
+.task:hover{background:var(--panel2)}
+.task.sub{margin-left:30px;padding-top:4px;padding-bottom:4px}
+.chk{flex:none;width:22px;height:22px;margin-top:1px;border-radius:50%;border:2px solid var(--faint);background:transparent;display:flex;align-items:center;justify-content:center;padding:0}
+.chk:hover{border-color:var(--green);background:var(--green-soft)}
+.chk svg{width:12px;height:12px;opacity:0;color:var(--green)}
+.chk:hover svg{opacity:1}
+.task.sub .chk{width:18px;height:18px}
+.tbody{flex:1;min-width:0;cursor:pointer}
+.ttext{word-break:break-word}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;border-radius:999px;padding:1px 8px;background:var(--panel2);color:var(--sub);white-space:nowrap}
+.chip svg{width:12px;height:12px}
+.chip.over{background:var(--red-soft);color:var(--red);font-weight:600}
+.chip.today{background:var(--amber-soft);color:var(--amber);font-weight:600}
+.chip.soon{background:var(--accent-soft);color:var(--accent)}
+.chip.prio{background:var(--red-soft);color:var(--red)}
+.chip.cat{background:transparent;border:1px solid var(--line)}
+.chip.cat i{width:8px;height:8px;border-radius:50%;background:var(--cc);display:inline-block}
+.task.done .ttext{text-decoration:line-through;color:var(--faint)}
+
+/* 期限順リスト */
+.flat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:6px}
+.grouphd{font-size:12px;font-weight:700;color:var(--sub);padding:10px 10px 4px;letter-spacing:.04em}
+.grouphd.red{color:var(--red)} .grouphd.amber{color:var(--amber)}
+
+/* いつか・完了 */
+.plain{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:6px}
+.prow{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px}
+.prow:hover{background:var(--panel2)}
+.prow .t{flex:1;min-width:0;word-break:break-word}
+.prow .d{font-size:12px;color:var(--faint);white-space:nowrap}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:7px 12px;font-size:14px}
+.btn:hover{background:var(--panel2)}
+.btn.sm{padding:4px 9px;font-size:13px;border-radius:8px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{filter:brightness(1.05)}
+.btn.danger{color:var(--red)}
+.btn:disabled{opacity:.5;cursor:default}
+.monthhd{font-size:13px;font-weight:700;color:var(--sub);margin:18px 4px 8px}
+
+/* 追加ボタン */
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(18px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;border:0;background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;z-index:30}
+.fab svg{width:26px;height:26px}
+
+/* モーダル */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--panel);border-radius:18px;width:100%;max-width:880px;max-height:calc(100vh - 32px);overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.25);padding:18px}
+.modal h2{font-size:17px;margin:0 0 14px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px;font-weight:600}
+.inp{width:100%;border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 12px;font-size:16px}
+.inp:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-size:13px}
+.seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.dates{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.row{display:flex;gap:8px;align-items:center}
+.actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+.actions .left{margin-right:auto}
+.subl{display:flex;flex-direction:column;gap:6px}
+.subl .row input{flex:1}
+.hint{font-size:12px;color:var(--sub);line-height:1.6}
+.catrow .dot{flex:none;width:10px;height:10px;border-radius:50%}
+.catrow .cname{flex:1;padding:10px 12px;font-weight:600}
+.catrow input{flex:1}
+.iconbtn:disabled{opacity:.3;cursor:default}
+.hint code{background:var(--panel2);padding:1px 5px;border-radius:5px;font-size:11px}
+
+/* トースト */
+.toast{position:fixed;left:50%;bottom:calc(30px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(28,29,33,.92);color:#f2f2f4;padding:8px 14px;border-radius:12px;font-size:13px;line-height:1.4;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(420px,calc(100vw - 120px));animation:toastin .18s ease-out}
+.toast.err{background:rgba(190,50,50,.95);color:#fff;white-space:normal}
+@keyframes toastin{from{opacity:0;transform:translate(-50%,6px)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* 初期設定 */
+.setup{max-width:520px;margin:40px auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:var(--shadow)}
+.setup h1{font-size:20px;margin:0 0 6px}
+.setup ol{padding-left:20px;margin:8px 0 16px}
+.setup li{margin-bottom:4px}
+.banner{background:var(--amber-soft);color:var(--amber);border-radius:10px;padding:8px 12px;font-size:13px;margin-top:14px}
+
+
+/* ===== 縦一列のリスト表示 ===== */
+main.wrap,header .wrap{max-width:1080px}
+.board{display:flex;flex-direction:column;gap:26px;align-items:stretch}
+.col{background:transparent;border:0;box-shadow:none;border-radius:0;overflow:visible}
+.colhd{border-top:0;padding:0 2px 10px}
+.colhd .name{display:flex;align-items:center;gap:8px;font-size:15px}
+.colhd .name::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--cc)}
+.list{padding:0;display:flex;flex-direction:column;gap:6px}
+.list .empty{padding:4px 2px}
+.task{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:11px 12px;align-items:center;box-shadow:var(--shadow);transition:border-color .12s}
+.task:hover{background:var(--panel);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.task.sub{margin-left:calc(34px * var(--d,1));padding:8px 12px;box-shadow:none;background:color-mix(in srgb,var(--panel) 60%,var(--bg))}
+.tbody{display:flex;align-items:center;gap:12px}
+.ttext{flex:1;min-width:0}
+.meta{margin-top:0;flex:none;justify-content:flex-end}
+.chk{margin-top:0}
+.quick{padding:6px 0 0}
+.quick input{border:1px dashed var(--line);background:transparent;border-radius:12px;padding:11px 14px;font-size:14px}
+.addcat{border-radius:12px;padding:0}
+.addcat input{padding:12px 14px}
+.flat{background:transparent;border:0;box-shadow:none;padding:0;display:flex;flex-direction:column;gap:6px}
+.flat .grouphd{padding:14px 2px 2px}
+.flat .grouphd:first-child{padding-top:0}
+.chip.cat{order:-1}
+.runbtn{flex:none;width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--faint);display:flex;align-items:center;justify-content:center;padding:0}
+.runbtn svg{width:13px;height:13px;margin-left:2px}
+.runbtn:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.task.sub .runbtn{width:26px;height:26px}
+.task.sub .runbtn svg{width:11px;height:11px}
+.runparent{font-size:12px;color:var(--sub);margin:-8px 0 14px;padding:0 2px;line-height:1.5}
+.runhd .rparent{flex:1 1 100%;order:4;font-size:12px;color:var(--sub);line-height:1.5}
+.chip.run{cursor:pointer}
+.chip.run svg{width:10px;height:10px}
+.chip.tog{border:1px solid var(--line);cursor:pointer;font:inherit;font-size:12px;padding:2px 9px 2px 5px}
+.chip.tog svg{width:12px;height:12px;transition:transform .15s}
+.chip.tog.on svg{transform:rotate(90deg)}
+.chip.tog:hover{border-color:var(--accent);color:var(--text)}
+.chip.run.wait{background:var(--panel2);color:var(--sub)}
+.chip.run.busy{background:var(--accent-soft);color:var(--accent)}
+.chip.run.busy svg{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.3}}
+.chip.run.review{background:var(--amber-soft);color:var(--amber);font-weight:600}
+.chip.run.ok{background:var(--green-soft);color:var(--green);font-weight:600}
+.chip.run.ng{background:var(--red-soft);color:var(--red);font-weight:600}
+.runtask{font-weight:600;margin-bottom:14px;padding:10px 12px;background:var(--panel2);border-radius:10px}
+.runs{display:flex;flex-direction:column;gap:12px}
+.runcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.runhd{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.runhd .rtitle{font-weight:700;flex:1 1 100%;order:3;min-width:0;line-height:1.5}
+.runhd .rcat{margin-left:auto}
+.runhd .rcat{font-size:12px;color:var(--faint)}
+.mdbody{white-space:pre-wrap;word-break:break-word;font-size:14px;line-height:1.7;background:var(--panel2);border-radius:10px;padding:12px 14px;margin:8px 0;max-height:60vh;overflow:auto}
+.mdbody .mdh{font-weight:700;font-size:14px;color:var(--text);margin-top:10px}
+.mdbody .mdh:first-child{margin-top:0}
+.mdbody .mdgap{height:6px}
+.mdbody code,.runcard code{background:var(--bg);padding:1px 5px;border-radius:5px;font-size:12px;word-break:break-all}
+.mdbody .send{color:var(--red);font-weight:700}
+.runcard .err{color:var(--red);font-size:13px;white-space:pre-wrap;margin:6px 0}
+.runcard form textarea{margin-top:6px}
+.runcard details{margin:6px 0}
+.pg{margin:6px 0 4px}
+.pgnow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;padding:9px 12px;border-radius:10px;background:var(--panel2)}
+.pgnow .pgdot{width:9px;height:9px;border-radius:50%;background:var(--accent);flex:none}
+.pgnow.busy .pgdot{animation:pulse 1.2s ease-in-out infinite}
+.pgnow.review{background:var(--amber-soft)} .pgnow.review .pgdot{background:var(--amber)} .pgnow.review b{color:var(--amber)}
+.pgnow.ng{background:var(--red-soft)} .pgnow.ng .pgdot{background:var(--red)} .pgnow.ng b{color:var(--red)}
+.pgnow.busy b{color:var(--accent)}
+.pgnow .pgago{margin-left:auto;font-size:12px;color:var(--faint)}
+.pgplan{list-style:none;margin:10px 0 6px;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.pgplan li{display:flex;align-items:center;gap:8px;color:var(--sub)}
+.pgplan li svg{width:14px;height:14px;color:var(--green);flex:none}
+.pgplan li.completed span{color:var(--faint);text-decoration:line-through}
+.pgplan li.in_progress{color:var(--text);font-weight:600}
+.pgplan .dotnow,.pgplan .dotwait{width:14px;height:14px;flex:none;border-radius:50%;border:2px solid var(--faint)}
+.pgplan .dotnow{border-color:var(--accent);background:radial-gradient(var(--accent) 35%,transparent 40%)}
+.pgrecap{font-size:14px;line-height:1.7;margin:8px 0 4px;padding:10px 12px;background:var(--panel2);border-radius:10px}
+.pgask{display:flex;gap:8px;align-items:flex-start;font-size:14px;font-weight:600;color:var(--amber);margin:8px 0 2px}
+.pgask svg{width:14px;height:14px;flex:none;margin-top:3px}
+.pglast summary{cursor:pointer;font-size:13px;color:var(--accent)}
+.runcard details.plan summary{cursor:pointer;font-size:13px;color:var(--accent);margin:4px 0}
+a.chip.run{text-decoration:none}
+a.btn{text-decoration:none;display:inline-flex;align-items:center}
+.wp{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--sub);background:var(--panel2);border-radius:999px;padding:3px 4px 3px 12px;margin-bottom:4px}
+.wp b{font-size:12px;border-radius:999px;padding:1px 8px;background:var(--panel);color:var(--sub)}
+.wp.new b{background:var(--accent);color:#fff}
+@media (max-width:640px){
+  .tbody{flex-direction:column;align-items:flex-start;gap:4px}
+  .meta{justify-content:flex-start}
+  .task.sub{margin-left:calc(22px * var(--d,1))}
+}
+@media (max-width:640px){
+  .stats{grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+  .stat{padding:10px 12px}
+  .stat .n{font-size:20px}
+  .board{grid-template-columns:1fr}
+  .today{display:none}
+  .ov{align-items:flex-end;padding:0}
+  .modal{border-radius:18px 18px 0 0;max-height:92vh;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+'use strict';
+// ===== 定数 =====
+const INBOX = 'インボックス';
+// カテゴリは todo.md の「## 見出し」そのもの。並び順もファイルの順
+const catNames = () => S.sections.map(s=>s.name);
+const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
+const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
+const WD = ['日','月','火','水','木','金','土'];
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open'};
+const DEFAULT_REPO = '';
+const BRANCH = 'main';
+
+const ICON = {
+  check:'<polyline points="20 6 9 17 4 12"/>',
+  plus:'<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+  refresh:'<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  cal:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+  flag:'<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>',
+  x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+  up:'<polyline points="18 15 12 9 6 15"/>',
+  chev:'<polyline points="9 6 15 12 9 18"/>',
+  play:'<polygon points="6 4 20 12 6 20 6 4"/>',
+};
+const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// ===== 日付（Asia/Tokyo） =====
+function todayStr(){ return new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(new Date()); }
+function addDays(ds,n){ const d=new Date(ds+'T00:00:00Z'); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); }
+function diffDays(ds){ return Math.round((Date.parse(ds+'T00:00:00Z')-Date.parse(todayStr()+'T00:00:00Z'))/864e5); }
+function wday(ds){ return new Date(ds+'T00:00:00Z').getUTCDay(); }
+function mdw(ds){ const [,m,d]=ds.split('-'); return `${+m}/${+d}(${WD[wday(ds)]})`; }
+function nextWeekday(target, minAdd=0){ const t=todayStr(); for(let i=minAdd;i<minAdd+8;i++){ const d=addDays(t,i); if(wday(d)===target) return d; } }
+function endOfWeek(){ const t=todayStr(); const w=wday(t); return addDays(t, (7-w)%7); } // 日曜まで
+function dueInfo(due){
+  if(!due) return null;
+  const n=diffDays(due);
+  if(n<0) return {cls:'over', label:`${mdw(due)} · ${-n}日超過`, n};
+  if(n===0) return {cls:'today', label:`今日 ${mdw(due)}`, n};
+  if(n===1) return {cls:'soon', label:`明日 ${mdw(due)}`, n};
+  if(n<=3) return {cls:'soon', label:`${mdw(due)} · あと${n}日`, n};
+  return {cls:'', label:`${mdw(due)} · あと${n}日`, n};
+}
+
+// ===== todo.md の読み書き =====
+const TASK_RE = /^(\s*)- \[( |x|X)\] (.*)$/;
+function parseBody(s){
+  let due=null, prio=false;
+  const m = s.match(/📅\s*(\d{4}-\d{2}-\d{2})/);
+  if(m){ due=m[1]; s=s.replace(m[0],''); }
+  if(s.includes('🔺')){ prio=true; s=s.replace(/🔺/g,''); }
+  return {text:s.replace(/\s+/g,' ').trim(), due, prio};
+}
+function fmtTask(t, indent=''){
+  return `${indent}- [ ] ${t.text}${t.due?` 📅${t.due}`:''}${t.prio?' 🔺':''}`;
+}
+function parseTodo(text){
+  const sections=[]; let cur=null, stack=[];  // stack[d] = いまの深さ d のタスク（サブタスクは2スペースずつ深くなる）
+  for(const line of text.replace(/\r/g,'').split('\n')){
+    const h=line.match(/^##\s+(.+?)\s*$/);
+    if(h){ cur={name:h[1], items:[]}; sections.push(cur); stack=[]; continue; }
+    if(!cur) continue;
+    const m=line.match(TASK_RE);
+    if(m){
+      const t={...parseBody(m[3]), subs:[]};
+      const d=Math.floor(m[1].replace(/\t/g,'  ').length/2);
+      if(d>0 && stack.length){
+        const pd=Math.min(d,stack.length)-1;
+        stack[pd].subs.push(t); stack.length=pd+1; stack.push(t); continue;
+      }
+      cur.items.push(t); stack=[t]; continue;
+    }
+    if(line.trim()) cur.items.push({raw:line});
+  }
+  // インボックスは必ず先頭に置く
+  const ib=sections.findIndex(s=>s.name===INBOX);
+  if(ib<0) sections.unshift({name:INBOX, items:[]}); else if(ib>0) sections.unshift(sections.splice(ib,1)[0]);
+  return sections;
+}
+function serializeTodo(sections){
+  let out='# TODO\n';
+  for(const s of sections){
+    out+=`\n## ${s.name}\n`;
+    if(s.items.length){
+      out+='\n';
+      for(const it of s.items){
+        if(it.raw!==undefined){ out+=it.raw+'\n'; continue; }
+        const put=(t,d)=>{ out+=fmtTask(t,'  '.repeat(d))+'\n'; for(const st of t.subs||[]) put(st,d+1); };
+        put(it,0);
+      }
+    }
+  }
+  return out;
+}
+function parseSomeday(text){
+  return text.replace(/\r/g,'').split('\n').filter(l=>/^\s*- /.test(l)).map(l=>l.replace(/^\s*- (\[[ xX]\] )?/,'').trim()).filter(Boolean);
+}
+function serializeSomeday(items){ return '# いつかやる\n' + (items.length? '\n'+items.map(i=>`- ${i}`).join('\n')+'\n' : ''); }
+function parseDone(text){
+  return text.replace(/\r/g,'').split('\n').map(l=>l.match(/^- \[[xX]\] (.*?)\s*(?:✅\s*(\d{4}-\d{2}-\d{2}))?\s*$/)).filter(Boolean).map(m=>({text:m[1], date:m[2]||''}));
+}
+// タスクの指し方: {cat, text} ／ サブタスクは parent（すぐ上の親）も持つ。2段より深いときは path（いちばん上から親までの並び）も持つ
+const refPath = ref => ref.path || (ref.parent!==undefined ? [ref.parent] : []);
+const mkRef = (cat, text, path=[]) => path.length ? {cat, text, parent:path[path.length-1], ...(path.length>1?{path:[...path]}:{})} : {cat, text};
+const samePath = (a, b) => a.length===b.length && a.every((x,i)=>x===b[i]);
+function findTask(sections, ref){
+  const sec=sections.find(s=>s.name===ref.cat); if(!sec) return null;
+  let list=sec.items.filter(i=>i.text!==undefined), parent=null;
+  for(const name of refPath(ref)){ parent=list.find(t=>t.text===name); if(!parent) return null; list=parent.subs; }
+  const t=list.find(t=>t.text===ref.text); if(!t) return null;
+  if(parent) return {sec, parent, task:t, remove:()=>{ const i=parent.subs.indexOf(t); if(i>=0) parent.subs.splice(i,1); }};
+  return {sec, task:t, remove:()=>{ const i=sec.items.indexOf(t); if(i>=0) sec.items.splice(i,1); }};
+}
+
+// ===== 保存先（GitHub / デモ） =====
+const b64enc = s => { const b=new TextEncoder().encode(s); let bin=''; for(let i=0;i<b.length;i+=0x8000) bin+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(bin); };
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')),c=>c.charCodeAt(0)));
+
+function githubBackend(token, repo){
+  const api = async (path, opts={}) => {
+    const r = await fetch(`https://api.github.com/repos/${repo}${path}`, {
+      ...opts, cache:'no-store',
+      headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opts.body?{'Content-Type':'application/json'}:{})},
+    });
+    if(r.status===404) return null;
+    if(!r.ok){ const e=new Error(`GitHub ${r.status}`); e.status=r.status; try{ e.detail=(await r.json()).message; }catch{} throw e; }
+    return r.status===204 ? {} : r.json();
+  };
+  return {
+    kind:'github',
+    async read(path){ const j=await api(`/contents/${encodeURI(path)}?ref=${BRANCH}&t=${Date.now()}`); return j ? {text:b64dec(j.content), sha:j.sha} : null; },
+    async write(path, text, sha, message){ await api(`/contents/${encodeURI(path)}`, {method:'PUT', body:JSON.stringify({message, content:b64enc(text), branch:BRANCH, ...(sha?{sha}:{})})}); },
+    async issues(){ const j=await api(`/issues?state=open&per_page=100&t=${Date.now()}`); return (j||[]).filter(i=>!i.pull_request).map(i=>({number:i.number,title:i.title,body:i.body||''})); },
+    async closeIssue(n){ await api(`/issues/${n}/comments`,{method:'POST',body:JSON.stringify({body:'action-osに反映'})}); await api(`/issues/${n}`,{method:'PATCH',body:JSON.stringify({state:'closed'})}); },
+    async check(){ const j=await fetch(`https://api.github.com/repos/${repo}`,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}}); if(!j.ok){ const e=new Error(`GitHub ${j.status}`); e.status=j.status; throw e; } },
+  };
+}
+function demoBackend(){
+  const files={}; let n=0; const iss=[{number:99,title:'デモ: 予約表の印刷',body:'仕事用'}];
+  const seed = async path => { try{ const r=await fetch('../'+path,{cache:'no-store'}); if(r.ok) return await r.text(); }catch{} return null; };
+  return {
+    kind:'demo', log:[],
+    async read(path){ if(!(path in files)){ const t=await seed(path); files[path]= t===null?null:{text:t,sha:'d'+(n++)}; } return files[path] ? {...files[path]} : null; },
+    async write(path,text,sha,message){ if(files[path] && files[path].sha!==sha){ const e=new Error('GitHub 409'); e.status=409; throw e; } files[path]={text,sha:'d'+(n++)}; this.log.push({path,message,text}); },
+    async issues(){ return iss.slice(); },
+    async closeIssue(num){ const i=iss.findIndex(x=>x.number===num); if(i>=0) iss.splice(i,1); },
+    async check(){},
+  };
+}
+
+// ===== 状態 =====
+const S = {
+  be:null, sections:[], someday:[], done:{}, issues:[], runs:[], progress:{}, loading:false,
+  tab: safeGet(LS.tab) || 'board', filter:null, modal:null, toast:null, loadedAt:0,
+};
+function safeGet(k){ try{ return localStorage.getItem(k); }catch{ return null; } }
+function safeSet(k,v){ try{ v===null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch{} }
+
+function monthOf(ds){ return ds.slice(0,7); }
+function prevMonth(ym){ const [y,m]=ym.split('-').map(Number); return m===1?`${y-1}-12`:`${y}-${String(m-1).padStart(2,'0')}`; }
+
+async function loadAll(quiet){
+  if(!S.be) return;
+  S.loading=true; render();
+  try{
+    const ym=monthOf(todayStr());
+    const [todo, some, d1, d2, iss, runs, prog] = await Promise.all([
+      S.be.read('todo.md'), S.be.read('someday.md'), S.be.read(`done/${ym}.md`), S.be.read(`done/${prevMonth(ym)}.md`),
+      S.be.issues().catch(e=>{ console.warn(e); return null; }),
+      S.be.read('runs.json').catch(()=>null),
+      S.be.read('progress.json').catch(()=>null),
+    ]);
+    S.runs=parseRuns(runs&&runs.text);
+    S.progress=parseProgress(prog&&prog.text);
+    S.sections=parseTodo(todo?todo.text:'# TODO\n');
+    S.someday=parseSomeday(some?some.text:'');
+    S.done={[ym]:d1?parseDone(d1.text):[], [prevMonth(ym)]:d2?parseDone(d2.text):[]};
+    S.issues=iss;
+    S.loadedAt=Date.now();
+  }catch(e){ handleErr(e); }
+  S.loading=false; render();
+}
+
+// ファイルを最新に読み直してから変更を当てて保存する（同時編集・競合に強くする）
+async function mutateFile(path, fn, message, init=''){
+  for(let attempt=0; attempt<3; attempt++){
+    const cur=await S.be.read(path);
+    const next=fn(cur?cur.text:init);
+    if(next===false) throw Object.assign(new Error('対象が見つかりません'),{gone:true});
+    if(cur && next===cur.text) return;
+    try{ await S.be.write(path, next, cur&&cur.sha, message); return; }
+    catch(e){ if(e.status===409||e.status===422){ continue; } throw e; }
+  }
+  throw new Error('保存が競合しました。もう一度試してください');
+}
+// 画面はすぐ変え、GitHubへの保存は裏で1件ずつ順番に行う
+const Q=[]; let qRunning=false;
+function setSyncIndicator(){ const b=document.querySelector('[data-act="reload"]'); if(b) b.classList.toggle('spin', S.loading||qRunning); }
+function enqueue(label, local, remote){
+  try{ local(); }catch(e){ console.warn(e); }
+  render(); if(label) toast(label);
+  Q.push(remote); pump();
+}
+async function pump(){
+  if(qRunning) return;
+  qRunning=true; setSyncIndicator();
+  while(Q.length){
+    const job=Q.shift();
+    try{ await job(); }
+    catch(e){ handleErr(e); Q.length=0; qRunning=false; await loadAll(true); return; }
+  }
+  qRunning=false; S.loadedAt=Date.now(); setSyncIndicator();
+}
+window.addEventListener('beforeunload', e=>{ if(qRunning||Q.length){ e.preventDefault(); e.returnValue=''; } });
+function handleErr(e){
+  console.error(e);
+  if(e.gone) return toast('他の端末で変更されていたため、最新の状態に更新しました', true);
+  if(e.status===401) return toast('トークンが無効です。設定から入れ直してください', true);
+  if(e.status===403) return toast('トークンの権限が足りません（Contents / Issues の読み書き）', true);
+  toast('保存に失敗したため、最新の状態に戻しました', true);
+}
+
+// ===== 操作 =====
+// fn は todo.md の構造を書き換える関数。画面上のデータと、保存直前に読み直した最新ファイルの両方に同じ fn を当てる
+function opsTodo(fn, msg){ return mutateFile('todo.md', t=>{ const s=parseTodo(t); if(fn(s)===false) return false; return serializeTodo(s); }, msg, '# TODO\n'); }
+const somedayFile = (fn, msg) => mutateFile('someday.md', t=>{ const it=parseSomeday(t); if(fn(it)===false) return false; return serializeSomeday(it); }, msg, '# いつかやる\n');
+const pushSome = text => it => { it.push(text); };
+const dropSome = text => it => { const i=it.indexOf(text); if(i<0) return false; it.splice(i,1); };
+const removeRef = ref => s => { const f=findTask(s,ref); if(!f) return false; f.remove(); };
+
+function addTask(cat, t, parentText){
+  const fn=s=>{
+    const sec=s.find(x=>x.name===cat);
+    if(parentText!==undefined){ const p=sec.items.find(i=>i.text===parentText); if(!p) return false; p.subs.push({...t,subs:[]}); }
+    else sec.items.push({...t,subs:[]});
+  };
+  enqueue('追加しました', ()=>fn(S.sections), ()=>opsTodo(fn, `dashboard: 「${t.text}」を${cat}に追加`));
+}
+function completeTask(ref){
+  const today=todayStr(), ym=monthOf(today);
+  const label = ref.parent!==undefined ? `${ref.text}（${ref.parent}）` : ref.text;
+  // このタスクで開いている実行（スレッド）があれば一緒に閉じる
+  // （下にあるサブタスクの実行も閉じる）
+  const below=[...refPath(ref), ref.text];
+  const openRuns = S.runs.filter(r=>runOpen(r) && (runIs(r,ref) || (r.cat===ref.cat && samePath(runPath(r).slice(0,below.length), below)))).map(r=>r.id);
+  enqueue('完了にしました', ()=>{ removeRef(ref)(S.sections); (S.done[ym]=S.done[ym]||[]).push({text:label,date:today}); for(const id of openRuns) patchRun(id,{status:'closed'})(S.runs); }, async ()=>{
+    if(openRuns.length) await runsFile(runs=>{ let hit=false; for(const id of openRuns){ if(patchRun(id,{status:'closed'})(runs)!==false) hit=true; } if(!hit) return false; }, `dashboard: 「${label}」の実行を閉じる`).catch(e=>{ if(!e.gone) throw e; });
+    await opsTodo(removeRef(ref), `dashboard: 「${label}」を完了`);
+    await mutateFile(`done/${ym}.md`, t=>{
+      let body=t||`# ${ym} 完了ログ\n`; if(!body.endsWith('\n')) body+='\n';
+      return body+`- [x] ${label} ✅${today}\n`;
+    }, `dashboard: 「${label}」を完了ログに追加`);
+  });
+}
+function updateTask(ref, patch){
+  const fn=s=>{
+    const f=findTask(s,ref); if(!f) return false;
+    Object.assign(f.task, {text:patch.text, due:patch.due, prio:patch.prio});
+    if(patch.subs) f.task.subs=JSON.parse(JSON.stringify(patch.subs));
+    // 親タスクを変える（同じカテゴリの中で、別のタスクの下へ／いちばん上へ）
+    if(patch.moveTo && !samePath(patch.moveTo, refPath(ref))){
+      const to=patch.moveTo, dest = to.length ? findTask(s, mkRef(ref.cat, to[to.length-1], to.slice(0,-1))) : null;
+      if(to.length && !dest) return false;
+      f.remove(); (dest ? dest.task.subs : f.sec.items).push(f.task); return;
+    }
+    if(patch.cat && patch.cat!==ref.cat && ref.parent===undefined){
+      f.remove(); s.find(x=>x.name===patch.cat).items.push(f.task);
+    }
+  };
+  // 名前・置き場所・カテゴリが変わったら、そのタスク（と下のタスク）の実行の記録も合わせる
+  // （合わせないと、実行係が「todo.md から消えたタスク」とみなして実行を閉じてしまう）
+  const oldPath=refPath(ref), moved=patch.moveTo && !samePath(patch.moveTo, oldPath);
+  const newPath=moved ? patch.moveTo : oldPath, newCat=(!moved && patch.cat && ref.parent===undefined) ? patch.cat : ref.cat;
+  const fixers=[];
+  if(patch.text!==ref.text || moved || newCat!==ref.cat) fixers.push(runsRenamer(ref.cat, oldPath, ref.text, newCat, newPath, patch.text));
+  // 編集画面でサブタスクの名前を変えたときも、そのサブタスク（と下のタスク）の実行の記録を合わせる（上の書き換えのあとの置き場所で探す）
+  const here=[...newPath, patch.text];
+  for(const rn of patch.subRenames||[]) fixers.push(runsRenamer(newCat, here, rn.from, newCat, here, rn.to));
+  const fix = runs=>{ let hit=false; for(const f of fixers) if(f(runs)!==false) hit=true; if(!hit) return false; };
+  const touches = fixers.length>0 && fix(JSON.parse(JSON.stringify(S.runs)))!==false;
+  enqueue('更新しました', ()=>{ fn(S.sections); if(touches) fix(S.runs); }, async ()=>{
+    await opsTodo(fn, `dashboard: 「${patch.text}」を更新`);
+    if(touches) await runsFile(fix, `dashboard: 「${patch.text}」の実行の記録を合わせる`).catch(e=>{ if(!e.gone) throw e; });
+  });
+}
+function runsRenamer(cat, oldPath, oldText, newCat, newPath, newText){
+  const oldFull=[...oldPath, oldText], newFull=[...newPath, newText];
+  const setPath=(r,p)=>{ delete r.parent; delete r.path; if(p.length){ r.parent=p[p.length-1]; if(p.length>1) r.path=[...p]; } };
+  return runs=>{ let hit=false;
+    for(const r of runs){
+      if(!runOpen(r) || r.cat!==cat) continue;
+      const rp=runPath(r);
+      if(r.task===oldText && samePath(rp, oldPath)){ r.task=newText; setPath(r, newPath); r.cat=newCat; hit=true; }
+      else if(rp.length>=oldFull.length && samePath(rp.slice(0,oldFull.length), oldFull)){ setPath(r, [...newFull, ...rp.slice(oldFull.length)]); r.cat=newCat; hit=true; }
+    }
+    if(!hit) return false;
+  };
+}
+function deleteTask(ref){
+  enqueue('削除しました', ()=>removeRef(ref)(S.sections), ()=>opsTodo(removeRef(ref), `dashboard: 「${ref.text}」を削除`));
+}
+function toSomeday(ref){
+  enqueue('いつかやるに移しました', ()=>{ removeRef(ref)(S.sections); S.someday.push(ref.text); }, async ()=>{
+    await opsTodo(removeRef(ref), `dashboard: 「${ref.text}」をいつかやるへ移動`);
+    await somedayFile(pushSome(ref.text), `dashboard: 「${ref.text}」をいつかやるに追加`);
+  });
+}
+function addSomeday(text){
+  enqueue('追加しました', ()=>S.someday.push(text), ()=>somedayFile(pushSome(text), `dashboard: 「${text}」をいつかやるに追加`));
+}
+function removeSomeday(text, promoteCat){
+  const addFn=s=>{ s.find(x=>x.name===promoteCat).items.push({text,due:null,prio:false,subs:[]}); };
+  enqueue(promoteCat?`${promoteCat}に移しました`:'削除しました', ()=>{ dropSome(text)(S.someday); if(promoteCat) addFn(S.sections); }, async ()=>{
+    await somedayFile(dropSome(text), promoteCat?`dashboard: 「${text}」をいつかやるからtodoへ移動`:`dashboard: 「${text}」をいつかやるから削除`);
+    if(promoteCat) await opsTodo(addFn, `dashboard: 「${text}」を${promoteCat}に追加`);
+  });
+}
+function importIssue(iss, dest, due, prio){
+  const picked=pickCategory(iss.title); const text = picked.cat===dest ? picked.text : iss.title.trim();
+  const addFn=s=>{ s.find(x=>x.name===dest).items.push({text,due:due||null,prio:!!prio,subs:[]}); };
+  enqueue('取り込みました', ()=>{ S.issues=S.issues.filter(i=>i.number!==iss.number); if(dest==='someday') S.someday.push(text); else addFn(S.sections); }, async ()=>{
+    if(dest==='someday') await somedayFile(pushSome(text), `inbox: Issue#${iss.number} ${text}をいつかやるに追加`);
+    else await opsTodo(addFn, `inbox: Issue#${iss.number} ${text}を${dest}に追加`);
+    await S.be.closeIssue(iss.number);
+  });
+}
+
+function badCatName(n){
+  if(!n) return 'カテゴリ名を入れてください';
+  if(/[#\n]/.test(n)) return 'カテゴリ名に # は使えません';
+  if(catNames().includes(n)) return '同じ名前のカテゴリがあります';
+  return null;
+}
+function addCategory(name){
+  const fn=s=>{ if(s.find(x=>x.name===name)) return; s.push({name, items:[]}); };
+  enqueue(`カテゴリ「${name}」を追加しました`, ()=>fn(S.sections), ()=>opsTodo(fn, `dashboard: カテゴリ「${name}」を追加`));
+}
+function renameCategory(from,to){
+  const fn=s=>{ const sec=s.find(x=>x.name===from); if(!sec || s.find(x=>x.name===to)) return false; sec.name=to; };
+  enqueue('カテゴリ名を変更しました', ()=>fn(S.sections), ()=>opsTodo(fn, `dashboard: カテゴリ「${from}」を「${to}」に変更`));
+}
+function deleteCategory(name){
+  const fn=s=>{ const i=s.findIndex(x=>x.name===name); if(i<0||name===INBOX) return false; const [sec]=s.splice(i,1); s.find(x=>x.name===INBOX).items.push(...sec.items); };
+  enqueue(`カテゴリ「${name}」を削除しました`, ()=>fn(S.sections), ()=>opsTodo(fn, `dashboard: カテゴリ「${name}」を削除`));
+}
+function moveCategory(name){
+  const fn=s=>{ const i=s.findIndex(x=>x.name===name); if(i<=1) return false; [s[i-1],s[i]]=[s[i],s[i-1]]; };
+  enqueue('並び順を変更しました', ()=>fn(S.sections), ()=>opsTodo(fn, `dashboard: カテゴリ「${name}」の並び順を変更`));
+}
+// 「仕事：〇〇」「〇〇 #仕事」のようにカテゴリ名が書かれていたら、そのカテゴリと本文に分ける
+function pickCategory(title){
+  const names=catNames().filter(n=>n!==INBOX);
+  for(const n of names){
+    const pre=new RegExp('^\\s*'+n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\s*[:：、,]\\s*');
+    if(pre.test(title)) return {cat:n, text:title.replace(pre,'').trim()};
+    const tag='#'+n;
+    if(title.includes(tag)) return {cat:n, text:title.replace(tag,'').replace(/\s+/g,' ').trim()};
+  }
+  return {cat:null, text:title.trim()};
+}
+
+// ===== Claude で実行（PC の実行係とは runs.json でやり取りする） =====
+const RUN_ST = {
+  queued:{label:'PC で開く待ち', cls:'wait', attn:false, active:true},
+  opened:{label:'デスクトップで進行中', cls:'busy', attn:true, active:true},
+  // 以下は旧い方式の名残（表示と、デスクトップアプリへの引き継ぎだけ対応）
+  thread:{label:'スレッド進行中', cls:'busy', attn:true, active:true},
+  paused:{label:'スレッド停止中', cls:'review', attn:true},
+  // 以下は旧い方式（計画→承認）の名残。表示とスレッドへの移行だけ対応する
+  review:{label:'承認待ち', cls:'review', attn:true},
+  planning:{label:'計画中', cls:'busy', attn:false, active:true},
+  approved:{label:'実行待ち', cls:'wait', attn:false, active:true},
+  running:{label:'実行中', cls:'busy', attn:false, active:true},
+  done:{label:'実行済み', cls:'ok', attn:true},
+  failed:{label:'失敗', cls:'ng', attn:true},
+  cancelled:{label:'取り消し', cls:'', attn:false},
+  closed:{label:'完了', cls:'', attn:false},
+};
+function parseRuns(text){ try{ const d=JSON.parse(text||'{}'); if(d.workdir) S.workdir=d.workdir; if(d.proj_dir) S.projDir=d.proj_dir; if(d.aos_dir) S.aosDir=d.aos_dir; return Array.isArray(d.runs)?d.runs.filter(r=>RUN_ST[r.status]):[]; }catch{ return []; } }
+const runOpen = r => r.status!=='cancelled' && r.status!=='closed';
+const runPath = r => r.path || (r.parent ? [r.parent] : []);
+const runIs = (r, ref) => r.cat===ref.cat && r.task===ref.text && samePath(runPath(r), refPath(ref));
+function runFor(ref){ for(let i=S.runs.length-1;i>=0;i--){ const r=S.runs[i]; if(runIs(r,ref) && runOpen(r)) return r; } return null; }
+const runRef = r => mkRef(r.cat, r.task, runPath(r));
+const nowJst = () => new Date(Date.now()+9*3600e3).toISOString().slice(0,19);
+function runsFile(fn, msg){
+  return mutateFile('runs.json', t=>{ let d; try{ d=JSON.parse(t||'{}'); }catch{ d={}; } if(!Array.isArray(d.runs)) d.runs=[]; if(fn(d.runs)===false) return false; d.runs=d.runs.slice(-60); return JSON.stringify(d,null,1)+'\n'; }, msg, '{"runs":[]}\n');
+}
+const patchRun = (id, patch) => runs => { const r=runs.find(x=>x.id===id); if(!r) return false; Object.assign(r, patch, {updated:nowJst()}); };
+// ===== デスクトップアプリ（Claude）でスレッドを開く =====
+// claude://code/new は「作業フォルダ＋入力欄の文字」を入れた新しいスレッドを開く（送信は人が Enter で行う）
+// PC（マウスで操作する画面）のときだけ ▶ を出す。Windows でも Mac でも動く
+const IS_MAC_DESKTOP = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && !matchMedia('(hover: none)').matches;
+const PASTE_KEY = /Mac/.test(navigator.platform||navigator.userAgent) ? '⌘V' : 'Ctrl+V';
+// 作業フォルダの名前（最後の部分）
+const workName = () => (S.workdir||'').split(/[\\/]/).filter(Boolean).pop() || '作業フォルダ';
+// 指示文に入れる決まり（このリポジトリの名前と、手元の場所は設定・実行係から受け取る）
+function rules(){
+  const repo = (S.be && S.be.repo) || safeGet(LS.repo) || 'Action OS のリポジトリ';
+  const aos = S.aosDir || 'Action OS のリポジトリの手元の場所';
+  return `進め方（どのタスクでも必ずこの順で）:
+1. 状況の確認と把握: 作業フォルダの CLAUDE.md や README があれば読み、関係するファイル・データを調べ、現状を短くまとめる。
+2. 提案: 最適な案（必要なら2〜3案と、どれを勧めるか）と、作業場所を示す。作業場所は、続き・改修・運用なら該当する既存のフォルダ、今までやっていない新しい取り組みなら作業フォルダ直下の新しいフォルダ（英小文字とハイフン）。
+3. 進め方の確認: ユーザーの返事を待ってから進める。勝手に先へ進まない。
+4. 実行: 合意した範囲だけ進め、区切りごとに結果を報告して、次の進め方を確認する。
+
+守ること:
+- 外部への送信・公開（LINE、メール、SNS やサイトの更新・投稿など）は、送る内容を見せて、はっきり了承を得てから行う。
+- 作業場所の外のファイルは、合意したもの以外変更しない。新しいフォルダを作ったら、作業フォルダの CLAUDE.md に地図（フォルダの一覧）があれば1行追加する。
+- タスク管理は Action OS（GitHub の ${repo} の todo.md と、そのダッシュボード）だけが正。
+- 作業中に新しく出てきたタスクは、勝手に登録せず、区切りで箇条書きにして提案する。
+- 終わったら、やったこと・成果物の場所・残っていることをまとめ、「Action OS のタスクを完了にして、このスレッドもアーカイブしますか？」と1回で確認する（完了だけ・どちらもまだ、も選べるように聞く）。完了を了承されたら、${aos} で完了処理まで行う（git pull --rebase --autostash → todo.md からそのタスクの行を消す → done/YYYY-MM.md に完了ログを1行足す → その2つだけをコミットして push。ほかの未コミットの変更は入れない。決まりは Action OS の CLAUDE.md の「完了処理」）。アーカイブも了承されたら、完了処理のあとにこのスレッドをアーカイブする（archive_session に "self" を渡す。削除はしない）。`;
+}
+// デスクトップアプリのスレッドの会話記録（<ホーム>/.claude/projects/<作業フォルダ>/<セッション>.jsonl。場所は実行係が runs.json の proj_dir に書く）
+function sessionLog(sid){ if(!S.projDir) return `（セッション ${sid}）`; const sep=S.projDir.includes('\\')?'\\':'/'; return `${S.projDir}${sep}${sid}.jsonl`; }
+// サブタスクのときは、親タスク・同じ親の他のサブタスク・親タスクのスレッドの会話記録を添える
+function subContext(r){
+  if(!r.parent) return '';
+  let t=`\n\nこのタスクは、親タスクを進めるためのサブタスクの1つです。親タスクは目的として踏まえ、作業はこのサブタスクの範囲にとどめてください。`;
+  if(r.siblings&&r.siblings.length) t+=`\n同じ親タスクの他のサブタスク（参考。このスレッドではやらない）:\n${r.siblings.map(x=>`  - ${x}`).join('\n')}`;
+  if(r.parent_session) t+=`\n親タスクのスレッドの会話記録: ${sessionLog(r.parent_session)}\n経緯が分からないところがあるときだけ、この記録から必要な部分を探して読んでください（長いので全部は読まない）。`;
+  return t;
+}
+// 下にサブタスクがあるタスクの進め方と完了の仕方（親の行を先に消すと、残ったサブタスクが1段上にずれるため）
+function subsRule(r, who){
+  if(!(r.subs && r.subs.length)) return '';
+  return `${who}の下にはサブタスクがあります（上の一覧）。進め方と完了の仕方:
+- どのサブタスクから・どの順で進めるかを提案し、合意したものを1つずつ進める（全部を一度に進めない）。
+- サブタスクが1つ終わるたびに、そのサブタスクを完了にしてよいか確認する。了承されたら、そのサブタスクの行だけを todo.md から消し（その下にさらに行があれば一緒に消す）、done/YYYY-MM.md に「- [x] サブタスク名（${r.task}） ✅YYYY-MM-DD」を1行足して、その2つだけをコミットして push する。
+- ${who}自体の行を完了にするのは、下のサブタスクがすべて片付いてから。下に行が残っているうちは${who}の行を消さない（消すと、残った行が1段上にずれる）。残っているのに終えたいと言われたら、残りをどうするか（一緒に完了にする・残しておく）を確認する。`;
+}
+function buildPrompt(r){
+  const lines=[`タスク: ${r.task}`]; if(r.parent) lines.push(`親タスク: ${r.parent}`); if(r.path && r.path.length>1) lines.push(`上の階層（いちばん上から）: ${r.path.join(' ＞ ')}`); if(r.cat) lines.push(`カテゴリ: ${r.cat}`); if(r.due) lines.push(`期限: ${r.due}`);
+  if(r.parent && r.parent_due) lines.push(`親タスクの期限: ${r.parent_due}`);
+  for(const x of r.subs||[]) lines.push(`  - サブタスク: ${x}`);
+  if(r.prev_session){
+    const log = sessionLog(r.prev_session);
+    return `【Action OS から】（実行ID: ${r.id||''}）前のスレッドの続きです。前のスレッドは途中で止まったので、このスレッドで引き継ぎます。
+
+${lines.join('\n')}${subContext(r)}${r.subs&&r.subs.length?`\n\n${subsRule(r,'このタスク')}`:''}
+
+前のスレッドの会話記録: ${log}
+まずこの記録を読み、どこまで進んで何が決まっていたか（集めた数字・ユーザーの指示・やりかけの作業）を短くまとめてから、続きを進めてください。${r.note?`\n\nユーザーからの指示: ${r.note}`:''}
+
+${rules()}`;
+  }
+  return `【Action OS から】（実行ID: ${r.id||''}）この${r.parent?'サブタスク':'タスク'}を、ユーザーと相談しながら進めてください。
+
+${lines.join('\n')}${subContext(r)}${r.subs&&r.subs.length?`\n\n${subsRule(r,'このタスク')}`:''}${r.note?`\n\n補足（ユーザーより）: ${r.note}`:''}
+
+${rules()}
+
+まずは 1.（状況の確認と把握）から始めてください。`;
+}
+// サブタスクを、親タスクのスレッドから子スレッド（サイドセッション）として立ててもらうための依頼文。
+// デスクトップアプリのリンクは既存のスレッドの入力欄に文を入れられないので、コピーして親スレッドを開き、⌘V → Enter してもらう
+function buildParentAsk(r){
+  const lines=[`サブタスク: ${r.task}`]; if(r.path && r.path.length>1) lines.push(`上の階層（いちばん上から）: ${r.path.join(' ＞ ')}`); if(r.cat) lines.push(`カテゴリ: ${r.cat}`); if(r.due) lines.push(`期限: ${r.due}`);
+  for(const x of r.subs||[]) lines.push(`  - その下のサブタスク: ${x}`);
+  return `【Action OS から】（実行ID: ${r.id}）ダッシュボードの ▶ で、このスレッドのタスクの下にあるサブタスクを頼まれました。このスレッドのサイドセッション（子スレッド）として立ててください。
+
+${lines.join('\n')}${r.note?`\n補足（ユーザーより）: ${r.note}`:''}${r.near_session?`\n\n途中の親タスク「${r.near_task}」にも別のスレッドがあります。その会話記録: ${sessionLog(r.near_session)}\n指示書を書くときに経緯が足りなければ、この記録から必要な部分だけ探して読んでください（長いので全部は読まない）。`:''}
+
+立て方:
+- start_session を initiation "user_asked" で使い、このスレッドの下に立てる（ユーザーがダッシュボードで頼んだもの）。
+- 指示書は、このスレッドで分かっている経緯（決まったこと・関係するファイル・やりかけの作業）を踏まえて書く。
+- 指示書の1行目に、次の1行をそのまま入れる（ダッシュボードが子スレッドの進み具合を追う目印）:
+【Action OS から】（実行ID: ${r.id}）
+- 指示書には次も入れる: 状況の確認 → 案の提案 → 進め方の確認 → 実行 の順で、ユーザーと相談しながら進める／作業はこのサブタスクの範囲にとどめる／外部への送信・公開は、送る内容を見せてはっきり了承を得てから行う／作業中に新しく出てきたタスクは勝手に登録せず、区切りで提案する／終わったら、やったこと・成果物の場所・残っていることをまとめ「Action OS のサブタスクを完了にして、このスレッドもアーカイブしますか？」と1回で確認し（完了だけ・どちらもまだ、も選べるように）、完了を了承されたら ~/dev/action-os で完了処理（todo.md からその行を消し、done/YYYY-MM.md に完了ログを1行足し、その2つだけをコミットして push）まで行い、アーカイブも了承されたら、そのあと子スレッド自身をアーカイブする（archive_session に "self" を渡す。削除はしない）。
+${r.subs&&r.subs.length?`- このサブタスクの下にはさらにサブタスクがあるので、指示書には次の決まりもそのまま入れる:\n${subsRule(r,'このサブタスク').replace(/^/gm,'  ')}\n`:''}- 立てたら、このスレッドでは立てたことを1行で報告するだけにし、サブタスクの作業はこのスレッドでは進めない。`;
+}
+function parentLink(r){ return 'claude://code/continue?'+new URLSearchParams({session:r.parent_local}).toString(); }
+// 押した瞬間にその場でコピーする（デスクトップアプリへ移ったあとはコピーできないことがあるため）
+function copyNow(text){
+  const ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch{} ta.remove(); return ok;
+}
+function deepLink(prompt){ const u=new URLSearchParams(); u.set('q',prompt); if(S.workdir) u.set('folder',S.workdir); return 'claude://code/new?'+u.toString(); }
+function openInDesktop(r){
+  if(r.via==='parent' && r.parent_local){
+    if(copyNow(r.prompt)){ location.href=parentLink(r); return true; }
+    S.modal={type:'paste', text:r.prompt, link:parentLink(r)}; render(); return false;
+  }
+  location.href=deepLink(r.prompt||buildPrompt(r)); return true;
+}
+// サブタスクを親タスクのスレッドから立てられるか（PC で、親タスクのスレッドが開いていて、その ID が分かっているとき）
+// 上の階層のタスクで開いている実行（近い順）。すぐ上の親にスレッドが無ければ、さらに上の親のスレッドを使う
+function ancestorRuns(ref){ const out=[]; let p=refPath(ref); while(p.length){ const r=runFor(mkRef(ref.cat, p[p.length-1], p.slice(0,-1))); if(r) out.push(r); p=p.slice(0,-1); } return out; }
+// 子スレッドを立ててもらう先は、開いているうちで「いちばん上」の親タスクのスレッド（孫でも、途中の親にスレッドがあっても、いちばん上の親の下にそろえる）
+function parentRunFor(ref){ if(ref.parent===undefined || !IS_MAC_DESKTOP) return null; return ancestorRuns(ref).filter(pr=>pr.status==='opened' && pr.desk_local).pop() || null; }
+const threadName = r => (S.progress[r.id] && S.progress[r.id].title) || r.task;
+function startRun(ref, note, extra={}){
+  const f=findTask(S.sections, ref);
+  const sub = ref.parent!==undefined;
+  const run={id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), task:ref.text, cat:ref.cat, due:f?.task.due||null,
+    subs:(f?.task.subs||[]).map(x=>x.text), note:note||null, created:nowJst(), updated:nowJst(), ...extra};
+  if(sub){
+    run.parent=ref.parent; run.parent_due=f?.parent.due||null;
+    if(refPath(ref).length>1) run.path=[...refPath(ref)];
+    run.siblings=(f?.parent.subs||[]).filter(x=>x.text!==ref.text).map(x=>x.text);
+    const pr=ancestorRuns(ref).find(x=>x.desk_session);  // 親タスク（無ければさらに上）で開いているスレッドがあれば、その会話記録を参考に渡す
+    if(pr && pr.desk_session) run.parent_session=pr.desk_session;
+    const pp=parentRunFor(ref);  // 親タスクのスレッドから子スレッドとして立ててもらう
+    if(pp){ run.via='parent'; run.parent_run=pp.id; run.parent_local=pp.desk_local;
+      // 途中の親タスクにもスレッドがあれば、その会話記録を指示書づくりの参考に渡す
+      if(pr && pr.id!==pp.id){ run.near_session=pr.desk_session; run.near_task=pr.task; } }
+  }
+  run.prompt = run.via==='parent' ? buildParentAsk(run) : buildPrompt(run);
+  const here = IS_MAC_DESKTOP && S.workdir;
+  run.status = here ? 'opened' : 'queued';
+  const ok = here ? openInDesktop(run) : false;
+  enqueue(!here ? 'PC のデスクトップアプリに開くよう依頼しました'
+    : run.via==='parent' ? (ok ? `依頼文をコピーして親スレッドを開きました。${PASTE_KEY} → Enter で子スレッドが立ちます` : '親スレッドに貼り付ける文を出しました')
+    : 'デスクトップアプリに開きました。Enter で始まります',
+    ()=>S.runs.push({...run}), ()=>runsFile(runs=>{ runs.push(run); }, `dashboard: 「${ref.text}」のスレッドを依頼`));
+}
+// 旧い方式で止まったものを、デスクトップアプリの新しいスレッドに引き継ぐ
+function handover(id, note){
+  const old=S.runs.find(x=>x.id===id); if(!old) return;
+  setRun(id,{status:'closed'},'','dashboard: 旧いスレッドを閉じる');
+  startRun(runRef(old), note, {prev_session:old.session||null});
+}
+function setRun(id, patch, label, msg){
+  enqueue(label||null, ()=>patchRun(id,patch)(S.runs), ()=>runsFile(patchRun(id,patch), msg));
+}
+// 計画や実行が進んでいる間は runs.json だけをこまめに読み直す
+async function pollRuns(){
+  if(!S.be || qRunning || Q.length || document.visibilityState!=='visible') return;
+  if(!S.runs.some(r=>RUN_ST[r.status]?.active)) return;
+  try{
+    const [f,pg]=await Promise.all([S.be.read('runs.json'), S.be.read('progress.json').catch(()=>null)]);
+    const next=parseRuns(f&&f.text), nextPg=parseProgress(pg&&pg.text);
+    if(JSON.stringify(nextPg)!==JSON.stringify(S.progress)){
+      const wasSt=Object.fromEntries(Object.entries(S.progress).map(([k,v])=>[k,v.state]));
+      S.progress=nextPg;
+      const w=Object.entries(nextPg).find(([k,v])=>v.state==='waiting' && wasSt[k] && wasSt[k]!=='waiting');
+      if(w){ const r=next.find(x=>x.id===w[0]); toast(`「${(r&&r.task||'').slice(0,18)}」が返事を待っています`); }
+      if(!S.modal && !document.activeElement?.closest?.('form,textarea')) render();
+    }
+    if(JSON.stringify(next)!==JSON.stringify(S.runs)){
+      const was=Object.fromEntries(S.runs.map(r=>[r.id,r.status]));
+      S.runs=next;
+      const changed=next.find(r=>was[r.id] && was[r.id]!==r.status && RUN_ST[r.status].attn);
+      if(changed) toast(`「${changed.task}」が${RUN_ST[changed.status].label}になりました`);
+      if(!S.modal && !document.activeElement?.closest?.('form,textarea')) render();
+    }
+  }catch(e){ console.warn(e); }
+}
+function parseProgress(text){ try{ const d=JSON.parse(text||'{}'); return d&&d.runs&&typeof d.runs==='object'?d.runs:{}; }catch{ return {}; } }
+const PG_ST = {working:{label:'作業中', cls:'busy'}, waiting:{label:'返事待ち', cls:'review'}, blocked:{label:'止まっている', cls:'ng'}};
+function ago(iso){
+  if(!iso) return ''; const t=Date.parse(iso); if(!t) return '';
+  const m=Math.round((Date.now()-t)/60000);
+  if(m<1) return 'たった今'; if(m<60) return `${m}分前`; const h=Math.round(m/60); if(h<24) return `${h}時間前`; return `${Math.round(h/24)}日前`;
+}
+function progressView(pg){
+  if(!pg) return `<div class="hint">デスクトップアプリで Enter を押して始めると、ここに進み具合が出ます。</div>`;
+  const st=PG_ST[pg.state]||PG_ST.working;
+  const planHtml = (pg.plan||[]).length ? `<ul class="pgplan">${pg.plan.map(p=>`<li class="${p.s}">${p.s==='completed'?icon('check'):p.s==='in_progress'?'<span class="dotnow"></span>':'<span class="dotwait"></span>'}<span>${esc(p.t)}</span></li>`).join('')}</ul>` : '';
+  return `<div class="pg">
+    <div class="pgnow ${st.cls}"><span class="pgdot"></span><b>${st.label}</b><span>${esc(pg.doing||'')}</span><span class="pgago">${esc(ago(pg.last_at))}</span></div>
+    ${pg.title?`<div class="hint">デスクトップのスレッド名：${esc(pg.title)}</div>`:''}
+    ${planHtml}
+    ${pg.recap?`<div class="pgrecap">${esc(pg.recap)}</div>`:''}
+    ${pg.ask?`<div class="pgask">${icon('flag')}<span>${esc(pg.ask)}</span></div>`:''}
+    ${pg.last_text?`<details class="pglast"><summary>Claude の最後の発言を見る</summary><div class="mdbody">${md(pg.last_text)}</div></details>`:''}
+  </div>`;
+}
+function md(text){
+  return esc(text||'').trim().split('\n').map(l=>{
+    if(/^#{1,4}\s/.test(l)) return `<div class="mdh">${l.replace(/^#+\s*/,'')}</div>`;
+    if(!l.trim()) return '<div class="mdgap"></div>';
+    return '<div>'+l.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<code>$1</code>').replace(/【送信】/g,'<span class="send">【送信】</span>')+'</div>';
+  }).join('');
+}
+// 計画の「作業場所: `xxx/`（既存|新規）」を読み取る
+function workplace(r){
+  const m=(r.plan||'').match(/作業場所\s*[:：]\s*`?([^`\s（(]+)`?\s*[（(]\s*(既存|新規)/);
+  return m ? {path:m[1], kind:m[2]} : null;
+}
+function viewRuns(){
+  const list=S.runs.filter(runOpen).slice().reverse();
+  const hist=S.runs.filter(r=>!runOpen(r)).slice(-10).reverse();
+  const card=r=>{
+    const st=RUN_ST[r.status];
+    const wp=workplace(r);
+    const openBtn = r.url ? `<a class="btn sm pri" href="${esc(r.url)}" target="_blank" rel="noopener">スレッドを開く</a>` : '';
+    const finish = `<button class="btn sm" data-act="run-close" data-id="${r.id}">スレッドを終える</button><button class="btn sm" data-act="run-complete" data-id="${r.id}">タスクを完了にする</button>`;
+    const ctl = {
+      queued:`<div class="hint">PC のデスクトップアプリにスレッドを開くのを待っています（PC が起動していれば30秒ほど）。開いたら PC で Enter を押すと始まります。</div><div class="actions"><button class="btn sm danger" data-act="run-cancel" data-id="${r.id}">取り消す</button>${IS_MAC_DESKTOP?`<button class="btn sm pri" data-act="run-reopen" data-id="${r.id}">今ここで開く</button>`:''}</div>`,
+      opened:`${r.via==='parent'&&!S.progress[r.id]?`<div class="hint">親タスクのスレッドで <b>${PASTE_KEY} → Enter</b> を押すと、親スレッドがこのサブタスクの子スレッドを立てます。立つと、ここに進み具合が出ます。</div>`:progressView(S.progress[r.id])}<div class="actions">${finish}${IS_MAC_DESKTOP&&!S.progress[r.id]?`<button class="btn sm pri" data-act="run-reopen" data-id="${r.id}">${r.via==='parent'?'コピーして親スレッドをもう一度開く':'もう一度開く'}</button>`:''}</div>`,
+      thread:`<div class="hint">（旧い方式のスレッドです）デスクトップアプリの新しいスレッドに、これまでの会話記録ごと引き継げます。</div>
+        <form data-act="run-resume" data-id="${r.id}"><textarea class="inp" name="note" rows="2" placeholder="引き継ぎ時に伝えること（任意）"></textarea>
+        <div class="actions">${finish}<button class="btn sm pri">デスクトップアプリで続ける</button></div></form>`,
+      paused:`<div class="hint">（旧い方式のスレッドです）デスクトップアプリの新しいスレッドに、これまでの会話記録ごと引き継げます。</div>
+        <form data-act="run-resume" data-id="${r.id}"><textarea class="inp" name="note" rows="2" placeholder="引き継ぎ時に伝えること（任意）"></textarea>
+        <div class="actions">${finish}<button class="btn sm pri">デスクトップアプリで続ける</button></div></form>`,
+      review:`<form data-act="run-resume" data-id="${r.id}"><div class="hint">（旧い方式で作られた計画です）返事を書いて「デスクトップアプリで続ける」を押すと、この計画の続きとしてデスクトップアプリにスレッドが開きます。</div><textarea class="inp" name="note" rows="3" placeholder="計画への返事（例：数字を確認するところまで進めて。絞り込みは一緒にやる）"></textarea>
+        <div class="actions"><button type="button" class="btn sm danger left" data-act="run-cancel" data-id="${r.id}">取り消す</button><button class="btn sm pri">デスクトップアプリで続ける</button></div></form>`,
+      done:`<div class="actions">${finish}</div>`,
+      failed:`<div class="err">${esc(r.error||'失敗しました')}</div><div class="actions"><button class="btn sm" data-act="run-close" data-id="${r.id}">閉じる</button></div>`,
+    }[r.status]||'';
+    const body = r.status==='review' && r.plan ? `<details class="plan"><summary>計画を見る</summary><div class="mdbody">${md(r.plan)}</div></details>` : (r.status==='done'&&r.result?`<div class="mdbody">${md(r.result)}</div>`:'');
+    return `<div class="runcard"><div class="runhd"><span class="chip run ${st.cls}">${icon('play')}${st.label}</span><span class="rtitle">${esc(r.task)}</span><span class="rcat">${esc(r.cat||'')}</span>${r.parent?`<span class="rparent">親タスク：${esc(r.parent)}</span>`:''}</div>
+      ${wp?`<div class="wp ${wp.kind==='新規'?'new':''}">作業場所 <code>${esc(workName())}/${esc(wp.path.replace(/^\.?\/?/,''))}</code><b>${wp.kind}</b></div>`:''}
+      ${body}
+      ${ctl}</div>`;
+  };
+  return `<div class="runs">${list.length? list.map(card).join('') : `<div class="plain"><div class="empty">進行中のスレッドはありません。${IS_MAC_DESKTOP?'':'PC のダッシュボードで、'}タスクの右の ▶ から Claude のスレッドを立てられます。</div></div>`}
+    ${hist.length?`<div class="monthhd">最近の履歴</div><div class="plain">${hist.map(r=>`<div class="prow"><div class="t">${esc(r.task)}${r.parent?`<div class="hint">親タスク：${esc(r.parent)}</div>`:''}${r.closed_why?`<div class="hint">自動で閉じました（${esc(r.closed_why)}）</div>`:''}</div><div class="d">${RUN_ST[r.status].label}</div></div>`).join('')}</div>`:''}</div>`;
+}
+
+// ===== 集計 =====
+function allTasks(){
+  const out=[];
+  for(const s of S.sections) for(const it of s.items) if(it.text!==undefined){
+    out.push({cat:s.name, t:it});
+  }
+  return out;
+}
+function stats(){
+  const eow=endOfWeek(), t=todayStr(); let over=0, today=0, week=0, none=0;
+  for(const {t:x} of allTasks()){
+    if(!x.due){ none++; continue; }
+    if(x.due<t) over++; else if(x.due===t) today++;
+    if(x.due>=t && x.due<=eow) week++;
+  }
+  return {over,today,week,none,total:allTasks().length};
+}
+const FILTERS = {
+  over:{label:'期限切れ', fn:x=>x.due && x.due<todayStr()},
+  today:{label:'今日まで', fn:x=>x.due && x.due<=todayStr()},
+  week:{label:'今週（日曜まで）', fn:x=>x.due && x.due<=endOfWeek()},
+  none:{label:'期限なし', fn:x=>!x.due},
+};
+function sortTasks(a,b){
+  if(a.t.prio!==b.t.prio) return a.t.prio?-1:1;
+  if(a.t.due && b.t.due) return a.t.due<b.t.due?-1:a.t.due>b.t.due?1:0;
+  if(a.t.due) return -1; if(b.t.due) return 1; return 0;
+}
+function sortByDue(a,b){
+  if(a.t.due && b.t.due && a.t.due!==b.t.due) return a.t.due<b.t.due?-1:1;
+  if(!!a.t.due!==!!b.t.due) return a.t.due?-1:1;
+  if(a.t.prio!==b.t.prio) return a.t.prio?-1:1; return 0;
+}
+
+// ===== 描画 =====
+function toast(msg, err){ S.toast={msg,err}; renderToast(); clearTimeout(toast.h); toast.h=setTimeout(()=>{ S.toast=null; renderToast(); }, err?4500:1800); }
+function renderToast(){
+  let el=document.getElementById('toast');
+  if(!S.toast){ el&&el.remove(); return; }
+  if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.className='toast'+(S.toast.err?' err':''); el.textContent=S.toast.msg;
+}
+
+// サブのサブ以降（サブタスクの下にさらにサブタスクがあるもの）は開閉できる。開いているものだけこの端末に覚えておく（最初は閉じている）
+const openKey = (cat, path, text) => JSON.stringify([cat, ...path, text]);
+function isOpen(key){ try{ return JSON.parse(safeGet(LS.open)||'[]').includes(key); }catch{ return false; } }
+function setOpen(key, on){ let a=[]; try{ a=JSON.parse(safeGet(LS.open)||'[]'); }catch{} a=a.filter(x=>x!==key); if(on) a.push(key); safeSet(LS.open, JSON.stringify(a.slice(-200))); }
+function taskRow(cat, t, opts={}){
+  const path = opts.path || [];
+  const ref = mkRef(cat, t.text, path), sub = path.length>0;
+  const kids = t.subs || [];
+  const key = sub && kids.length ? openKey(cat, path, t.text) : null;
+  const open = key ? isOpen(key) : true;
+  const di=dueInfo(t.due);
+  const meta=[];
+  if(opts.showCat) meta.push(`<span class="chip cat" style="--cc:var(${catColor(cat)})"><i></i>${esc(cat)}</span>`);
+  if(di) meta.push(`<span class="chip ${di.cls}">${icon('cal')}${esc(di.label)}</span>`);
+  if(t.prio) meta.push(`<span class="chip prio">${icon('flag')}高</span>`);
+  if(key && !opts.flat) meta.push(`<button type="button" class="chip tog${open?' on':''}" data-act="toggle" data-key="${esc(key)}" title="${open?'サブタスクを閉じる':'サブタスクを開く'}">${icon('chev')}サブ ${kids.length}件</button>`);
+  else if(kids.length) meta.push(`<span class="chip">サブ ${kids.length}件</span>`);
+  const run = runFor(ref);
+  const pgr = run && run.status==='opened' ? S.progress[run.id] : null;
+  if(pgr){ const st=PG_ST[pgr.state]||PG_ST.working; meta.push(`<span class="chip run ${st.cls}" data-act="tab" data-k="runs">${icon('play')}${st.label}${pgr.state==='working'&&pgr.doing?`・${esc(pgr.doing.replace(/しています$|ています$/,'中'))}`:''}</span>`); }
+  else if(run) meta.push(run.url && run.status==='thread'
+    ? `<a class="chip run ${RUN_ST[run.status].cls}" href="${esc(run.url)}" target="_blank" rel="noopener">${icon('play')}${RUN_ST[run.status].label}・開く</a>`
+    : `<span class="chip run ${RUN_ST[run.status].cls}" data-act="tab" data-k="runs">${icon('play')}${RUN_ST[run.status].label}</span>`);
+  let h=`<div class="task${sub?' sub':''}"${sub?` style="--d:${path.length}"`:''}>
+    <button class="chk" title="完了にする" data-act="done" data-ref='${esc(JSON.stringify(ref))}' >${icon('check')}</button>
+    <div class="tbody" data-act="edit" data-ref='${esc(JSON.stringify(ref))}'>
+      <div class="ttext">${esc(t.text)}</div>${meta.length?`<div class="meta">${meta.join('')}</div>`:''}
+    </div>${!run&&IS_MAC_DESKTOP?`<button class="runbtn" title="${sub?'このサブタスクを Claude で実行':'Claude で実行'}" data-act="run-open" data-ref='${esc(JSON.stringify(ref))}'>${icon('play')}</button>`:''}</div>`;
+  if(!opts.flat && open) for(const st of kids) h+=taskRow(cat, st, {path:[...path, t.text]});
+  return h;
+}
+
+function viewBoard(){
+  const f=S.filter&&FILTERS[S.filter];
+  return `<div class="board">${S.sections.map(s=>{
+    let rows=s.items.filter(i=>i.text!==undefined).map(t=>({cat:s.name,t}));
+    if(f) rows=rows.filter(r=>f.fn(r.t));
+    rows.sort(sortTasks);
+    if(f && !rows.length) return '';
+    return `<section class="col" style="--cc:var(${catColor(s.name)})">
+      <div class="colhd"><span class="name">${esc(s.name)}</span><span class="count">${rows.length}</span><span class="sp"></span>${s.name!==INBOX?`<button class="iconbtn sm" data-act="cat-del" data-name="${esc(s.name)}" title="このカテゴリを削除">${icon('x')}</button>`:''}</div>
+      <div class="list">${rows.length? rows.map(r=>taskRow(r.cat,r.t)).join('') : '<div class="empty">タスクはありません</div>'}</div>
+      <form class="quick" data-act="quick" data-cat="${esc(s.name)}"><input name="q" placeholder="＋ タスクを「〜する」の形で入力" autocomplete="off" enterkeyhint="done" ></form>
+    </section>`;
+  }).join('') || '<div class="empty">該当するタスクはありません</div>'}</div>`;
+}
+function viewTimeline(){
+  const f=S.filter&&FILTERS[S.filter];
+  let rows=allTasks(); if(f) rows=rows.filter(r=>f.fn(r.t));
+  rows.sort(sortByDue);
+  const t=todayStr(), eow=endOfWeek();
+  const groups=[['期限切れ','red',r=>r.t.due&&r.t.due<t],['今日','amber',r=>r.t.due===t],['今週','',r=>r.t.due&&r.t.due>t&&r.t.due<=eow],['来週以降','',r=>r.t.due&&r.t.due>eow],['期限なし','',r=>!r.t.due]];
+  const body=groups.map(([name,cls,fn])=>{ const g=rows.filter(fn); if(!g.length) return ''; return `<div class="grouphd ${cls}">${name}（${g.length}）</div>`+g.map(r=>taskRow(r.cat,r.t,{showCat:true})).join(''); }).join('');
+  return `<div class="flat">${body||'<div class="empty">該当するタスクはありません</div>'}</div>`;
+}
+function viewSomeday(){
+  return `<form class="quick" data-act="someday-add" style="padding:0 0 12px"><input name="q" placeholder="＋ いつかやること・アイデアを追加" autocomplete="off" enterkeyhint="done" ></form>
+  <div class="plain">${S.someday.length? S.someday.map(x=>`<div class="prow"><div class="t">${esc(x)}</div>
+    <select class="btn sm" data-act="some-promote" data-text="${esc(x)}" ><option value="">やることへ移す…</option>${catNames().map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+    <button class="btn sm danger" data-act="some-del" data-text="${esc(x)}" >削除</button></div>`).join('') : '<div class="empty">まだありません</div>'}</div>`;
+}
+function viewDone(){
+  const ms=Object.keys(S.done).sort().reverse();
+  return ms.map(m=>{ const list=S.done[m].slice().reverse(); const [y,mm]=m.split('-');
+    return `<div class="monthhd">${y}年${+mm}月（${list.length}件）</div><div class="plain">${list.length? list.map(x=>`<div class="prow task done"><div class="t ttext">${esc(x.text)}</div><div class="d">${x.date?esc(mdw(x.date)):''}</div></div>`).join('') : '<div class="empty">完了したタスクはありません</div>'}</div>`;
+  }).join('');
+}
+function viewInbox(){
+  if(!S.issues || !S.issues.length) return '';
+  const guess=i=>{ const c=pickCategory(i.title); return c.cat || (/いつか|アイデア/.test(i.title+i.body)?'someday':INBOX); };
+  return `<div class="inbox"><h3>📥 Inbox（未処理 ${S.issues.length}件）</h3>${S.issues.map(i=>`<form class="ibrow" data-act="import" data-num="${i.number}">
+    <div class="t"><div>${esc(i.title)}</div>${i.body?`<div class="b">${esc(i.body.slice(0,200))}</div>`:''}</div>
+    <select name="dest" class="btn sm">${catNames().map(c=>`<option ${guess(i)===c?'selected':''}>${esc(c)}</option>`).join('')}<option value="someday" ${guess(i)==='someday'?'selected':''}>いつかやる</option></select>
+    <input type="date" name="due" class="btn sm">
+    <button class="btn sm pri" >取り込む</button></form>`).join('')}</div>`;
+}
+
+function render(){
+  const app=document.getElementById('app');
+  if(!S.be){ app.innerHTML=viewSetup(); return; }
+  const st=stats(); const t=todayStr();
+  const doneCnt=(S.done[monthOf(t)]||[]).length;
+  const tabs=[['board','カテゴリ別',st.total],['timeline','期限順',st.total],['someday','いつかやる',S.someday.length],['runs','実行',S.runs.filter(r=>RUN_ST[r.status]?.attn).length],['done','完了',doneCnt]];
+  const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
+  const showStats = S.tab==='board'||S.tab==='timeline';
+  // 入力中の内容とフォーカスを保つ
+  const active=document.activeElement; const keep = active && active.closest && active.closest('form.quick') ? {cat:active.closest('form').dataset.cat, act:active.closest('form').dataset.act, v:active.value} : null;
+  app.innerHTML=`
+  <header><div class="wrap hd">
+    <span class="brand">Action OS</span><span class="today">${esc(mdw(t))}${S.be.kind==='demo'?' · デモ':''}</span><span class="sp"></span>
+    <button class="iconbtn ${S.loading||qRunning?'spin':''}" data-act="reload" title="最新に更新">${icon('refresh')}</button>
+    <button class="iconbtn" data-act="settings" title="設定">${icon('gear')}</button>
+  </div></header>
+  <main class="wrap">
+    ${showStats?`<div class="stats">
+      ${statCard('over',st.over,'期限切れ',st.over?'red':'')}
+      ${statCard('today',st.today,'今日が期限',st.today?'amber':'')}
+      ${statCard('week',st.week,'今週が期限','')}
+      ${statCard('none',st.none,'期限なし','')}
+    </div>`:'<div style="height:16px"></div>'}
+    ${viewInbox()}
+    <div class="toolbar">
+      <div class="tabs">${tabs.map(([k,l,n])=>`<button class="tab ${S.tab===k?'on':''}" data-act="tab" data-k="${k}">${l}<span class="cnt">${n}</span></button>`).join('')}</div>
+      ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
+    </div>
+    ${S.tab==='board'?viewBoard():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+  </main>
+  <button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>
+  ${S.modal?viewModal():''}`;
+  if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${keep.cat}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
+  renderToast();
+}
+
+// ===== モーダル =====
+function viewModal(){
+  const m=S.modal;
+  if(m.type==='run') return `<div class="ov" data-act="close-ov"><form class="modal" data-act="run-start">
+    <h2>Claude のスレッドで進める</h2>
+    <div class="runtask">${esc(m.ref.text)}</div>${m.ref.parent!==undefined?`<div class="runparent">親タスク：${esc(m.ref.parent)}</div>`:''}
+    <div class="field"><label>補足の指示（任意）</label><textarea class="inp" name="note" rows="3" placeholder="例：先月と同じ形式で。送る前に必ず見せて"></textarea></div>
+    ${parentRunFor(m.ref)
+      ? `<div class="hint">親タスクのスレッド「<b>${esc(threadName(parentRunFor(m.ref)))}</b>」が開きます。依頼文はコピー済みなので、そのスレッドで <b>${PASTE_KEY} → Enter</b> を押してください。親スレッドが経緯を踏まえた指示書を書き、このサブタスクの<b>子スレッド</b>を立てます（サイドバーで親の下に並び、区切りごとに親へ報告が届きます）。<br>子スレッドの中では <b>状況の確認 → 案の提案 → 進め方の確認 → 実行</b> の順に、相談しながら進めます。送信や公開の前には必ず確認が入ります。</div>`
+      : `<div class="hint">${m.ref.parent!==undefined?'親タスクのスレッドがまだ無いため、独立したスレッドで開きます（親タスクの文も一緒に渡し、作業はこのサブタスクの範囲にとどめるよう伝えます。親タスクの ▶ を先に押しておくと、親スレッドの下に立てられます）。<br>':''}Claude デスクトップアプリに、作業フォルダ（${esc(workName())}）で新しいスレッドが開きます（指示は入力済み。<b>Enter を押すと始まります</b>）。<br>スレッドの中で <b>状況の確認 → 案の提案 → 進め方の確認 → 実行</b> の順に、相談しながら進めます。送信や公開の前には必ず確認が入ります。</div>`}
+    <div class="actions"><button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">${icon('play').replace('<svg','<svg width="14" height="14"')} ${parentRunFor(m.ref)?'コピーして親スレッドを開く':'デスクトップアプリで開く'}</button></div>
+  </form></div>`;
+  if(m.type==='paste') return `<div class="ov" data-act="close-ov"><div class="modal">
+    <h2>親スレッドに貼り付ける</h2>
+    <div class="hint">自動でコピーできませんでした。下の文をすべて選んでコピーし、「親スレッドを開く」を押して、そのスレッドで <b>${PASTE_KEY} → Enter</b> を押してください。</div>
+    <textarea class="inp" rows="12" readonly>${esc(m.text)}</textarea>
+    <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><a class="btn pri" href="${esc(m.link)}">親スレッドを開く</a></div>
+  </div></div>`;
+  if(m.type==='settings') return `<div class="ov" data-act="close-ov"><div class="modal">${catManager()}${settingsForm(true)}</div></div>`;
+  const isEdit=m.type==='edit', d=m.draft;
+  const quickDates=[['今日',todayStr()],['明日',addDays(todayStr(),1)],['金曜',nextWeekday(5)],['来週月曜',nextWeekday(1,1)],['なし','']];
+  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-task">
+    <h2>${isEdit?(m.ref.parent!==undefined?'サブタスクを編集':'タスクを編集'):'タスクを追加'}</h2>
+    <div class="field"><label>内容</label><input class="inp" name="text" value="${esc(d.text)}" required autocomplete="off" ${isEdit?'':'autofocus'}></div>
+    ${m.ref&&m.ref.parent!==undefined?'':`<div class="field"><label>カテゴリ</label><div class="seg">${catNames().map(c=>`<button type="button" class="${d.cat===c?'on':''}" data-act="set" data-f="cat" data-v="${esc(c)}">${esc(c)}</button>`).join('')}</div></div>`}
+    <div class="field"><label>期限</label>
+      <input class="inp" type="date" name="due" value="${esc(d.due||'')}">
+      <div class="dates">${quickDates.map(([l,v])=>`<button type="button" class="btn sm" data-act="set" data-f="due" data-v="${v}">${l}${v?` <span style="color:var(--faint)">${mdw(v)}</span>`:''}</button>`).join('')}</div>
+    </div>
+    <div class="field"><label>優先度</label><div class="seg">
+      <button type="button" class="${!d.prio?'on':''}" data-act="set" data-f="prio" data-v="">通常</button>
+      <button type="button" class="${d.prio?'on':''}" data-act="set" data-f="prio" data-v="1">🔺 高</button></div></div>
+    ${isEdit?moveField(m.ref, d):''}
+    ${isEdit?`<div class="field"><label>サブタスク</label><div class="subl">
+      ${d.subs.map((s,i)=>`<div class="row"><input class="inp" data-sub="${i}" value="${esc(s.text)}"><button type="button" class="iconbtn" data-act="sub-del" data-i="${i}" title="外す">${icon('x')}</button></div>`).join('')}
+      <div class="row"><input class="inp" data-newsub placeholder="サブタスクを追加（Enter）" autocomplete="off"><button type="button" class="iconbtn" data-act="sub-add">${icon('plus')}</button></div>
+    </div></div>`:''}
+    <div class="actions">
+      ${isEdit?`<button type="button" class="btn danger left" data-act="del" >削除</button>${m.ref.parent===undefined?`<button type="button" class="btn" data-act="to-someday" >いつかへ</button>`:''}`:''}
+      <button type="button" class="btn" data-act="close">キャンセル</button>
+      <button class="btn pri" >${isEdit?'保存':'追加'}</button>
+    </div>
+  </form></div>`;
+}
+// 親タスクを変える選択肢（同じカテゴリのタスク。自分と自分の下にあるものは選べない）
+function moveField(ref, d){
+  const sec=S.sections.find(s=>s.name===ref.cat); if(!sec) return '';
+  const self=[...refPath(ref), ref.text], opts=[[JSON.stringify([]), 'なし（いちばん上のタスクにする）']];
+  const walk=(list, path)=>{ for(const t of list){ if(t.text===undefined) continue; const p=[...path, t.text];
+    if(samePath(p.slice(0,self.length), self)) continue;
+    opts.push([JSON.stringify(p), '　'.repeat(path.length)+(path.length?'└ ':'')+t.text]); walk(t.subs||[], p); } };
+  walk(sec.items, []);
+  if(opts.length<2) return '';
+  return `<div class="field"><label>親タスク（どのタスクの下に置くか）</label><select class="inp" name="moveto">${opts.map(([v,l])=>`<option value="${esc(v)}" ${v===d.moveTo?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
+}
+function catManager(){
+  const names=catNames();
+  return `<div class="field"><label>カテゴリ</label><div class="hint" style="margin-bottom:8px">何も指定しないタスクは「${INBOX}」に入ります。削除したカテゴリのタスクは${INBOX}に戻ります。</div>
+    <div class="subl">${names.map((n,i)=>`<div class="row catrow">
+      <span class="dot" style="background:var(${catColor(n)})"></span>
+      ${n===INBOX?`<span class="cname">${esc(n)}</span><span class="hint">固定</span>`:`<input class="inp" data-catname="${esc(n)}" value="${esc(n)}" autocomplete="off">
+      <button type="button" class="iconbtn" data-act="cat-up" data-name="${esc(n)}" title="上へ" ${i<=1?'disabled':''}>${icon('up')}</button>
+      <button type="button" class="iconbtn" data-act="cat-del" data-name="${esc(n)}" title="削除">${icon('x')}</button>`}
+    </div>`).join('')}
+    <form class="row" data-act="cat-add"><input class="inp" name="q" placeholder="新しいカテゴリ名（例：仕事）" autocomplete="off" enterkeyhint="done"><button class="btn pri">追加</button></form>
+    </div></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
+}
+function settingsForm(inModal){
+  return `<form data-act="save-settings">
+    <h2>${inModal?'設定':'はじめに'}</h2>
+    <div class="field"><label>リポジトリ（owner/name）</label><input class="inp" name="repo" value="${esc(safeGet(LS.repo)||DEFAULT_REPO)}" placeholder="例：yamada/action-os" autocomplete="off" autocapitalize="off"></div>
+    <div class="field"><label>GitHub トークン</label><input class="inp" name="token" type="password" placeholder="${safeGet(LS.token)?'保存済み（変更する時だけ入力）':'github_pat_...'}" autocomplete="off"></div>
+    <div class="hint">GitHub の Settings → Developer settings → Fine-grained tokens で作成します。<br>
+      ・Repository access：このリポジトリ（例：<code>action-os</code>）だけ<br>
+      ・Permissions：<code>Contents</code> と <code>Issues</code> を Read and write<br>
+      トークンはこの端末のブラウザにだけ保存され、GitHub 以外には送られません。</div>
+    <div class="actions">
+      ${inModal&&S.be&&S.be.kind==='github'?'<button type="button" class="btn danger left" data-act="logout">この端末から消す</button>':''}
+      ${inModal?'<button type="button" class="btn" data-act="close">閉じる</button>':''}
+      <button class="btn pri">保存して開く</button>
+    </div>
+  </form>`;
+}
+function viewSetup(){ return `<div class="wrap"><div class="setup"><h1>Action OS</h1><p class="hint">todo.md を見やすく管理するダッシュボードです。最初にこの端末で一度だけ設定します。</p>${settingsForm(false)}</div></div>`; }
+
+function openEdit(ref){
+  const f=findTask(S.sections, ref); if(!f) return;
+  S.modal={type:'edit', ref, draft:{text:f.task.text, cat:ref.cat, due:f.task.due||'', prio:f.task.prio, subs:(f.task.subs||[]).map(s=>({...s, orig:s.text})), moveTo:JSON.stringify(refPath(ref))}};
+  render();
+}
+function syncDraft(){
+  const m=S.modal; if(!m||!m.draft) return; const form=document.querySelector('form[data-act="save-task"]'); if(!form) return;
+  m.draft.text=form.text.value; m.draft.due=form.due.value;
+  form.querySelectorAll('[data-sub]').forEach(i=>{ m.draft.subs[+i.dataset.sub].text=i.value; });
+  const ns=form.querySelector('[data-newsub]'); m.draft.newsub=ns?ns.value:'';
+  if(form.moveto) m.draft.moveTo=form.moveto.value;
+}
+
+// ===== イベント =====
+document.addEventListener('click', async e=>{
+  if(e.target.closest('a[href]')) return; // リンク（スレッドを開く）はそのまま開く
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act;
+  if(a==='close-ov'){ if(e.target===el){ S.modal=null; render(); } return; }
+  if(el.tagName==='FORM' || el.tagName==='SELECT') return;
+  const ref = el.dataset.ref ? JSON.parse(el.dataset.ref) : null;
+  switch(a){
+    case 'tab': S.tab=el.dataset.k; safeSet(LS.tab,S.tab); render(); break;
+    case 'filter': S.filter = S.filter===el.dataset.k?null:el.dataset.k; if(S.tab!=='board'&&S.tab!=='timeline') S.tab='timeline'; render(); break;
+    case 'reload': if(qRunning||Q.length){ toast('保存中です。少し待ってから更新してください'); break; } loadAll(); break;
+    case 'settings': S.modal={type:'settings'}; render(); break;
+    case 'logout': safeSet(LS.token,null); S.be=null; S.modal=null; render(); break;
+    case 'add': S.modal={type:'add', draft:{text:'', cat:INBOX, due:'', prio:false, subs:[]}}; render(); break;
+    case 'close': S.modal=null; render(); break;
+    case 'done': { const row=el.closest('.task'); row&&(row.style.opacity='.35'); completeTask(ref); break; }
+    case 'edit': openEdit(ref); break;
+    case 'toggle': { const k=el.dataset.key; setOpen(k, !isOpen(k)); render(); break; }
+    case 'set': { syncDraft(); const d=S.modal.draft, f=el.dataset.f, v=el.dataset.v; d[f]= f==='prio'? !!v : v; render(); break; }
+    case 'sub-add': { syncDraft(); const d=S.modal.draft; if(d.newsub&&d.newsub.trim()) d.subs.push({text:d.newsub.trim(),due:null,prio:false}); d.newsub=''; render(); document.querySelector('[data-newsub]')?.focus(); break; }
+    case 'sub-del': { syncDraft(); S.modal.draft.subs.splice(+el.dataset.i,1); render(); break; }
+    case 'del': { const r=S.modal.ref; if(!confirm(`「${r.text}」を削除しますか？（完了ログには残りません）`)) return; S.modal=null; deleteTask(r); break; }
+    case 'to-someday': { const r=S.modal.ref; S.modal=null; toSomeday(r); break; }
+    case 'cat-up': moveCategory(el.dataset.name); break;
+    case 'cat-del': { const n=el.dataset.name; const cnt=(S.sections.find(x=>x.name===n)?.items.length)||0;
+      if(!confirm(`カテゴリ「${n}」を削除しますか？`+(cnt?`\n中のタスク${cnt}件は${INBOX}に移ります。`:''))) return; deleteCategory(n); break; }
+    case 'run-open': S.modal={type:'run', ref}; render(); setTimeout(()=>document.querySelector('form[data-act="run-start"] textarea')?.focus(),50); break;
+    case 'run-reopen': { const r=S.runs.find(x=>x.id===el.dataset.id); openInDesktop(r); if(r.status==='queued') setRun(r.id,{status:'opened'},'デスクトップアプリに開きました','dashboard: デスクトップアプリで開いた'); break; }
+    case 'run-cancel': if(confirm('この実行を取り消しますか？')) setRun(el.dataset.id,{status:'cancelled'},'取り消しました','dashboard: 実行を取り消し'); break;
+    case 'run-close': if(confirm('この実行を終えますか？（タスクは残ります。デスクトップアプリのスレッドは、必要ならアプリ側でアーカイブしてください）')) setRun(el.dataset.id,{status:'closed'},'スレッドを終えました','dashboard: スレッドを終える'); break;
+    case 'run-complete': { const r=S.runs.find(x=>x.id===el.dataset.id); if(!confirm(`「${r.task}」を完了にして、スレッドを終えますか？`)) break; setRun(r.id,{status:'closed'},'スレッドを終えました','dashboard: スレッドを終える'); if(findTask(S.sections,runRef(r))) completeTask(runRef(r)); break; }
+    case 'some-del': if(confirm(`「${el.dataset.text}」を削除しますか？`)) removeSomeday(el.dataset.text); break;
+  }
+});
+document.addEventListener('change', e=>{
+  const el=e.target;
+  if(el.dataset.catname!==undefined){ const from=el.dataset.catname, to=el.value.trim(); if(to===from) return; const err=badCatName(to); if(err){ el.value=from; return toast(err,true); } renameCategory(from,to); return; }
+  if(el.dataset.act==='some-promote' && el.value) removeSomeday(el.dataset.text, el.value);
+});
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape' && S.modal){ S.modal=null; render(); }
+  if(e.key==='Enter' && e.target.matches('[data-newsub]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="sub-add"]').click(); }
+});
+document.addEventListener('submit', async e=>{
+  const f=e.target; const a=f.dataset.act; e.preventDefault();
+  if(a==='quick'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; addTask(f.dataset.cat, {text:v,due:null,prio:false}); }
+  if(a==='run-start'){ const ref=S.modal.ref, note=f.note.value.trim(); S.modal=null; startRun(ref, note); return; }
+  if(a==='run-resume'){ handover(f.dataset.id, f.note.value.trim()); return; }
+  if(a==='cat-add'){ const v=f.q.value.trim(); if(!v) return; const err=badCatName(v); if(err) return toast(err,true); f.q.value=''; addCategory(v); return; }
+  if(a==='someday-add'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; addSomeday(v); }
+  if(a==='import'){ const iss=S.issues.find(i=>i.number===+f.dataset.num); importIssue(iss, f.dest.value, f.due.value); }
+  if(a==='save-task'){
+    syncDraft(); const m=S.modal, d=m.draft; const text=d.text.replace(/📅|🔺/g,'').trim(); if(!text) return;
+    if(d.newsub && d.newsub.trim()) d.subs.push({text:d.newsub.trim(),due:null,prio:false});
+    const subs=d.subs.filter(s=>s.text.trim()).map(({orig,...s})=>({...s,text:s.text.trim(),subs:s.subs||[]}));  // 孫以下はそのまま残す
+    const subRenames=d.subs.filter(s=>s.orig!==undefined && s.text.trim() && s.text.trim()!==s.orig).map(s=>({from:s.orig, to:s.text.trim()}));  // 名前を変えたサブタスク
+    S.modal=null; render();
+    if(m.type==='add') addTask(d.cat, {text, due:d.due||null, prio:d.prio});
+    else { let moveTo=null; try{ moveTo=JSON.parse(d.moveTo||'null'); }catch{} updateTask(m.ref, {text, due:d.due||null, prio:d.prio, cat:d.cat, subs, moveTo, subRenames}); }
+  }
+  if(a==='save-settings'){
+    const repo=f.repo.value.trim(); const token=f.token.value.trim()||safeGet(LS.token);
+    if(!/^[\w.-]+\/[\w.-]+$/.test(repo)) return toast('リポジトリは owner/name の形で入れてください', true);
+    if(!token) return toast('トークンを入れてください', true);
+    const be=githubBackend(token, repo);
+    try{ await be.check(); }catch(err){ return toast(err.status===401?'トークンが無効です':err.status===404?'リポジトリが見つからないか、トークンの対象外です':'接続できませんでした', true); }
+    safeSet(LS.repo,repo); safeSet(LS.token,token); S.be=be; S.modal=null; loadAll(true);
+  }
+});
+// 画面に戻ってきたら最新を取り直す（スマホとPCの行き来用）
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && S.be && !qRunning && !Q.length && !S.modal && Date.now()-S.loadedAt>15000) loadAll(true); });
+
+// ピンチや2本指の操作で拡大させない（iOS Safari は viewport 指定だけでは拡大を止めないため）
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t, e=>e.preventDefault(), {passive:false}));
+document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
+// ダブルタップでの拡大は CSS の touch-action:manipulation で止めている（連続タップを妨げないため）
+
+// ===== 起動 =====
+(function boot(){
+  const q=new URLSearchParams(location.search);
+  if(q.has('demo')) S.be=demoBackend();
+  else { const tk=safeGet(LS.token); if(tk) S.be=githubBackend(tk, safeGet(LS.repo)||DEFAULT_REPO); }
+  render();
+  if(S.be) loadAll(true);
+  setInterval(pollRuns, 12000);
+  setInterval(()=>{ if(S.be && document.visibilityState==='visible' && !qRunning && !Q.length && !S.modal && !document.activeElement?.closest?.('form')) loadAll(true); }, 60000);
+})();
+window.__aos = {S, parseTodo, serializeTodo, parseSomeday, serializeSomeday, parseDone};
+</script>
+</body>
+</html>
