@@ -2164,15 +2164,15 @@ BK_VIEW.roomBroadcast = () => {
   const pubAt = d.published && hist[0] ? `（${esc(hist[0].publishedAt||'')} に公開）` : '';
   return bkBar('roomBroadcast')+
     (d.published?`<div class="bkok-ok"><b>公開中：${esc(d.dateLabel||'')}</b>${pubAt}${d.bannerText?`<br>バナー：${esc(d.bannerText)}`:''}</div>`:'<div class="bkwarn"><b>いまは公開していません。</b>セラピストのアプリには出ていません。</div>')+
-    `<div class="bknote" style="background:var(--panel2);border-radius:10px;padding:8px 12px">下の送信表を直して保存しただけでは、セラピストには見えません。<b>「公開する」を押した時点の内容</b>が届きます。</div>
+    `<div class="actions" style="margin:0 0 12px;justify-content:stretch;gap:8px">
+      <button type="button" class="btn pri" style="flex:1;padding:12px 0;font-size:15px" data-act="rb-pub" ${sv?'disabled':''}>公開する</button>
+      ${d.published?`<button type="button" class="btn" style="flex:1" data-act="rb-unpub" ${sv?'disabled':''}>公開をやめる</button>`:''}</div>
+    <div class="bknote" style="background:var(--panel2);border-radius:10px;padding:8px 12px">下の送信表を直して保存しただけでは、セラピストには見えません。<b>「公開する」を押した時点の内容</b>が届きます。</div>
     ${bad.length?`<div class="bkbad">名簿にない名前が ${bad.length}件 あります（${bad.map(r=>esc(r.name)).join('、')}）。その人には届きません。</div>`:''}
     <div class="bktop"><b style="font-size:14px;flex:1">送信表（${rows.length}件）</b><button type="button" class="btn sm" data-act="rb-open" data-row="0" ${sv?'disabled':''}>＋ 行を足す</button></div>
     <div class="bklist">${rows.length?rows.map(r=>`<div class="bkcard bkclick${r.matched===false?' rbbad':''}" data-act="rb-open" data-row="${r.rowNumber}">
       <div class="hlwho">${esc(r.name||'')}${r.matched===false?' <span class="bktag red">名簿にない名前・届きません</span>':''}</div>
       <div class="bkbody" style="margin-top:4px;color:var(--sub)">${esc(r.body||'')||'<span style="color:var(--faint)">（本文なし）</span>'}</div></div>`).join(''):'<div class="plain"><div class="empty">送信表に行がありません</div></div>'}</div>
-    <div class="actions" style="margin-top:14px;justify-content:stretch;gap:8px">
-      <button type="button" class="btn pri" style="flex:1" data-act="rb-pub" ${sv?'disabled':''}>公開する</button>
-      ${d.published?`<button type="button" class="btn" style="flex:1" data-act="rb-unpub" ${sv?'disabled':''}>公開をやめる</button>`:''}</div>
     ${hist.length?`<div class="monthhd" style="margin-top:18px">公開の履歴（直近${hist.length}件。セラピストも「過去の配信」で見られます）</div>
       <div class="bklist">${hist.map((h,i)=>`<div class="bkcard"><div class="hltop"><b>${esc(h.date||'')}</b><span class="hlreg" style="margin-left:6px">${esc(h.publishedAt||'')} 公開</span>${i===0&&d.published?'<span class="bktag green">公開中</span>':''}<span style="flex:1"></span><button type="button" class="btn sm danger" data-act="rb-hdel" data-i="${i}" ${sv?'disabled':''}>履歴から消す</button></div>
         <div class="hint">${esc(h.bannerText||'')}${h.rows?` ・ ${h.rows.length}人分`:''}</div></div>`).join('')}</div>`:''}
