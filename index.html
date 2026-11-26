@@ -1981,7 +1981,7 @@ async function hlSet(rowNumber, status){
     const j=await bokCall('himeLog.setStatus',{rowNumber, status, was:{registeredAt:l.registeredAt, therapistName:l.therapistName, status:l.status}});
     const prev=l.status; Object.assign(l, j.log||{status});
     if(typeof j.unconfirmedCount==='number'){ d.unconfirmedCount=j.unconfirmedCount; if(typeof j.openCount==='number') d.openCount=j.openCount; }
-    else {  // setStatus は件数を返さないので、変えた分だけその場で合わせる
+    else {  // 件数が返らないとき（v7.98 まで）だけ、変えた分をその場で合わせる
       const du=(l.status==='未確認')-(prev==='未確認'), dop=(l.status!=='確認済み')-(prev!=='確認済み');
       if(typeof d.unconfirmedCount==='number') d.unconfirmedCount=Math.max(0,d.unconfirmedCount+du);
       if(typeof d.openCount==='number') d.openCount=Math.max(0,d.openCount+dop);
@@ -2004,7 +2004,7 @@ const hlCounts = () => { const a=hlDemo(); return {unconfirmedCount:a.filter(x=>
 BOK_DEMO['himeLog.list'] = p => { const a=hlDemo(), lim=p.limit||200; return {ok:true, total:a.length, returned:Math.min(lim,a.length), logs:clone(a.slice(0,lim)), ...hlCounts()}; };
 BOK_DEMO['himeLog.setStatus'] = p => { const l=hlDemo().find(x=>x.rowNumber===p.rowNumber);
   if(!l || l.registeredAt!==p.was.registeredAt || l.therapistName!==p.was.therapistName || l.status!==p.was.status) return {ok:false, error:'一覧が変わっています。読み直してください。'};
-  l.status=p.status; return {ok:true, log:clone(l)}; };
+  l.status=p.status; return {ok:true, log:clone(l), total:hlDemo().length, ...hlCounts()}; };
 // ===== BOK の書く画面の共通の部品 =====
 // 入力は打つたびに S.modal.draft へ写す（画面を描き直しても消えないように）。<… data-bkf="項目名">
 const todayMD = () => { const [,m,d]=todayStr().split('-'); return `${+m}/${+d}`; };
@@ -2228,7 +2228,7 @@ BOK_DEMO['roomBroadcast.deleteHistory'] = p => { const r=rbDemo(); r.history.spl
 // ===== 【7】アンケート取り込み（集計表のまだ送っていない回答を、Telegram と本人のアプリへ。送ると取り消せない） =====
 // BOK の管理画面と同じ形：回答ごとに「送る（Telegram）」「本人にも送る」を最初から両方付けておき、外したいものだけ外して、まとめて送る
 const SI = {pick:{}, mark:true, edit:{}, editing:{}, fails:{}, sending:false, prog:null};
-const SI_APP_ERR = /本人には登録できません|アンケートの送信対象ではありません/;  // 本人への登録だけ失敗した（Telegram は送れている）
+const SI_ALREADY = /もう送ってあります/;  // ほかの人がもう送った回答（BOK v7.99 が送る直前に色を見て止める）
 BK_LOAD.surveyImport = () => bkLoad('surveyImport','surveyImport.list',{}, d=>{
   const keep=SI.pick; SI.pick={};
   for(const it of d.items||[]) SI.pick[it.row] = keep[it.row] && SI.fails[it.row] ? keep[it.row] : {tg:!!d.hasTelegram, app:!!it.matchedName};
@@ -2281,7 +2281,7 @@ async function siSend(plan){
   const nm=x=>esc(x.it.matchedName||x.it.rawName||'（名前なし）');
   for(let i=0;i<plan.length;i+=20){  // 1回20件まで（BOK の決まり）
     const chunk=plan.slice(i,i+20);
-    const items=chunk.map(x=>({row:x.it.row, rowKey:x.it.key, text:String(SI.edit[x.it.row]??x.it.text), toTelegram:x.tg, toApp:x.app, matchedName:x.it.matchedName||''}));
+    const items=chunk.map(x=>({row:x.it.row, rowKey:x.it.rowKey??x.it.key, text:String(SI.edit[x.it.row]??x.it.text), toTelegram:x.tg, toApp:x.app, matchedName:x.it.matchedName||''}));
     let res;
     try{ res=(await bokCall('surveyImport.sendMany',{items, markSent:SI.mark}, 180000)).results||[]; }
     catch(e){
@@ -2295,9 +2295,16 @@ async function siSend(plan){
         SI.prog.lines.push(`<span style="color:var(--green)">✓</span> ${nm(x)}（${esc((r.done||[]).join('・'))}）`);
         if(SI.mark){ d.items=(d.items||[]).filter(it=>it.row!==x.it.row); if(typeof d.total==='number') d.total=Math.max(0,d.total-1); }
         else if(SI.pick[x.it.row]) SI.pick[x.it.row]={tg:false, app:false};  // 色を塗らないときは一覧に残るので、二重に送らないようチェックを外す
+      } else if(SI_ALREADY.test(r.error||'')){  // ほかの人がもう送った回答（BOK が色を見て止めた）。一覧から外す
+        delete SI.fails[x.it.row];
+        SI.prog.lines.push(`<span style="color:var(--sub)">－</span> ${nm(x)}：もう送ってあります（ほかの人が送ったようです）`);
+        d.items=(d.items||[]).filter(it=>it.row!==x.it.row); if(typeof d.total==='number') d.total=Math.max(0,d.total-1);
       } else {
         let err=r.error||'送れませんでした';
-        if(x.tg && SI_APP_ERR.test(err)){ err+='（Telegram は送れています。もう一度送るときは Telegram のチェックを外したままにしてください）'; if(SI.pick[x.it.row]) SI.pick[x.it.row].tg=false; }
+        // 途中で失敗しても、BOK はできたところまでを done で返す（v7.99）。済んだ送り先はチェックを外して、二重に送らないようにする
+        const done=r.done||[], pk=SI.pick[x.it.row];
+        if(done.length){ err+=`（${done.join('・')} は済んでいます。もう一度送るときは、済んだ分のチェックは外したままにしてください）`;
+          if(pk){ if(done.includes('Telegram')) pk.tg=false; if(done.includes('アプリ')) pk.app=false; } }
         SI.fails[x.it.row]=err;
         SI.prog.lines.push(`<span class="warn">×</span> ${nm(x)}：${esc(err)}`);
       }
@@ -2312,11 +2319,13 @@ function siDemo(){ if(!BOK_DEMO._si) BOK_DEMO._si=[
   {row:3535,key:'2026/11/26 18:40:12',date:'2026/11/26',guest:'みほん',rawName:'見本B美',matchedName:'見本B美',matchMessage:'',text:'【愛嬌は】\tとても良い\n【満足度は】\tとても満足'},
   {row:3534,key:'2026/11/25 23:02:55',date:'2026/11/25',guest:'見本田',rawName:'みほん',matchedName:'',matchMessage:'「みほん」に当てはまるセラピストがいません（DBにいない／無効／アンケート対象外）',text:'【その他のご意見】\tまた来ます'}];
   return BOK_DEMO._si; }
-BOK_DEMO['surveyImport.list'] = () => ({ok:true, items:clone(siDemo()), total:siDemo().length, hasTelegram:true});
+BOK_DEMO['surveyImport.list'] = () => ({ok:true, items:clone(siDemo()).map(x=>({...x, rowKey:x.key})), total:siDemo().length, hasTelegram:true});
 BOK_DEMO['surveyImport.sendMany'] = p => { if(p.items.length>20) return {ok:false,error:'一度に送れるのは 20 件までです。分けて送ってください。'};
   return {ok:true, results:p.items.map(it=>{ const a=siDemo(), i=a.findIndex(x=>x.row===it.row&&x.key===it.rowKey);
     if(i<0) return {row:it.row, ok:false, error:'シートの行がずれています。「更新」を押して一覧を取り直してください。'};
     if(it.toApp && !it.matchedName) return {row:it.row, ok:false, error:'セラピストが特定できないので、本人には登録できません'};
+    if(a[i].sentByOther) return {row:it.row, ok:false, error:'もう送ってあります。「更新」を押して一覧を取り直してください。'};
+    if(a[i].failApp && it.toApp) return {row:it.row, ok:false, done:it.toTelegram?['Telegram']:[], error:'本人のアプリに書き込めませんでした。'};
     const done=[]; if(it.toTelegram) done.push('Telegram'); if(it.toApp) done.push('アプリ'); if(p.markSent!==false){ done.push('色'); a.splice(i,1); }
     return {row:it.row, ok:true, done}; })}; };
 
