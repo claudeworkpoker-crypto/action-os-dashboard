@@ -120,7 +120,8 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .whobar .lbl svg{width:14px;height:14px}
 .wp{border:1px solid var(--line);background:transparent;border-radius:999px;padding:4px 11px;font-size:13px;color:var(--sub)}
 .wp.on{background:var(--accent-soft);color:var(--accent);border-color:transparent;font-weight:600}
-.wp .cnt{font-size:12px;color:var(--faint);margin-left:5px}
+.wp .cnt{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;margin-left:6px;border-radius:999px;font-size:12px;font-weight:700;background:var(--accent);color:#fff;vertical-align:1px}
+.wp .cnt.zero{min-width:0;padding:0;background:transparent;color:var(--faint);font-weight:400;opacity:.7}
 .dates .btn.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 .rvbar{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin:0 0 12px}
 .rvbar svg{width:14px;height:14px;flex:none}
@@ -156,6 +157,72 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .bokback{display:flex;align-items:center;gap:8px;margin:0 0 12px}
 .bokback .ttl{font-weight:700;font-size:15px}
 .bokback .iconbtn svg{width:16px;height:16px}
+.himepill{margin-left:5px;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:#ff3b30;color:#fff;vertical-align:1px}
+.bokn{min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#ff3b30;color:#fff;font-size:12px;font-weight:600;display:flex;align-items:center;justify-content:center;flex:none}
+.bkok{font-size:14px;line-height:1.7}
+.bkok p{margin:0 0 8px}
+.bkok .warn{color:var(--red)}
+.bkok .sub{color:var(--sub);font-size:13px}
+.btn.warnbtn{background:var(--red);border-color:var(--red);color:#fff}
+.bkcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
+.bklist{display:flex;flex-direction:column;gap:10px}
+.bktop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.bknote{font-size:13px;color:var(--sub);margin:0 0 12px;line-height:1.6}
+.bkwarn{font-size:13px;color:var(--amber);background:var(--amber-soft);border-radius:10px;padding:8px 12px;margin:0 0 12px;line-height:1.6}
+.bkbad{font-size:13px;color:var(--red);background:var(--red-soft);border-radius:10px;padding:8px 12px;margin:0 0 12px;line-height:1.6}
+.bkok-ok{font-size:13px;color:var(--green);background:var(--green-soft);border-radius:10px;padding:8px 12px;margin:0 0 12px;line-height:1.6}
+.bktag{display:inline-flex;align-items:center;font-size:12px;padding:1px 8px;border-radius:999px;background:var(--panel2);color:var(--sub);white-space:nowrap}
+.bktag.red{background:var(--red-soft);color:var(--red)}
+.bktag.amber{background:var(--amber-soft);color:var(--amber)}
+.bktag.violet{background:color-mix(in srgb,var(--c-p5) 16%,transparent);color:var(--c-p5)}
+.bktag.green{background:var(--green-soft);color:var(--green)}
+.bktag.blue{background:var(--accent-soft);color:var(--accent)}
+.bkbody{white-space:pre-wrap;word-break:break-word;line-height:1.6;font-size:14px}
+.bkclip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.bksel{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.bkseg{display:flex;background:var(--panel2);border-radius:9px;padding:3px;gap:3px;margin-top:10px}
+.bkseg button{flex:1;border:0;background:transparent;border-radius:7px;padding:8px 0;font-size:13px;color:var(--sub)}
+.bkseg button.on1{background:var(--red-soft);color:var(--red);font-weight:600}
+.bkseg button.on2{background:var(--amber-soft);color:var(--amber);font-weight:600}
+.bkcard.hl.hot{border-color:color-mix(in srgb,var(--red) 55%,var(--line));box-shadow:inset 3px 0 0 var(--red),var(--shadow)}
+.bkcard.hl.done{opacity:.6}
+.hltop{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.hlreg{margin-left:auto;font-size:12px;color:var(--faint)}
+.hlwho{font-size:15px;font-weight:600}
+.hlrow{display:flex;gap:12px;flex-wrap:wrap;color:var(--sub);font-size:13px;margin-top:4px;align-items:center}
+.hlrow svg{width:13px;height:13px;vertical-align:-2px}
+.hltel{color:var(--accent);text-decoration:underline;font-size:14px}
+.bkclick{cursor:pointer}
+.bkclick:hover{border-color:var(--accent)}
+.bkchk{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;cursor:pointer;margin-top:4px;font-size:14px;line-height:1.5}
+.bkchk input{width:18px;height:18px;margin-top:2px;flex:none}
+.bkchk .sub{color:var(--sub);font-size:12px}
+.bkquote{white-space:pre-wrap;word-break:break-word;background:var(--panel2);border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:14px;line-height:1.6;max-height:40vh;overflow:auto}
+.bkcard.rbbad{border-color:color-mix(in srgb,var(--red) 55%,var(--line))}
+.sicard.sel{border-color:#ea580c}
+.sitog{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.sitog button{flex:1;min-width:130px;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:10px 8px;font-size:14px;color:var(--sub)}
+.sitog button.on{background:#ea580c;border-color:#ea580c;color:#fff;font-weight:600}
+.sitog button:disabled{opacity:.45}
+.btn.siorange{background:#ea580c;border-color:#ea580c;color:#fff}
+.siprog{height:6px;background:var(--panel2);border-radius:999px;overflow:hidden;margin:8px 0}
+.siprog i{display:block;height:100%;background:#ea580c}
+.stsec .sthd{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:15px}
+.strm{display:flex;gap:6px;align-items:center;margin-top:6px}
+.strm .inp{flex:1;min-width:0}
+.stlogo{background:var(--panel2);border-radius:10px;padding:10px;text-align:center}
+.stlogo img{max-width:160px;max-height:120px}
+.stcmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px}
+.stcmp div{background:var(--panel2);border-radius:8px;padding:8px 10px;line-height:1.7}
+.mtrow{display:flex;align-items:center;gap:8px;padding:9px 2px;border-top:1px solid var(--line);font-size:14px}
+.mtrow:first-of-type{border-top:0}
+.mtrow.off{opacity:.45}
+.mtnone{margin-left:auto;font-size:12px;color:var(--sub)}
+.mtsw{margin-left:auto;display:flex;background:var(--panel2);border-radius:999px;padding:3px;gap:3px}
+.mtsw button{border:0;background:transparent;border-radius:999px;padding:6px 13px;font-size:13px;color:var(--faint)}
+.mtsw button.ok{background:var(--green-soft);color:var(--green);font-weight:600}
+.mtsw button.stop{background:var(--red);color:#fff;font-weight:600}
+.bkseg button.on3{background:var(--green-soft);color:var(--green);font-weight:600}
 .chip.cat{background:transparent;border:1px solid var(--line)}
 .chip.cat i{width:8px;height:8px;border-radius:50%;background:var(--cc);display:inline-block}
 .task.done .ttext{text-decoration:line-through;color:var(--faint)}
@@ -468,6 +535,13 @@ const ICON = {
   play:'<polygon points="6 4 20 12 6 20 6 4"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
   back:'<polyline points="15 18 9 12 15 6"/>',
+  bell:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
+  mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
+  msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  inbox:'<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
+  send:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+  tool:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
   grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
@@ -654,6 +728,7 @@ async function loadAll(quiet){
   }catch(e){ handleErr(e); }
   S.loading=false; render();
   rvPrefetch();  // BOK につないだ端末では、空室情報も裏で読み始めておく
+  himeRefresh(); // 姫予約ログの未確認の件数も（5分より短い間隔では読まない）
 }
 
 // ファイルを最新に読み直してから変更を当てて保存する（同時編集・競合に強くする）
@@ -1222,7 +1297,7 @@ function whoBar(){
   const names=memberNames(); if(!names.length) return '';
   if(S.who && S.who!=='__none' && !names.includes(S.who)) setWho(null);
   const all=allTasks().map(r=>r.t);
-  const pill=(k,label,n)=>`<button type="button" class="wp${(S.who||'')===k?' on':''}" data-act="who" data-k="${esc(k)}">${label}${n!==undefined?`<span class="cnt">${n}</span>`:''}</button>`;
+  const pill=(k,label,n)=>`<button type="button" class="wp${(S.who||'')===k?' on':''}" data-act="who" data-k="${esc(k)}">${label}${n!==undefined?`<span class="cnt${n?'':' zero'}">${n}</span>`:''}</button>`;
   return `<div class="whobar"><span class="lbl">${icon('user')}担当</span>${pill('', 'すべて')}${names.map(n=>pill(n, esc(n), all.filter(t=>hasWho(t,n)).length)).join('')}${pill('__none','担当なし', all.filter(t=>!t.who).length)}</div>`;
 }
 function viewTimeline(){
@@ -1617,32 +1692,21 @@ const RV_OK = /^\d{1,2}(\.\d{1,2})?-\d{1,2}(\.\d{1,2})?$/;
 const rvClean = s => String(s||'').replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/．/g,'.').replace(/[\s　]/g,'').replace(/(\d)[－−ー―‐〜～~](?=\d)/g,'$1-');
 // 「見せない人」の名前の照合（BOK と同じく、全角→半角・スペース無視）
 const rvNorm = s => String(s||'').replace(/[０-９Ａ-Ｚａ-ｚ]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[\s　]/g,'');
-let rvDemo = null;
-async function rvCall(action, payload={}){
+// ===== BOK の窓口（ささやきのウェブアプリ）。どの機能も同じ URL・同じ鍵で呼ぶ =====
+// デモ（?demo で、接続先が未設定のとき）は、BOK_DEMO の見本のデータで、画面の中だけで動かす
+const BOK_DEMO = {};
+const clone = o => JSON.parse(JSON.stringify(o));
+async function bokCall(action, payload={}, timeoutMs=45000){
   let j;
-  if(S.be && S.be.kind==='demo' && !rvConf().url){  // デモ（接続先が未設定のとき）：画面の中だけで動かす
-    if(!rvDemo){
-      const D=['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'];
-      const mk=a=>D.map((day,i)=>({day, slots:[...(a[i]||[]),'','',''].slice(0,3), hidden:''}));
-      rvDemo={days:D, names:['山田まり','佐藤花子'], rooms:[
-        {room:'北千住', shared:false, days:mk([['10-17','20-24'],[],['24-6'],['10-17'],['10-14.5','20-24'],['12-24'],['-']])},
-        {room:'柏', shared:true, days:mk([[],['20-24'],['20-24'],[],['18-24'],['10-24'],['10-18']])},
-        {room:'見本（設定ずれ）', shared:true, problem:'共有先の設定にこのルームがありません', days:mk([])}]};
-      rvDemo.rooms[0].days[1].hidden='山田まり';
-    }
-    await new Promise(r=>setTimeout(r,500));
-    if(action==='room.list') j={ok:true, days:rvDemo.days, slotsPerDay:3, rooms:JSON.parse(JSON.stringify(rvDemo.rooms)), therapistNames:rvDemo.names};
-    else if(action==='room.update'){
-      const r=rvDemo.rooms.find(x=>x.room===payload.room);
-      if(!r || r.problem) j={ok:false, error:'そのルームは見つかりません。読み直してください。'};
-      else if(JSON.stringify(r.days)!==JSON.stringify(payload.was)) j={ok:false, error:'ほかの人が先に変更しました。読み直してください。'};
-      else { r.days=JSON.parse(JSON.stringify(payload.days)); j={ok:true, room:JSON.parse(JSON.stringify(r))}; }
-    }
+  if(S.be && S.be.kind==='demo' && !rvConf().url){
+    const fn=BOK_DEMO[action]; if(!fn) throw new Error('デモには、この機能の見本がありません');
+    await new Promise(r=>setTimeout(r,450));
+    j=fn(clone(payload));
   } else {
     const {url,key}=rvConf();
-    if(!url||!key) throw new Error('空室情報の接続先と鍵が設定されていません（設定画面の「空室情報」）');
-    // text/plain で送ると、Apps Script へ事前確認なしで届く。BOK の窓口は数秒かかるので、待つのは45秒まで
-    const ac=new AbortController(), t=setTimeout(()=>ac.abort(), 45000);
+    if(!url||!key) throw new Error('BOK の接続先と鍵が設定されていません（設定画面の「BOK（ささやき）につなぐ」）');
+    // text/plain で送ると、Apps Script へ事前確認なしで届く。BOK の窓口は数秒かかるので、待つのは timeoutMs まで
+    const ac=new AbortController(), t=setTimeout(()=>ac.abort(), timeoutMs);
     let r;
     try{ r=await fetch(url,{method:'POST', body:JSON.stringify({key, action, ...payload}), redirect:'follow', signal:ac.signal}); }
     catch(e){ throw new Error(e.name==='AbortError' ? 'BOK からの返事に時間がかかりすぎました。少し待ってからもう一度試してください。' : 'BOK につながりませんでした。通信を確かめて、もう一度試してください。'); }
@@ -1650,12 +1714,37 @@ async function rvCall(action, payload={}){
     if(!r.ok) throw new Error(`BOK につながりませんでした（${r.status}）`);
     j=await r.json().catch(()=>{ throw new Error('BOK の返事を読めませんでした（設定の URL が正しいか確かめてください）'); });
   }
+  if(j && j.ok===false && j.needConfirm) return j;  // 設定のルーム一覧など：確かめてから送り直す返事は、そのまま返す
   if(!j || !j.ok){
     const msg=(j&&j.error)||'BOK でエラーが出ました';
-    throw new Error(msg==='鍵が違います' ? '鍵が違います。設定画面の「空室情報」の鍵を確かめてください。' : msg);
+    const e=new Error(msg==='鍵が違います' ? '鍵が違います。設定画面の「BOK（ささやき）につなぐ」の鍵を確かめてください。' : msg);
+    e.res=j; throw e;
   }
   return j;
 }
+const rvCall = (action, payload) => bokCall(action, payload);
+// デモの見本（名前はすべて見本）
+const BOK_DEMO_NAMES = ['見本A子','見本B美','見本C奈','見本D香','山田まり','佐藤花子'];
+let rvDemo = null;
+function rvDemoData(){
+  if(!rvDemo){
+    const D=['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'];
+    const mk=a=>D.map((day,i)=>({day, slots:[...(a[i]||[]),'','',''].slice(0,3), hidden:''}));
+    rvDemo={days:D, rooms:[
+      {room:'北千住', shared:false, days:mk([['10-17','20-24'],[],['24-6'],['10-17'],['10-14.5','20-24'],['12-24'],['-']])},
+      {room:'柏', shared:true, days:mk([[],['20-24'],['20-24'],[],['18-24'],['10-24'],['10-18']])},
+      {room:'見本（設定ずれ）', shared:true, problem:'共有先の設定にこのルームがありません', days:mk([])}]};
+    rvDemo.rooms[0].days[1].hidden='山田まり';
+  }
+  return rvDemo;
+}
+BOK_DEMO['room.list'] = () => { const d=rvDemoData(); return {ok:true, days:d.days, slotsPerDay:3, rooms:clone(d.rooms), therapistNames:clone(BOK_DEMO_NAMES)}; };
+BOK_DEMO['room.update'] = p => {
+  const r=rvDemoData().rooms.find(x=>x.room===p.room);
+  if(!r || r.problem) return {ok:false, error:'そのルームは見つかりません。読み直してください。'};
+  if(JSON.stringify(r.days)!==JSON.stringify(p.was)) return {ok:false, error:'ほかの人が先に変更しました。読み直してください。'};
+  r.days=clone(p.days); return {ok:true, room:clone(r)};
+};
 // quiet：ダッシュボードを開いたときに裏で読んでおく用。画面は、BOK のタブを見ていて入力の画面が開いていないときだけ描き直す
 async function rvLoad(quiet){
   if(RV.loading) return;
@@ -1736,37 +1825,624 @@ async function rvSave(){
 }
 // ===== BOK のタブ（BOK の管理画面の機能の入口） =====
 // 並びは BOK の管理画面と同じ。「セラピスト管理」は出さない（名簿の正本は外部のセラピストDBのため）。
-// on のものだけ使える。ほかは BOK 側に窓口ができたら、1つずつ使えるようにする（それまでは「準備中」の枠）。
 const BOK_FEATURES = [
-  {k:'news', name:'お知らせ管理'},
-  {k:'personalNews', name:'個人へのお知らせ'},
-  {k:'rv', name:'ルーム空室情報の編集', desc:'北千住・柏などの曜日ごとの空き時間帯', on:true},
-  {k:'survey', name:'アンケート管理'},
-  {k:'surveyImport', name:'アンケート取り込み'},
-  {k:'himeLog', name:'姫予約ログ'},
-  {k:'roomBroadcast', name:'本日のルーム配信'},
-  {k:'maintenance', name:'メンテナンス管理'},
-  {k:'settings', name:'設定'},
+  {k:'news', name:'お知らせ管理', desc:'セラピスト全員に出すお知らせ', ic:'bell'},
+  {k:'personalNews', name:'個人へのお知らせ', desc:'1人だけに届くお知らせ', ic:'mail'},
+  {k:'rv', name:'ルーム空室情報の編集', desc:'北千住・柏などの曜日ごとの空き時間帯', ic:'cal'},
+  {k:'survey', name:'アンケート管理', desc:'お客様の声をセラピスト本人に届ける', ic:'msg'},
+  {k:'surveyImport', name:'アンケート取り込み', desc:'集計表のまだ送っていない回答を送る', ic:'inbox'},
+  {k:'himeLog', name:'姫予約ログ', desc:'セラピストが取った予約の確認', ic:'phone'},
+  {k:'roomBroadcast', name:'本日のルーム配信', desc:'その日のルーム割をセラピストに配る', ic:'send'},
+  {k:'maintenance', name:'メンテナンス管理', desc:'セラピストのアプリのメニューを一時的に止める', ic:'tool'},
+  {k:'settings', name:'設定', desc:'対象週・ルーム・リンク・Telegram・パスコード', ic:'gear'},
 ];
+// 機能ごとの「読み込む」処理（開くたび・「読み直す」で呼ぶ）と画面。下の各機能の節で入れる
+const BK_LOAD = {rv:()=>rvLoad()}, BK_VIEW = {rv:()=>viewRv()}, BK_MODAL = {};
+// 機能ごとの読み込みの状態（中身はブラウザに残さない。開いている間だけ持つ）
+const BK = {};
+const bk = k => BK[k] || (BK[k]={data:null, loading:false, error:'', at:'', ms:0, loadedAt:0});
+const hmNow = () => new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'});
+async function bkLoad(k, action, payload={}, after){
+  const s=bk(k); if(s.loading) return;
+  s.loading=true; s.error=''; render();
+  const t0=performance.now();
+  try{ s.data=await bokCall(action, payload); s.loadedAt=Date.now(); s.at=hmNow(); if(after) after(s.data); }
+  catch(e){ s.error=e.message; }
+  s.ms=performance.now()-t0; s.loading=false; render();
+}
+function bkBar(k, extra=''){
+  const s=bk(k), demo=S.be && S.be.kind==='demo' && !rvConf().url;
+  return `<div class="rvbar">${icon('refresh')}<span>${s.loading?'BOK から読み込んでいます…（数秒かかります）':s.at?`${esc(s.at)} に読み込み（${rvSec(s.ms)}）${extra}`:''}${demo?'（デモ）':''}</span><span class="sp"></span><button type="button" class="btn sm" data-act="bk-reload" data-k="${k}" ${s.loading?'disabled':''}>読み直す</button></div>`;
+}
+// 読み込み中・エラーのときに出すもの（中身があれば空文字）
+function bkWait(k){
+  const s=bk(k);
+  if(s.error) return `<div class="plain"><div class="empty" style="color:var(--red)">${esc(s.error)}</div></div>`;
+  if(!s.data) return '<div class="plain"><div class="empty">BOK から読み込んでいます…</div></div>';
+  return '';
+}
+// 取り消せない操作の前の確認（o：title・html・ok（ボタンの文字）・danger・run（押したときにすること））
+function bkConfirm(o){ S.modal={type:'bkok', ...o}; render(); }
+function bkOkModal(m){
+  return `<div class="ov" data-act="close-ov"><div class="modal"><h2>${esc(m.title)}</h2><div class="bkok">${m.html}</div>
+    <div class="actions"><button type="button" class="btn" data-act="close">やめる</button><button type="button" class="btn pri${m.danger?' warnbtn':''}" data-act="bkok-yes">${esc(m.ok)}</button></div></div></div>`;
+}
+// 名前の照らし合わせ（BOK と同じく、全角→半角・スペース無視）
+const nameKey = s => rvNorm(s);
 function viewBok(){
-  const f=BOK_FEATURES.find(x=>x.k===S.bok && x.on);
+  const f=BOK_FEATURES.find(x=>x.k===S.bok);
   if(f){
     const back=`<div class="bokback"><button type="button" class="iconbtn sm" data-act="bok-back" title="BOK の機能の一覧へ">${icon('back')}</button><span class="ttl">BOK ／ ${esc(f.name)}</span></div>`;
-    if(f.k==='rv') return back+(rvOn()?viewRv():'<div class="plain"><div class="empty">この端末は、まだ BOK につながっていません。設定（右上の歯車）の「空室情報（BOK のささやき）」に、ささやきの URL と鍵を入れてください。</div></div>');
+    if(!rvOn()) return back+'<div class="plain"><div class="empty">この端末は、まだ BOK につながっていません。設定（右上の歯車）の「BOK（ささやき）につなぐ」に、ささやきの URL と鍵を入れてください。</div></div>';
+    const v=BK_VIEW[f.k]; if(v) return back+v();
   }
   S.bok=null;
-  return `<div class="boksub">BOK（ささやき）</div><div class="boklist">${BOK_FEATURES.map(x=>x.on
-    ? `<button type="button" class="bokfn" data-act="bok-open" data-k="${x.k}"><span class="ic">${icon('cal')}</span><span class="tx"><span class="t1">${esc(x.name)}</span><span class="t2">${esc(x.desc||'')}</span></span>${icon('chev')}</button>`
-    : `<div class="bokfn off"><span class="tx"><span class="t1">${esc(x.name)}<span class="tag">準備中</span></span><span class="t2">BOK 側の窓口ができたら使えます</span></span></div>`).join('')}</div>`;
+  if(rvOn()) himeRefresh();  // 姫予約の件数（BOK のタブの札）を、古ければ数え直す
+  return `<div class="boksub">BOK（ささやき）</div><div class="boklist">${BOK_FEATURES.map(x=>{
+    const n = x.k==='himeLog' && HIME.count>0 ? `<span class="bokn">${HIME.count}</span>` : '';
+    return `<button type="button" class="bokfn" data-act="bok-open" data-k="${x.k}"><span class="ic">${icon(x.ic)}</span><span class="tx"><span class="t1">${esc(x.name)}</span><span class="t2">${esc(x.desc||'')}</span></span>${n}${icon('chev')}</button>`;
+  }).join('')}</div>`;
 }
+// ===== 姫予約ログの未確認の件数（BOK のタブの「姫 ◯」の札） =====
+// himeLog.list を1件だけ読んで、シート全体の未確認の件数（unconfirmedCount）をもらう。BOK の注意に合わせ、5分より短い間隔では読まない
+const HIME = {count:0, loadedAt:0, loading:false};
+const HIME_MIN_MS = 5*60*1000;
+async function himeRefresh(force){
+  if(!rvOn() || HIME.loading || (!force && Date.now()-HIME.loadedAt<HIME_MIN_MS)) return;
+  HIME.loading=true;
+  try{ const j=await bokCall('himeLog.list',{limit:1}); himeSetCount(j); }catch(e){}
+  HIME.loading=false; HIME.loadedAt=Date.now();
+}
+function himeSetCount(j){
+  if(!j || typeof j.unconfirmedCount!=='number') return;
+  const before=HIME.count; HIME.count=j.unconfirmedCount; HIME.loadedAt=Date.now();
+  if(before!==HIME.count && !S.modal) render();
+}
+const himePill = () => HIME.count>0 ? `<span class="himepill" title="姫予約ログの未確認">姫 ${HIME.count}</span>` : '';
+
+// ===== 【1】メンテナンス管理（セラピストのアプリのメニューを一時的に止める。止める・戻すは手で） =====
+const MT = {draft:null, saving:false};
+BK_LOAD.maintenance = () => bkLoad('maintenance','maintenance.get',{}, d=>{ MT.draft={keys:[...(d.keys||[])], message:d.message||''}; });
+BK_VIEW.maintenance = () => {
+  const w=bkWait('maintenance'); if(w) return bkBar('maintenance')+w;
+  const d=bk('maintenance').data, dr=MT.draft || (MT.draft={keys:[...(d.keys||[])], message:d.message||''});
+  const lab=k=>((d.allKeys||[]).find(x=>x.key===k)||{label:k}).label;
+  const now=d.keys||[];
+  return bkBar('maintenance')+
+    (now.length?`<div class="bkwarn">いま ${now.length}件 止めています（${now.map(lab).map(esc).join('、')}）。自動では戻りません。</div>`:'<div class="bkok-ok">いまは何も止めていません。</div>')+
+    `<div class="bkcard"><div class="bknote" style="margin:0 0 4px">止めたメニューは、セラピストのアプリで灰色になって押せなくなります。</div>
+      ${(d.allKeys||[]).map(x=>{ const on=dr.keys.includes(x.key);
+        return `<div class="mtrow${x.enabled===false?' off':''}"><span>${esc(x.label)}</span>${x.enabled===false?'<span class="mtnone">この店舗では使っていない</span>':
+          `<span class="mtsw"><button type="button" class="${on?'':'ok'}" data-act="mt-set" data-key="${esc(x.key)}" data-v="0">使える</button><button type="button" class="${on?'stop':''}" data-act="mt-set" data-key="${esc(x.key)}" data-v="1">止める</button></span>`}</div>`; }).join('')}
+    </div>
+    <div class="bkcard" style="margin-top:12px"><div class="bknote" style="margin:0 0 6px">止めたメニューを押したときにセラピストに出る文言（空にすると既定の文言に戻ります）</div>
+      <textarea class="inp" data-mtmsg rows="3" placeholder="${esc(d.defaultMessage||'')}">${esc(dr.message)}</textarea></div>
+    <div class="actions" style="margin-top:12px"><button type="button" class="btn pri" data-act="mt-save" ${MT.saving?'disabled':''}>${MT.saving?'保存中…':'BOK に保存'}</button></div>`;
+};
+function mtSave(){
+  const d=bk('maintenance').data, dr=MT.draft; if(!d || !dr || MT.saving) return;
+  const order=(d.allKeys||[]).map(x=>x.key);
+  const keys=order.filter(k=>dr.keys.includes(k)).concat(dr.keys.filter(k=>!order.includes(k)));
+  const before=d.keys||[], lab=k=>((d.allKeys||[]).find(x=>x.key===k)||{label:k}).label;
+  const stop=keys.filter(k=>!before.includes(k)), resume=before.filter(k=>!keys.includes(k));
+  const message=dr.message.replace(/\r/g,'').trim(), msgChanged = message!==(d.message||'').trim();
+  if(!stop.length && !resume.length && !msgChanged) return toast('変わったところがありません');
+  bkConfirm({title:'保存してよいですか？', danger:stop.length>0, ok: stop.length?'止めて保存':resume.length?'再開して保存':'保存',
+    html:`<p><b class="warn">止める：</b>${stop.length?stop.map(lab).map(esc).join('、'):'（なし）'}</p>
+      <p><b style="color:var(--green)">再開する：</b>${resume.length?resume.map(lab).map(esc).join('、'):'（なし）'}</p>
+      ${msgChanged?`<p>文言：${message?'変える':'既定の文言に戻す'}</p>`:''}
+      <p class="sub">保存した瞬間から、止めたメニューはセラピストが使えなくなります。自動では戻りません。</p>`,
+    run: async ()=>{
+      MT.saving=true; render();
+      try{
+        const send = message===String(d.defaultMessage||'').trim() ? '' : message;  // 既定の文言のままなら空で送る（BOK の欄を空のままにする）
+        const j=await bokCall('maintenance.save',{keys, message:send, was:{keys:before, message:d.message||''}});
+        d.keys=j.keys||keys; if(j.message!==undefined) d.message=j.message;
+        MT.draft={keys:[...d.keys], message:d.message||''};
+        toast('BOK に保存しました');
+      }catch(e){ toast(e.message,true); if(/先に変更|読み直/.test(e.message)) { MT.saving=false; return BK_LOAD.maintenance(); } }
+      MT.saving=false; render();
+    }});
+}
+// ===== 【2】姫予約ログ（セラピストが取った予約。内勤が 未確認→対応中→確認済み と進める） =====
+// 読むだけでシートの電話番号を直すことがあるので、開いたときと「読み直す」のときだけ読む（自動では読まない）
+const HL = {filter:'open', saving:{}};
+const HL_ST = ['未確認','対応中','確認済み'];
+BK_LOAD.himeLog = () => bkLoad('himeLog','himeLog.list',{limit:200}, d=>himeSetCount(d));
+const telHref = p => 'tel:'+String(p||'').replace(/[^\d+]/g,'');
+const telFmt = p => { const d=String(p||'').replace(/\D/g,''); return d.length===11 ? `${d.slice(0,3)}-${d.slice(3,7)}-${d.slice(7)}` : d.length===10 ? `${d.slice(0,2)}-${d.slice(2,6)}-${d.slice(6)}` : String(p||''); };
+const yen = v => { const n=Number(String(v||'').replace(/[^\d]/g,'')); return n ? n.toLocaleString('ja-JP')+'円' : (v?esc(v):''); };
+BK_VIEW.himeLog = () => {
+  const w=bkWait('himeLog'); if(w) return bkBar('himeLog')+w;
+  const d=bk('himeLog').data, logs=(d.logs||[]).filter(l=>l.registeredAt||l.therapistName||l.customerName);
+  const hot=l=>l.isUrgent||l.nameMismatch||l.notifyFailed;
+  const F={open:['未確認・対応中',l=>l.status!=='確認済み'], all:['すべて',()=>true], done:['確認済み',l=>l.status==='確認済み'], hot:['急ぎだけ',l=>hot(l)&&l.status!=='確認済み']};
+  const list=logs.filter(F[HL.filter][1]);
+  const unc=typeof d.unconfirmedCount==='number'?d.unconfirmedCount:logs.filter(l=>l.status==='未確認').length;
+  const open=typeof d.openCount==='number'?d.openCount:logs.filter(l=>l.status!=='確認済み').length;
+  return bkBar('himeLog', `・最新${logs.length}件${d.total!=null?`（全${d.total}件）`:''}`)+
+    `<div class="bktop">${unc?`<span class="bktag red" style="font-size:13px;font-weight:600">未確認 ${unc}件</span>`:'<span class="bktag green">未確認はありません</span>'}${open>unc?`<span class="bktag amber">対応中 ${open-unc}件</span>`:''}</div>
+    <div class="bksel">${Object.entries(F).map(([k,[l]])=>`<button type="button" class="wp${HL.filter===k?' on':''}" data-act="hl-filter" data-k="${k}">${l}</button>`).join('')}</div>
+    <div class="bklist">${list.length?list.map(l=>{
+      const st=HL_ST.includes(l.status)?l.status:'未確認', saving=HL.saving[l.rowNumber];
+      return `<div class="bkcard hl${hot(l)&&st!=='確認済み'?' hot':''}${st==='確認済み'?' done':''}">
+        <div class="hltop">${l.isUrgent?'<span class="bktag red">24時間以内</span>':''}${l.nameMismatch?'<span class="bktag amber">名前不一致</span>':''}${l.notifyFailed?'<span class="bktag violet">通知失敗</span>':''}<span class="hlreg">登録 ${esc(l.registeredAt||'')}</span></div>
+        <div class="hlwho">${esc(l.therapistName||'')} → お客様：${esc(l.customerName||'')}</div>
+        <div class="hlrow"><span>${icon('cal')} ${esc(l.date||'')} ${esc(l.start||'')}〜${l.minutes?` ${esc(l.minutes)}分`:''}</span>${l.type?`<span>${esc(l.type)}</span>`:''}${l.total?`<span>${yen(l.total)}</span>`:''}</div>
+        ${l.phone?`<div class="hlrow"><a class="hltel" href="${esc(telHref(l.phone))}">${icon('phone')} ${esc(telFmt(l.phone))}</a></div>`:''}
+        <div class="bkseg">${HL_ST.map((x,i)=>`<button type="button" class="${st===x?'on'+(i+1):''}" data-act="hl-set" data-row="${l.rowNumber}" data-v="${x}" ${saving?'disabled':''}>${saving&&saving===x?'保存中…':x}</button>`).join('')}</div>
+      </div>`; }).join(''):'<div class="plain"><div class="empty">ここに出す予約はありません</div></div>'}</div>`;
+};
+async function hlSet(rowNumber, status){
+  const d=bk('himeLog').data; if(!d) return;
+  const l=(d.logs||[]).find(x=>x.rowNumber===rowNumber); if(!l || l.status===status || HL.saving[rowNumber]) return;
+  HL.saving[rowNumber]=status; render();
+  try{
+    const j=await bokCall('himeLog.setStatus',{rowNumber, status, was:{registeredAt:l.registeredAt, therapistName:l.therapistName, status:l.status}});
+    const prev=l.status; Object.assign(l, j.log||{status});
+    if(typeof j.unconfirmedCount==='number'){ d.unconfirmedCount=j.unconfirmedCount; if(typeof j.openCount==='number') d.openCount=j.openCount; }
+    else {  // setStatus は件数を返さないので、変えた分だけその場で合わせる
+      const du=(l.status==='未確認')-(prev==='未確認'), dop=(l.status!=='確認済み')-(prev!=='確認済み');
+      if(typeof d.unconfirmedCount==='number') d.unconfirmedCount=Math.max(0,d.unconfirmedCount+du);
+      if(typeof d.openCount==='number') d.openCount=Math.max(0,d.openCount+dop);
+    }
+    himeSetCount({unconfirmedCount:d.unconfirmedCount});
+  }catch(e){ toast(e.message,true); if(/変わって|読み直/.test(e.message)){ delete HL.saving[rowNumber]; return BK_LOAD.himeLog(); } }
+  delete HL.saving[rowNumber]; render();
+}
+function hlDemo(){
+  if(!BOK_DEMO._hl){
+    const mk=(n,reg,th,cu,ph,dt,st,mi,ty,to,u,m,stt,nf)=>({rowNumber:n, registeredAt:reg, therapistName:th, customerName:cu, phone:ph, date:dt, start:st, minutes:mi, type:ty, total:to, isUrgent:u, nameMismatch:m, status:stt, notifyFailed:nf});
+    BOK_DEMO._hl=[mk(412,'2026/11/26 15:04','見本A子','見本','09000000000','2026/11/27','21:00','90','本指名','22000',true,false,'未確認',true),
+      mk(411,'2026/11/26 13:40','見本B美','みほん','08000000000','2026/11/29','18:00','120','本指名','28000',false,true,'対応中',false),
+      mk(410,'2026/11/25 22:15','見本C奈','見本田','07000000000','2026/12/02','20:00','90','写真指名','20000',false,false,'未確認',false),
+      mk(409,'2026/11/25 18:02','見本D香','見本川','09011112222','2026/11/26','19:00','60','本指名','15000',false,false,'確認済み',false)];
+  }
+  return BOK_DEMO._hl;
+}
+const hlCounts = () => { const a=hlDemo(); return {unconfirmedCount:a.filter(x=>x.status==='未確認').length, openCount:a.filter(x=>x.status!=='確認済み').length}; };
+BOK_DEMO['himeLog.list'] = p => { const a=hlDemo(), lim=p.limit||200; return {ok:true, total:a.length, returned:Math.min(lim,a.length), logs:clone(a.slice(0,lim)), ...hlCounts()}; };
+BOK_DEMO['himeLog.setStatus'] = p => { const l=hlDemo().find(x=>x.rowNumber===p.rowNumber);
+  if(!l || l.registeredAt!==p.was.registeredAt || l.therapistName!==p.was.therapistName || l.status!==p.was.status) return {ok:false, error:'一覧が変わっています。読み直してください。'};
+  l.status=p.status; return {ok:true, log:clone(l)}; };
+// ===== BOK の書く画面の共通の部品 =====
+// 入力は打つたびに S.modal.draft へ写す（画面を描き直しても消えないように）。<… data-bkf="項目名">
+const todayMD = () => { const [,m,d]=todayStr().split('-'); return `${+m}/${+d}`; };
+const bkField = (label, inner, hint='') => `<div class="field"><label>${label}</label>${inner}${hint?`<div class="hint" style="margin-top:4px">${hint}</div>`:''}</div>`;
+const bkIn = (f,v,ph='') => `<input class="inp" data-bkf="${f}" value="${esc(v??'')}" placeholder="${esc(ph)}" autocomplete="off">`;
+const bkTa = (f,v,ph='',rows=4) => `<textarea class="inp" data-bkf="${f}" rows="${rows}" placeholder="${esc(ph)}">${esc(v??'')}</textarea>`;
+const bkChk = (f,on,label,sub) => `<label class="bkchk"><input type="checkbox" data-bkf="${f}" ${on?'checked':''}><span><b>${label}</b>${sub?`<br><span class="sub">${sub}</span>`:''}</span></label>`;
+const inNames = (v, names) => names.some(n=>nameKey(n)===nameKey(v));
+function bkNameSel(f, v, names){
+  const miss = v && !inNames(v, names);
+  return `<select class="inp" data-bkf="${f}"><option value="">選んでください</option>${miss?`<option value="${esc(v)}" selected>${esc(v)}（名簿にいない）</option>`:''}${names.map(n=>`<option value="${esc(n)}" ${n===v?'selected':''}>${esc(n)}</option>`).join('')}</select>`;
+}
+function bkModalWrap(title, body, buttons){ return `<div class="ov" data-act="close-ov"><div class="modal"><h2>${title}</h2>${body}<div class="actions">${buttons}</div></div></div>`; }
+// 一覧をまるごと保存する画面（お知らせ・アンケート）と、1件ずつの画面で共通：保存して、ずれていたら読み直す
+async function bkSave(k, action, payload, apply, msg){
+  const s=bk(k); if(s.saving) return; s.saving=true; render();
+  try{ const j=await bokCall(action, payload); if(apply) apply(j); toast(msg); }
+  catch(e){ toast(e.message,true); if(/先に変更|変わって|ずれて|読み直/.test(e.message)){ s.saving=false; return BK_LOAD[k](); } }
+  s.saving=false; render();
+}
+const reqConfirm = (who, run) => bkConfirm({title:'既読確認を必須にして保存しますか？', ok:'必須にして保存', danger:true, run,
+  html:`<p class="sub">${who}が、次にアプリを開いたときにこのお知らせが全画面で出ます。「確認しました」を押すまで、アプリを使えません。</p>`});
+
+// ===== 【3】お知らせ管理（セラピスト全員に出す。保存は一覧まるごと書き直し） =====
+BK_LOAD.news = () => bkLoad('news','news.list');
+BK_VIEW.news = () => {
+  const w=bkWait('news'); if(w) return bkBar('news')+w;
+  const d=bk('news').data, list=d.news||[], sv=bk('news').saving;
+  return bkBar('news')+`<div class="bktop"><span class="bknote" style="margin:0;flex:1">保存すると、すぐ全セラピストのアプリに出ます。</span><button type="button" class="btn sm pri" data-act="nw-open" data-i="-1" ${sv?'disabled':''}>＋ 書く</button></div>
+    <div class="bklist">${list.length?list.map((n,i)=>`<div class="bkcard bkclick" data-act="nw-open" data-i="${i}">
+      <div class="hltop"><span class="hlreg" style="margin:0">${esc(n.date||'')}</span>${n.required?'<span class="bktag amber">既読確認必須</span>':''}</div>
+      <div class="hlwho">${esc(n.title||'お知らせ')}</div><div class="bkbody bkclip" style="margin-top:4px;color:var(--sub)">${esc(n.body||'')}</div></div>`).join(''):'<div class="plain"><div class="empty">お知らせはありません</div></div>'}</div>
+    ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
+};
+function nwOpen(i){ const d=bk('news').data; if(!d) return; const it= i>=0 ? d.news[i] : {date:todayMD(), title:'', body:'', required:false}; S.modal={type:'bknews', i, draft:{date:it.date||'', title:it.title||'', body:it.body||'', required:!!it.required}}; render(); }
+BK_MODAL.bknews = m => bkModalWrap(m.i>=0?'お知らせを直す':'お知らせを書く',
+  bkField('日付（表示用。空欄でもよい）', bkIn('date',m.draft.date,'11/26'))+
+  bkField('見出し（空欄なら「お知らせ」）', bkIn('title',m.draft.title,'お知らせ'))+
+  bkField('本文（必須）', bkTa('body',m.draft.body,'',5))+
+  bkChk('required', m.draft.required, '既読確認を必須にする', 'ログイン直後に全画面で出て、押すまで先に進めない'),
+  `${m.i>=0?'<button type="button" class="btn danger left" data-act="nw-del">削除</button>':''}<button type="button" class="btn" data-act="close">キャンセル</button><button type="button" class="btn pri" data-act="nw-save">BOK に保存</button>`);
+function nwSave(){
+  const m=S.modal, dr=m.draft, d=bk('news').data; if(!d) return;
+  const body=String(dr.body||'').replace(/\r/g,'').trim(); if(!body) return toast('本文を入れてください',true);
+  const item={date:String(dr.date||'').trim(), title:String(dr.title||'').trim(), body, required:!!dr.required};
+  const list=clone(d.news||[]); if(m.i>=0) list[m.i]=item; else list.unshift(item);
+  const was=clone(d.news||[]), wasReq = m.i>=0 && !!(d.news[m.i]||{}).required;
+  const go=()=>bkSave('news','news.save',{news:list, was}, j=>{ d.news=j.news||list; }, 'BOK に保存しました');
+  S.modal=null; render();
+  if(item.required && !wasReq) reqConfirm('全セラピスト', go); else go();
+}
+function nwDel(){
+  const m=S.modal, d=bk('news').data, it=d && d.news[m.i]; if(!it) return;
+  S.modal=null;
+  bkConfirm({title:'このお知らせを消しますか？', ok:'消す', danger:true,
+    html:`<p>${esc(it.title||'お知らせ')}（${esc(it.date||'')}）</p><p class="sub">消すと元に戻せません。セラピストのアプリからも消えます。</p>`,
+    run:()=>{ const list=clone(d.news); list.splice(m.i,1); bkSave('news','news.save',{news:list, was:clone(d.news)}, j=>{ d.news=j.news||list; }, '消しました'); }});
+}
+BOK_DEMO['news.list'] = () => { if(!BOK_DEMO._nw) BOK_DEMO._nw=[{date:'11/26',title:'年末年始の営業について',body:'12/31〜1/2 は営業時間が変わります。\nシフト提出は12/20までにお願いします。',required:true},{date:'11/20',title:'',body:'北千住のルームのエアコンを交換しました。',required:false}]; return {ok:true, news:clone(BOK_DEMO._nw)}; };
+BOK_DEMO['news.save'] = p => { if(JSON.stringify(p.was)!==JSON.stringify(BOK_DEMO._nw)) return {ok:false,error:'ほかの人が先に変更しました。読み直してください。'}; BOK_DEMO._nw=p.news.filter(n=>n.body).map(n=>({...n, title:n.title})); return {ok:true, news:clone(BOK_DEMO._nw)}; };
+
+// ===== 【4】アンケート管理（お客様の声をセラピスト本人に届ける。保存は一覧まるごと書き直し） =====
+const SV = {filter:'', more:false};
+BK_LOAD.survey = () => bkLoad('survey','survey.list');
+BK_VIEW.survey = () => {
+  const w=bkWait('survey'); if(w) return bkBar('survey')+w;
+  const d=bk('survey').data, all=(d.surveys||[]).map((x,i)=>({...x,i})), names=d.therapistNames||[], sv=bk('survey').saving;
+  const list=all.filter(x=>!SV.filter || x.name===SV.filter), shown=SV.more?list:list.slice(0,60);
+  const who=[...new Set(all.map(x=>x.name).filter(Boolean))];
+  return bkBar('survey', `・${all.length}件`)+`<div class="bktop"><span class="bknote" style="margin:0;flex:1">ここに書いたものは、宛先のセラピスト本人のアプリに出ます。</span><button type="button" class="btn sm pri" data-act="sv-open" data-i="-1" ${sv?'disabled':''}>＋ 書く</button></div>
+    <div class="bksel"><select class="inp" data-act-change="sv-filter" style="max-width:260px"><option value="">宛先：すべて</option>${who.map(n=>`<option value="${esc(n)}" ${n===SV.filter?'selected':''}>${esc(n)}${inNames(n,names)?'':'（名簿にいない）'}</option>`).join('')}</select></div>
+    <div class="bklist">${shown.length?shown.map(x=>`<div class="bkcard bkclick" data-act="sv-open" data-i="${x.i}">
+      <div class="hltop"><span class="hlreg" style="margin:0">${esc(x.date||'')}</span><span class="bktag violet">${esc(x.name||'')}</span>${x.name&&!inNames(x.name,names)?'<span class="bktag amber">名簿にいない</span>':''}</div>
+      <div class="bkbody bkclip">${esc(x.body||'')}</div></div>`).join(''):'<div class="plain"><div class="empty">ありません</div></div>'}</div>
+    ${!SV.more&&list.length>shown.length?`<div class="actions" style="justify-content:center;margin-top:12px"><button type="button" class="btn" data-act="sv-more">残り ${list.length-shown.length}件を出す</button></div>`:''}
+    ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
+};
+function svOpen(i){ const d=bk('survey').data; if(!d) return; const it= i>=0 ? d.surveys[i] : {date:todayMD(), name:SV.filter||'', body:''}; S.modal={type:'bksurvey', i, draft:{date:it.date||'', name:it.name||'', body:it.body||''}}; render(); }
+BK_MODAL.bksurvey = m => { const names=(bk('survey').data||{}).therapistNames||[];
+  return bkModalWrap(m.i>=0?'お客様の声を直す':'お客様の声を書く',
+    bkField('日付（表示用）', bkIn('date',m.draft.date,'11/26'))+
+    bkField('宛先（今いるセラピストから選ぶ）', bkNameSel('name',m.draft.name,names), '手で打つと、書き方の違いで本人に届かないことがあるので、一覧から選びます')+
+    bkField('本文（本人に見える。悪口などは入れない）', bkTa('body',m.draft.body,'',6)),
+    `${m.i>=0?'<button type="button" class="btn danger left" data-act="sv-del">削除</button>':''}<button type="button" class="btn" data-act="close">キャンセル</button><button type="button" class="btn pri" data-act="sv-save">BOK に保存</button>`); };
+function svSave(){
+  const m=S.modal, dr=m.draft, d=bk('survey').data; if(!d) return;
+  const name=String(dr.name||'').trim(), body=String(dr.body||'').replace(/\r/g,'').trim();
+  if(!name) return toast('宛先を選んでください',true); if(!body) return toast('本文を入れてください',true);
+  const item={date:String(dr.date||'').trim(), name, body};
+  const list=clone(d.surveys||[]); if(m.i>=0) list[m.i]=item; else list.unshift(item);
+  const was=clone(d.surveys||[]);
+  S.modal=null; render();
+  bkConfirm({title:`${name} さんのアプリに出します`, ok:'出す',
+    html:`<div class="bkquote">${esc(body)}</div><p class="sub">本人に見えます。気になる言葉が入っていないか、もう一度確かめてください。</p>`,
+    run:()=>bkSave('survey','survey.save',{surveys:list, was}, j=>{ d.surveys=j.surveys||list; }, 'BOK に保存しました')});
+}
+function svDel(){
+  const m=S.modal, d=bk('survey').data, it=d && d.surveys[m.i]; if(!it) return;
+  S.modal=null;
+  bkConfirm({title:'このお客様の声を消しますか？', ok:'消す', danger:true, html:`<p>${esc(it.name||'')}（${esc(it.date||'')}）</p><p class="sub">消すと元に戻せません。本人のアプリからも消えます。</p>`,
+    run:()=>{ const list=clone(d.surveys); list.splice(m.i,1); bkSave('survey','survey.save',{surveys:list, was:clone(d.surveys)}, j=>{ d.surveys=j.surveys||list; }, '消しました'); }});
+}
+BOK_DEMO['survey.list'] = () => { if(!BOK_DEMO._sv) BOK_DEMO._sv=[{date:'11/26',name:'見本A子',body:'施術がとても丁寧で、時間があっという間でした。また指名します。'},{date:'11/24',name:'見本B美',body:'会話が楽しくてリラックスできました。'},{date:'11/02',name:'見本Z（退店）',body:'また来ます。'}]; return {ok:true, surveys:clone(BOK_DEMO._sv), therapistNames:clone(BOK_DEMO_NAMES)}; };
+BOK_DEMO['survey.save'] = p => { if(JSON.stringify(p.was)!==JSON.stringify(BOK_DEMO._sv)) return {ok:false,error:'ほかの人が先に変更しました。読み直してください。'}; BOK_DEMO._sv=p.surveys.filter(x=>x.name&&x.body); return {ok:true, surveys:clone(BOK_DEMO._sv)}; };
+
+// ===== 【5】個人へのお知らせ（1人だけに届く。1件ずつ保存・削除） =====
+const PN = {filter:''};
+BK_LOAD.personalNews = () => bkLoad('personalNews','personalNews.list');
+BK_VIEW.personalNews = () => {
+  const w=bkWait('personalNews'); if(w) return bkBar('personalNews')+w;
+  const d=bk('personalNews').data, all=d.list||[], names=d.therapistNames||[], sv=bk('personalNews').saving;
+  const list=all.filter(x=>!PN.filter || x.target===PN.filter), who=[...new Set(all.map(x=>x.target).filter(Boolean))];
+  return bkBar('personalNews')+`<div class="bktop"><span class="bknote" style="margin:0;flex:1">宛先の1人のアプリにだけ出ます。保存するとすぐ出ます。</span><button type="button" class="btn sm pri" data-act="pn-open" data-row="0" ${sv?'disabled':''}>＋ 書く</button></div>
+    ${who.length?`<div class="bksel"><select class="inp" data-act-change="pn-filter" style="max-width:260px"><option value="">宛先：すべて</option>${who.map(n=>`<option value="${esc(n)}" ${n===PN.filter?'selected':''}>${esc(n)}</option>`).join('')}</select></div>`:''}
+    <div class="bklist">${list.length?list.map(x=>`<div class="bkcard bkclick" data-act="pn-open" data-row="${x.rowNumber}">
+      <div class="hltop"><span class="hlreg" style="margin:0">${esc(x.date||'')}</span><span class="bktag violet">${esc(x.target||'')}</span>${x.target&&!inNames(x.target,names)?'<span class="bktag amber">名簿にいない</span>':''}${x.required?'<span class="bktag amber">既読確認必須</span>':''}</div>
+      <div class="hlwho">${esc(x.title||'お知らせ')}</div><div class="bkbody bkclip" style="margin-top:4px;color:var(--sub)">${esc(x.body||'')}</div></div>`).join(''):'<div class="plain"><div class="empty">個人へのお知らせはありません</div></div>'}</div>
+    ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
+};
+function pnOpen(row){ const d=bk('personalNews').data; if(!d) return; const it= row ? (d.list||[]).find(x=>x.rowNumber===row) : {date:todayMD(), target:PN.filter||'', title:'', body:'', required:false}; if(!it) return;
+  S.modal={type:'bkpn', row, orig: row?{target:it.target, body:it.body}:null, draft:{date:it.date||'', target:it.target||'', title:it.title||'', body:it.body||'', required:!!it.required}}; render(); }
+BK_MODAL.bkpn = m => { const names=(bk('personalNews').data||{}).therapistNames||[];
+  return bkModalWrap(m.row?'個人へのお知らせを直す':'個人へのお知らせを書く',
+    bkField('宛先（今いるセラピスト全員から選ぶ）', bkNameSel('target',m.draft.target,names))+
+    bkField('日付（表示用）', bkIn('date',m.draft.date,'11/26'))+
+    bkField('見出し（空欄なら「お知らせ」）', bkIn('title',m.draft.title,'お知らせ'))+
+    bkField('本文（必須）', bkTa('body',m.draft.body,'',5))+
+    bkChk('required', m.draft.required, '既読確認を必須にする', 'この人がログインした直後に全画面で出る'),
+    `${m.row?'<button type="button" class="btn danger left" data-act="pn-del">削除</button>':''}<button type="button" class="btn" data-act="close">キャンセル</button><button type="button" class="btn pri" data-act="pn-save">BOK に保存</button>`); };
+function pnSave(){
+  const m=S.modal, dr=m.draft, d=bk('personalNews').data; if(!d) return;
+  const target=String(dr.target||'').trim(), body=String(dr.body||'').replace(/\r/g,'').trim();
+  if(!target) return toast('宛先を選んでください',true); if(!body) return toast('本文を入れてください',true);
+  const payload={rowNumber:m.row||0, date:String(dr.date||'').trim(), target, title:String(dr.title||'').trim(), body, required:!!dr.required};
+  if(m.row) payload.was=m.orig;
+  const orig=m.row?(d.list||[]).find(x=>x.rowNumber===m.row):null, wasReq=!!(orig&&orig.required);
+  const go=()=>bkSave('personalNews','personalNews.save',payload, j=>{ if(j.list) d.list=j.list; else BK_LOAD.personalNews(); }, 'BOK に保存しました');
+  S.modal=null; render();
+  if(payload.required && !wasReq) reqConfirm(`${target} さん`, go); else go();
+}
+function pnDel(){
+  const m=S.modal; if(!m.row) return; S.modal=null;
+  bkConfirm({title:'このお知らせを消しますか？', ok:'消す', danger:true, html:`<p>宛先：${esc(m.orig.target||'')}<br>見出し：${esc(m.draft.title||'お知らせ')}</p><p class="sub">消すと元に戻せません。${esc(m.orig.target||'')} さんのアプリからも消えます。</p>`,
+    run:()=>{ const d=bk('personalNews').data; bkSave('personalNews','personalNews.delete',{rowNumber:m.row, was:m.orig}, j=>{ if(j.list&&d) d.list=j.list; else BK_LOAD.personalNews(); }, '消しました'); }});
+}
+BOK_DEMO['personalNews.list'] = () => { if(!BOK_DEMO._pn) BOK_DEMO._pn=[{date:'11/26',target:'見本A子',title:'シフトの件',body:'12/5 のシフト、19時からに変更になりました。',required:true}]; return {ok:true, list:BOK_DEMO._pn.map((x,i)=>({rowNumber:i+2,...x})).reverse(), therapistNames:clone(BOK_DEMO_NAMES)}; };
+BOK_DEMO['personalNews.save'] = p => { const a=BOK_DEMO._pn, item={date:p.date,target:p.target,title:p.title,body:p.body,required:p.required};
+  if(!p.rowNumber) a.push(item); else { const x=a[p.rowNumber-2]; if(!x || x.target!==p.was.target || x.body!==p.was.body) return {ok:false,error:'一覧が変わっています。読み直してください。'}; a[p.rowNumber-2]=item; } return {ok:true, list:BOK_DEMO['personalNews.list']().list}; };
+BOK_DEMO['personalNews.delete'] = p => { const a=BOK_DEMO._pn, x=a[p.rowNumber-2]; if(!x || x.target!==p.was.target || x.body!==p.was.body) return {ok:false,error:'一覧が変わっています。読み直してください。'}; a.splice(p.rowNumber-2,1); return {ok:true, list:BOK_DEMO['personalNews.list']().list}; };
+
+// ===== 【6】本日のルーム配信（外部の「ルーム割」の送信表を直し、「公開する」を押した時点の内容がセラピストに届く） =====
+BK_LOAD.roomBroadcast = () => bkLoad('roomBroadcast','roomBroadcast.get');
+BK_VIEW.roomBroadcast = () => {
+  const w=bkWait('roomBroadcast'); if(w) return bkBar('roomBroadcast')+w;
+  const d=bk('roomBroadcast').data, rows=d.rows||[], hist=d.history||[], sv=bk('roomBroadcast').saving;
+  const bad=rows.filter(r=>r.matched===false);
+  const pubAt = d.published && hist[0] ? `（${esc(hist[0].publishedAt||'')} に公開）` : '';
+  return bkBar('roomBroadcast')+
+    (d.published?`<div class="bkok-ok"><b>公開中：${esc(d.dateLabel||'')}</b>${pubAt}${d.bannerText?`<br>バナー：${esc(d.bannerText)}`:''}</div>`:'<div class="bkwarn"><b>いまは公開していません。</b>セラピストのアプリには出ていません。</div>')+
+    `<div class="bknote" style="background:var(--panel2);border-radius:10px;padding:8px 12px">下の送信表を直して保存しただけでは、セラピストには見えません。<b>「公開する」を押した時点の内容</b>が届きます。</div>
+    ${bad.length?`<div class="bkbad">名簿にない名前が ${bad.length}件 あります（${bad.map(r=>esc(r.name)).join('、')}）。その人には届きません。</div>`:''}
+    <div class="bktop"><b style="font-size:14px;flex:1">送信表（${rows.length}件）</b><button type="button" class="btn sm" data-act="rb-open" data-row="0" ${sv?'disabled':''}>＋ 行を足す</button></div>
+    <div class="bklist">${rows.length?rows.map(r=>`<div class="bkcard bkclick${r.matched===false?' rbbad':''}" data-act="rb-open" data-row="${r.rowNumber}">
+      <div class="hlwho">${esc(r.name||'')}${r.matched===false?' <span class="bktag red">名簿にない名前・届きません</span>':''}</div>
+      <div class="bkbody" style="margin-top:4px;color:var(--sub)">${esc(r.body||'')||'<span style="color:var(--faint)">（本文なし）</span>'}</div></div>`).join(''):'<div class="plain"><div class="empty">送信表に行がありません</div></div>'}</div>
+    <div class="actions" style="margin-top:14px;justify-content:stretch;gap:8px">
+      <button type="button" class="btn pri" style="flex:1" data-act="rb-pub" ${sv?'disabled':''}>公開する</button>
+      ${d.published?`<button type="button" class="btn" style="flex:1" data-act="rb-unpub" ${sv?'disabled':''}>公開をやめる</button>`:''}</div>
+    ${hist.length?`<div class="monthhd" style="margin-top:18px">公開の履歴（直近${hist.length}件。セラピストも「過去の配信」で見られます）</div>
+      <div class="bklist">${hist.map((h,i)=>`<div class="bkcard"><div class="hltop"><b>${esc(h.date||'')}</b><span class="hlreg" style="margin-left:6px">${esc(h.publishedAt||'')} 公開</span>${i===0&&d.published?'<span class="bktag green">公開中</span>':''}<span style="flex:1"></span><button type="button" class="btn sm danger" data-act="rb-hdel" data-i="${i}" ${sv?'disabled':''}>履歴から消す</button></div>
+        <div class="hint">${esc(h.bannerText||'')}${h.rows?` ・ ${h.rows.length}人分`:''}</div></div>`).join('')}</div>`:''}
+    ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
+};
+function rbOpen(row){
+  const d=bk('roomBroadcast').data; if(!d) return;
+  const r = row ? (d.rows||[]).find(x=>x.rowNumber===row) : {name:'', body:''}; if(!r) return;
+  S.modal={type:'bkrb', row, orig: row?{name:r.name, body:r.body}:null, draft:{name:r.name||'', body:r.body||''}}; render();
+}
+BK_MODAL.bkrb = m => { const d=bk('roomBroadcast').data||{}, names=d.therapistNames||[], tpl=d.templates||[];
+  return bkModalWrap(m.row?'送信表の行を直す':'送信表に行を足す',
+    bkField('セラピスト（必須）', bkNameSel('name',m.draft.name,names), '名簿の名前から選ぶと、確実に届きます')+
+    bkField('本文（空でもよい）', bkTa('body',m.draft.body,'301号室 / 鍵 1234 / 退室は…',5))+
+    (tpl.length?bkField('定型文を入れる（押すと本文に入る）', `<div class="dates">${tpl.map((t,i)=>`<button type="button" class="btn sm" data-act="rb-tpl" data-i="${i}">${esc(t.room||'定型文')}</button>`).join('')}</div>`):'')+
+    '<div class="hint">保存しても、まだセラピストには見えません（「公開する」で届きます）</div>',
+    `${m.row?'<button type="button" class="btn danger left" data-act="rb-del">行を消す</button>':''}<button type="button" class="btn" data-act="close">キャンセル</button><button type="button" class="btn pri" data-act="rb-save">保存</button>`); };
+function rbTpl(i){ const m=S.modal, t=((bk('roomBroadcast').data||{}).templates||[])[i]; if(!m||!t) return; const cur=String(m.draft.body||'').trim(); m.draft.body = cur ? cur+'\n'+t.body : t.body; render(); }
+function rbSave(){
+  const m=S.modal, dr=m.draft; const name=String(dr.name||'').trim(); if(!name) return toast('セラピストを選んでください',true);
+  const payload={name, body:String(dr.body||'').replace(/\r/g,'').trim()}; if(m.row){ payload.rowNumber=m.row; payload.was=m.orig; }
+  S.modal=null; render();
+  bkSave('roomBroadcast','roomBroadcast.saveRow',payload, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '保存しました（まだ公開はしていません）');
+}
+function rbDel(){
+  const m=S.modal; if(!m.row) return; S.modal=null;
+  bkConfirm({title:'この行を消しますか？', ok:'消す', danger:true, html:`<p>${esc(m.orig.name||'')}</p><p class="sub">送信表から消します。いま公開中の内容は、もう一度「公開する」を押すまで変わりません。</p>`,
+    run:()=>bkSave('roomBroadcast','roomBroadcast.deleteRow',{rowNumber:m.row, was:m.orig}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '消しました')});
+}
+function rbPubOpen(){ const d=bk('roomBroadcast').data; if(!d) return; S.modal={type:'bkrbpub', draft:{dateLabel:todayMD(), bannerText:d.bannerText||'本日のルーム情報が届いています'}}; render(); }
+BK_MODAL.bkrbpub = m => { const d=bk('roomBroadcast').data||{}, rows=d.rows||[], bad=rows.filter(r=>r.matched===false);
+  return bkModalWrap(`${rows.length}件の内容を公開します`,
+    bkField('日付（表示用の文字）', bkIn('dateLabel',m.draft.dateLabel,'11/26'))+
+    bkField('バナーの文', bkIn('bannerText',m.draft.bannerText,'本日のルーム情報が届いています'))+
+    (bad.length?`<div class="bkbad">名簿にない名前が ${bad.length}件 あります（${bad.map(r=>esc(r.name)).join('、')}）。その人には届きません。</div>`:'')+
+    '<div class="bknote">公開すると、セラピスト全員のアプリに、いまの送信表の内容が出ます。</div>',
+    '<button type="button" class="btn" data-act="close">やめる</button><button type="button" class="btn pri" data-act="rb-pubgo">公開する</button>'); };
+function rbPubGo(){ const m=S.modal, dr=m.draft; const dateLabel=String(dr.dateLabel||'').trim(); if(!dateLabel) return toast('日付を入れてください',true);
+  S.modal=null; render(); bkSave('roomBroadcast','roomBroadcast.publish',{publish:true, dateLabel, bannerText:String(dr.bannerText||'').trim()}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '公開しました'); }
+function rbUnpub(){ bkConfirm({title:'公開をやめますか？', ok:'公開をやめる', danger:true, html:'<p class="sub">セラピストのアプリから、本日のルーム情報が見えなくなります。</p>',
+  run:()=>bkSave('roomBroadcast','roomBroadcast.publish',{publish:false}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '公開をやめました')}); }
+function rbHistDel(i){ const d=bk('roomBroadcast').data, h=d&&(d.history||[])[i]; if(!h) return;
+  bkConfirm({title:'この公開を履歴から消しますか？', ok:'履歴から消す', danger:true,
+    html:`<p>${esc(h.date||'')}（${esc(h.publishedAt||'')} 公開）</p><p class="sub">${i===0&&d.published?'いま公開中のものです。消すと、1つ前の公開が公開中になります（履歴が無くなれば非公開）。':'セラピストの「過去の配信」からも消えます。'}消すと元に戻せません。</p>`,
+    run:()=>bkSave('roomBroadcast','roomBroadcast.deleteHistory',{index:i}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '履歴から消しました')}); }
+function rbDemo(){ if(!BOK_DEMO._rb) BOK_DEMO._rb={rows:[{name:'見本A子',body:'北千住 301号室 / 鍵 1234 / 退室は鍵をポストへ'},{name:'みほんB',body:'柏 805号室 / 鍵 5678'},{name:'見本C奈',body:'北千住 402号室 / 鍵 9012'}], published:true, dateLabel:'11/26', bannerText:'本日のルーム情報が届いています', history:[{date:'11/26',bannerText:'本日のルーム情報が届いています',publishedAt:'2026/11/26 09:12'},{date:'11/25',bannerText:'本日のルーム情報が届いています',publishedAt:'2026/11/25 08:55'}]}; return BOK_DEMO._rb; }
+BOK_DEMO['roomBroadcast.get'] = () => { const r=rbDemo(); return {ok:true, rows:r.rows.map((x,i)=>({rowNumber:i+2, ...x, matched:BOK_DEMO_NAMES.includes(x.name)})), published:r.published, dateLabel:r.dateLabel, bannerText:r.bannerText, history:clone(r.history), templates:[{room:'北千住',body:'北千住 ◯◯号室 / 鍵 ◯◯◯◯ / 退室は鍵をポストへ'},{room:'柏',body:'柏 ◯◯号室 / 鍵 ◯◯◯◯'}], therapistNames:clone(BOK_DEMO_NAMES)}; };
+BOK_DEMO['roomBroadcast.saveRow'] = p => { const r=rbDemo(); if(!p.rowNumber){ r.rows.push({name:p.name, body:p.body}); return BOK_DEMO['roomBroadcast.get'](); } const x=r.rows[p.rowNumber-2]; if(!x||x.name!==p.was.name||x.body!==p.was.body) return {ok:false,error:'送信表が変わっています。読み直してください。'}; r.rows[p.rowNumber-2]={name:p.name, body:p.body}; return BOK_DEMO['roomBroadcast.get'](); };
+BOK_DEMO['roomBroadcast.deleteRow'] = p => { const r=rbDemo(), x=r.rows[p.rowNumber-2]; if(!x||x.name!==p.was.name||x.body!==p.was.body) return {ok:false,error:'送信表が変わっています。読み直してください。'}; r.rows.splice(p.rowNumber-2,1); return BOK_DEMO['roomBroadcast.get'](); };
+BOK_DEMO['roomBroadcast.publish'] = p => { const r=rbDemo(); if(p.publish){ r.published=true; r.dateLabel=p.dateLabel; r.bannerText=p.bannerText; r.history.unshift({date:p.dateLabel, bannerText:p.bannerText, publishedAt:new Date().toLocaleString('ja-JP')}); r.history=r.history.slice(0,3); } else r.published=false; return BOK_DEMO['roomBroadcast.get'](); };
+BOK_DEMO['roomBroadcast.deleteHistory'] = p => { const r=rbDemo(); r.history.splice(p.index,1); if(p.index===0){ if(r.history[0]){ r.dateLabel=r.history[0].date; } else r.published=false; } return BOK_DEMO['roomBroadcast.get'](); };
+
+// ===== 【7】アンケート取り込み（集計表のまだ送っていない回答を、Telegram と本人のアプリへ。送ると取り消せない） =====
+// BOK の管理画面と同じ形：回答ごとに「送る（Telegram）」「本人にも送る」を最初から両方付けておき、外したいものだけ外して、まとめて送る
+const SI = {pick:{}, mark:true, edit:{}, editing:{}, fails:{}, sending:false, prog:null};
+const SI_APP_ERR = /本人には登録できません|アンケートの送信対象ではありません/;  // 本人への登録だけ失敗した（Telegram は送れている）
+BK_LOAD.surveyImport = () => bkLoad('surveyImport','surveyImport.list',{}, d=>{
+  const keep=SI.pick; SI.pick={};
+  for(const it of d.items||[]) SI.pick[it.row] = keep[it.row] && SI.fails[it.row] ? keep[it.row] : {tg:!!d.hasTelegram, app:!!it.matchedName};
+  for(const r of Object.keys(SI.fails)) if(!(d.items||[]).some(it=>String(it.row)===r)) delete SI.fails[r];
+});
+function siPlan(){
+  const d=bk('surveyImport').data||{}, tgOk=!!d.hasTelegram;
+  return (d.items||[]).map(it=>{ const pk=SI.pick[it.row]||{}; return {it, tg:!!pk.tg&&tgOk, app:!!pk.app&&!!it.matchedName}; }).filter(x=>x.tg||x.app);
+}
+BK_VIEW.surveyImport = () => {
+  const w=bkWait('surveyImport'); if(w) return bkBar('surveyImport')+w;
+  const d=bk('surveyImport').data, items=d.items||[], tgOk=!!d.hasTelegram, plan=siPlan();
+  const tgN=plan.filter(x=>x.tg).length, appN=plan.filter(x=>x.app).length, busy=SI.sending;
+  return bkBar('surveyImport', `・未送信 ${d.total??items.length}件${(d.total||0)>items.length?`（新しい ${items.length}件を表示）`:''}`)+
+    (tgOk?'':'<div class="bkwarn">Telegram のメモグループが設定されていないので、Telegram へは送れません（BOK の「設定」で入れてください）。</div>')+
+    '<div class="bkbad" style="background:var(--panel2);color:var(--sub)">送ると取り消せません。送った回答は、集計表の行に色が付いて一覧から消えます。</div>'+
+    (SI.prog?`<div class="bkcard" style="margin-bottom:12px"><b>${busy?'送信中…':'送り終わりました'} ${SI.prog.done} / ${SI.prog.total}件</b><div class="siprog"><i style="width:${Math.round(100*SI.prog.done/Math.max(1,SI.prog.total))}%"></i></div><div class="bknote" style="margin:0">${SI.prog.lines.map(l=>`<div>${l}</div>`).join('')}</div></div>`:'')+
+    `<div class="bktop"><button type="button" class="btn pri siorange" data-act="si-send" ${busy||!plan.length?'disabled':''}>チェックした分を送信</button><button type="button" class="btn" data-act="si-appoff" ${busy?'disabled':''}>本人送信を全部外す</button><button type="button" class="btn" data-act="bk-reload" data-k="surveyImport" ${busy?'disabled':''}>更新</button></div>
+    <label class="bkchk" style="margin:0 0 6px"><input type="checkbox" data-simark ${SI.mark?'checked':''} ${busy?'disabled':''}><span><b>終わったら元の行に色をつける（送信済みにする）</b></span></label>
+    <div class="bknote">未送信 ${items.length}件 ／ Telegram ${tgN}件・本人 ${appN}件 を送信します</div>
+    <div class="bklist">${items.length?items.map(it=>{
+      const pk=SI.pick[it.row]||{}, on=(pk.tg&&tgOk)||(pk.app&&it.matchedName), txt=SI.edit[it.row]??it.text;
+      return `<div class="bkcard sicard${on?' sel':''}">
+        <div class="hlwho">${esc(it.matchedName||it.rawName||'（名前なし）')} <span style="font-weight:400;color:var(--sub)">／ ${esc(it.guest||'')} 様</span></div>
+        <div class="hint">${esc(it.date||'')}　行 ${it.row}${it.matchedName&&it.rawName&&it.rawName!==it.matchedName?`　書かれた名前「${esc(it.rawName)}」`:''}</div>
+        ${it.matchMessage?`<div class="bkwarn" style="margin:6px 0 0">${esc(it.matchMessage)}。本人には登録できません（Telegram だけ送れます）。</div>`:''}
+        ${SI.fails[it.row]?`<div class="bkbad" style="margin:6px 0 0">送れませんでした：${esc(SI.fails[it.row])}</div>`:''}
+        <div class="sitog">
+          <button type="button" class="${pk.tg&&tgOk?'on':''}" data-act="si-tog" data-row="${it.row}" data-f="tg" ${!tgOk||busy?'disabled':''}>${pk.tg&&tgOk?'✓ ':''}送る（Telegram）</button>
+          <button type="button" class="${pk.app&&it.matchedName?'on':''}" data-act="si-tog" data-row="${it.row}" data-f="app" ${!it.matchedName||busy?'disabled':''}>${pk.app&&it.matchedName?'✓ ':''}本人にも送る</button>
+        </div>
+        ${SI.editing[it.row]?`<textarea class="inp" data-siedit="${it.row}" rows="8" style="margin-top:8px">${esc(txt)}</textarea>`:`<div class="bkquote" style="margin:8px 0 0">${esc(txt)}</div>`}
+        <div style="text-align:right;margin-top:6px"><button type="button" class="btn sm" data-act="si-edit" data-row="${it.row}" ${busy?'disabled':''}>${SI.editing[it.row]?'直し終わる':'本文を直す'}</button></div>
+      </div>`; }).join(''):'<div class="plain"><div class="empty">まだ送っていない回答はありません</div></div>'}</div>`;
+};
+function siSendConfirm(){
+  const plan=siPlan(); if(!plan.length) return toast('送るものが選ばれていません',true);
+  const nm=x=>esc(x.it.matchedName||x.it.rawName||'（名前なし）');
+  const tg=plan.filter(x=>x.tg), app=plan.filter(x=>x.app);
+  bkConfirm({title:`${plan.length}件を送ります`, ok:`${plan.length}件を送る`, danger:true,
+    html:`<p>Telegram：<b>${tg.length}件</b>${tg.length?`（${tg.map(nm).join('、')}）`:''}</p>
+      <p>本人のアプリにも登録：<b>${app.length}件</b>${app.length?`（${app.map(nm).join('、')}）`:''}</p>
+      <p>元の行に色をつける：${SI.mark?'する':'<b class="warn">しない</b>（一覧に残ります）'}</p>
+      <p class="warn">送ると取り消せません。${SI.mark?'送った回答は一覧から消えます。':''}</p>`,
+    run:()=>siSend(plan)});
+}
+async function siSend(plan){
+  const d=bk('surveyImport').data; if(!d || SI.sending) return;
+  SI.sending=true; SI.prog={done:0, total:plan.length, lines:[]}; render();
+  const nm=x=>esc(x.it.matchedName||x.it.rawName||'（名前なし）');
+  for(let i=0;i<plan.length;i+=20){  // 1回20件まで（BOK の決まり）
+    const chunk=plan.slice(i,i+20);
+    const items=chunk.map(x=>({row:x.it.row, rowKey:x.it.key, text:String(SI.edit[x.it.row]??x.it.text), toTelegram:x.tg, toApp:x.app, matchedName:x.it.matchedName||''}));
+    let res;
+    try{ res=(await bokCall('surveyImport.sendMany',{items, markSent:SI.mark}, 180000)).results||[]; }
+    catch(e){
+      for(const x of chunk){ SI.fails[x.it.row]=`送れたかどうか分かりません（${e.message}）。「更新」で一覧を取り直して確かめてください。`; SI.prog.lines.push(`<span class="warn">？</span> ${nm(x)}：分かりません`); }
+      SI.prog.done+=chunk.length; render(); break;
+    }
+    chunk.forEach((x,k)=>{
+      const r=res.find(y=>Number(y.row)===Number(x.it.row)) || res[k] || {ok:false, error:'返事がありませんでした'};
+      if(r.ok){
+        delete SI.fails[x.it.row];
+        SI.prog.lines.push(`<span style="color:var(--green)">✓</span> ${nm(x)}（${esc((r.done||[]).join('・'))}）`);
+        if(SI.mark){ d.items=(d.items||[]).filter(it=>it.row!==x.it.row); if(typeof d.total==='number') d.total=Math.max(0,d.total-1); }
+        else if(SI.pick[x.it.row]) SI.pick[x.it.row]={tg:false, app:false};  // 色を塗らないときは一覧に残るので、二重に送らないようチェックを外す
+      } else {
+        let err=r.error||'送れませんでした';
+        if(x.tg && SI_APP_ERR.test(err)){ err+='（Telegram は送れています。もう一度送るときは Telegram のチェックを外したままにしてください）'; if(SI.pick[x.it.row]) SI.pick[x.it.row].tg=false; }
+        SI.fails[x.it.row]=err;
+        SI.prog.lines.push(`<span class="warn">×</span> ${nm(x)}：${esc(err)}`);
+      }
+    });
+    SI.prog.done+=chunk.length; render();
+  }
+  SI.sending=false; render();
+  const bad=Object.keys(SI.fails).length; toast(bad?`送り終わりました（送れなかったもの ${bad}件）`:'送り終わりました', !!bad);
+}
+function siDemo(){ if(!BOK_DEMO._si) BOK_DEMO._si=[
+  {row:3536,key:'2026/11/26 20:11:03',date:'2026/11/26',guest:'見本',rawName:'見本A子',matchedName:'見本A子',matchMessage:'',text:'【愛嬌は】\tとても良い\n【施術は】\tとても良い\n【セラピストの感想】\tおっとりしているが気が回っている\nセラピスト名\t見本A子'},
+  {row:3535,key:'2026/11/26 18:40:12',date:'2026/11/26',guest:'みほん',rawName:'見本B美',matchedName:'見本B美',matchMessage:'',text:'【愛嬌は】\tとても良い\n【満足度は】\tとても満足'},
+  {row:3534,key:'2026/11/25 23:02:55',date:'2026/11/25',guest:'見本田',rawName:'みほん',matchedName:'',matchMessage:'「みほん」に当てはまるセラピストがいません（DBにいない／無効／アンケート対象外）',text:'【その他のご意見】\tまた来ます'}];
+  return BOK_DEMO._si; }
+BOK_DEMO['surveyImport.list'] = () => ({ok:true, items:clone(siDemo()), total:siDemo().length, hasTelegram:true});
+BOK_DEMO['surveyImport.sendMany'] = p => { if(p.items.length>20) return {ok:false,error:'一度に送れるのは 20 件までです。分けて送ってください。'};
+  return {ok:true, results:p.items.map(it=>{ const a=siDemo(), i=a.findIndex(x=>x.row===it.row&&x.key===it.rowKey);
+    if(i<0) return {row:it.row, ok:false, error:'シートの行がずれています。「更新」を押して一覧を取り直してください。'};
+    if(it.toApp && !it.matchedName) return {row:it.row, ok:false, error:'セラピストが特定できないので、本人には登録できません'};
+    const done=[]; if(it.toTelegram) done.push('Telegram'); if(it.toApp) done.push('アプリ'); if(p.markSent!==false){ done.push('色'); a.splice(i,1); }
+    return {row:it.row, ok:true, done}; })}; };
+
+// ===== 【8】設定（BOK の管理画面の「設定」と同じ項目。区切りごとに、その区切りの項目だけを保存する） =====
+// ロゴは重い（4万文字ほど）ので、最初は読まず、ロゴの区切りの「読み込む」を押したときだけ取り寄せる
+const ST_FIELDS = ['weekStart','areas','rooms','homepageUrl','xUrl','zeroTwoUrl','externalShiftUrl','telegramToken','telegramChatId','telegramMemoChatId','himeNgMessage'];
+const ST_LINKS = [['homepageUrl','店舗ホームページ'],['xUrl','X（旧Twitter）'],['zeroTwoUrl','02'],['externalShiftUrl','外部シフト']];
+const ST = {dr:null, rooms:null, tokEdit:false, logo:null, logoNew:null, logoLoading:false, saving:''};
+const splitList = v => String(v||'').split(/[,、]/).map(x=>x.trim()).filter(Boolean);
+function stInit(d){ ST.dr={}; for(const f of ST_FIELDS) ST.dr[f]=String(d[f]??''); ST.rooms=splitList(d.rooms); ST.tokEdit=false; ST.dr.telegramToken=''; }
+BK_LOAD.settings = () => { ST.logo=null; ST.logoNew=null; return bkLoad('settings','settings.get',{fields:ST_FIELDS}, d=>stInit(d)); };
+const stSec = (title, body, act, label='保存') => `<div class="bkcard stsec"><div class="sthd"><b>${title}</b><span class="sp"></span>${act?`<button type="button" class="btn sm pri" data-act="${act}" ${ST.saving?'disabled':''}>${ST.saving===act?'保存中…':label}</button>`:''}</div>${body}</div>`;
+const stIn = (f, ph='', type='text') => `<input class="inp" type="${type}" data-stf="${f}" value="${esc(ST.dr[f]??'')}" placeholder="${esc(ph)}" autocomplete="off" autocapitalize="off" spellcheck="false">`;
+const wdayOf = ds => { const t=Date.parse(ds+'T00:00:00Z'); return isNaN(t)?-1:new Date(t).getUTCDay(); };
+BK_VIEW.settings = () => {
+  const w=bkWait('settings'); if(w) return bkBar('settings')+w;
+  const d=bk('settings').data; if(!ST.dr) stInit(d);
+  const wk=ST.dr.weekStart, wd=wdayOf(wk);
+  return bkBar('settings')+`<div class="bklist">`+
+    stSec('対象週', `<div class="bknote" style="margin:0 0 6px">シフト提出の週の開始日（月曜）</div>${stIn('weekStart','','date')}
+      ${wk&&wd!==1?`<div class="bkwarn" style="margin:6px 0 0">${wd<0?'日付の形が正しくありません':'月曜日ではありません'}</div>`:''}
+      <div class="hint" style="margin-top:6px">変えるとセラピストに出る週が変わります。土曜10時台に自動で進むことがあります。</div>`, 'st-week')+
+    stSec('ルームとエリア', `<div class="bknote" style="margin:0 0 6px">ルーム一覧（この順番で空室情報が並びます。並べ替え・名前の変更・削除をすると、空室情報の中身がずれるので確認が出ます）</div>
+      ${ST.rooms.map((r,i)=>`<div class="strm"><input class="inp" data-stroom="${i}" value="${esc(r)}" autocomplete="off"><button type="button" class="iconbtn" data-act="st-rup" data-i="${i}" title="上へ" ${i===0?'disabled':''}>${icon('up')}</button><button type="button" class="iconbtn" data-act="st-rdel" data-i="${i}" title="外す">${icon('x')}</button></div>`).join('')}
+      <div class="strm"><input class="inp" data-stradd placeholder="＋ ルームを末尾に足す（Enter）" autocomplete="off"><button type="button" class="iconbtn" data-act="st-radd" title="足す">${icon('plus')}</button></div>
+      <div class="bknote" style="margin:10px 0 6px">エリア一覧（カンマ区切り）</div>${stIn('areas','北千住, 柏')}`, 'st-rooms')+
+    stSec('ロゴ', ST.logo===null ? `<button type="button" class="btn sm" data-act="st-logoload" ${ST.logoLoading?'disabled':''}>${ST.logoLoading?'読み込んでいます…':'今のロゴを読み込む'}</button><div class="hint" style="margin-top:6px">ロゴは重いので、見るときだけ BOK から取り寄せます。</div>` :
+      `<div class="stlogo">${(ST.logoNew||ST.logo)?`<img src="${esc(ST.logoNew||ST.logo)}" alt="ロゴ">`:'<span class="hint">ロゴはありません</span>'}</div>
+       <label class="btn sm" style="display:inline-block;margin-top:8px">画像を選ぶ<input type="file" accept="image/*" data-stlogo hidden></label>
+       ${ST.logoNew?`<span class="hint" style="margin-left:8px">新しい画像（${ST.logoNew.length.toLocaleString()}文字・BOK に収まる大きさに縮めました）</span>`:''}`, ST.logoNew?'st-logo':'')+
+    stSec('リンク', ST_LINKS.map(([f,l])=>`<div class="bknote" style="margin:6px 0 4px">${l}</div>${stIn(f,'https://…','url')}`).join(''), 'st-links')+
+    stSec('Telegram', `<div class="bknote" style="margin:0 0 4px">ボットのトークン（秘密）</div>
+      ${ST.tokEdit?stIn('telegramToken','新しいトークン'):`<div class="strm"><div class="inp" style="flex:1;color:var(--sub)">${d.telegramToken?'●●●●●●●●（設定済み）':'（未設定）'}</div><button type="button" class="btn sm" data-act="st-tok">変更する</button></div>`}
+      <div class="bknote" style="margin:10px 0 4px">姫予約の通知先グループ番号</div>${stIn('telegramChatId','-100…')}
+      <div class="bknote" style="margin:10px 0 4px">アンケート取り込みのメモグループ番号</div>${stIn('telegramMemoChatId','-100…')}`, 'st-tg')+
+    stSec('姫予約NGの文言', `<textarea class="inp" data-stf="himeNgMessage" rows="3" placeholder="${esc(d.himeNgDefaultMessage||'（空欄なら既定の文言）')}">${esc(ST.dr.himeNgMessage)}</textarea><div class="hint" style="margin-top:6px">空欄なら既定の文言が出ます。</div>`, 'st-hime')+
+    stSec('管理者パスコード', '<div class="hint">今のパスコードは出ません。変えるときだけ、新しいものを2回入れます。</div>', 'st-pass', '変更')+
+    `</div>`;
+};
+// 保存：送った項目だけ書き換わる。was には読んだときの値（同じ項目）を入れる
+async function stSave(act, fields, extra={}){
+  const d=bk('settings').data; if(!d || ST.saving) return;
+  const body={...fields}, was={};
+  for(const f of Object.keys(fields)) if(f!=='newPasscode' && f in d) was[f]=String(d[f]??'');
+  if(Object.keys(was).length) body.was=was;
+  ST.saving=act; render();
+  try{
+    const j=await bokCall('settings.save',{...body, ...extra});
+    if(j && j.needConfirm==='rooms'){
+      ST.saving=''; render();
+      const det=j.detail||{};
+      return bkConfirm({title:'ルームの順番または名前が変わります', ok:'それでも保存する', danger:true,
+        html:`<div class="stcmp"><div><b>前</b><br>${(det.before||[]).map(esc).join('<br>')}</div><div><b>後</b><br>${(det.after||[]).map(esc).join('<br>')}</div></div><p class="sub">${esc(j.error||'ルーム空室情報の中身が、別のルームにずれます。')}</p>`,
+        run:()=>stSave(act, fields, {confirmRooms:true})});
+    }
+    if(j.settings){ const keepLogo=ST.logo; Object.assign(d, j.settings); delete d.logoDataUri; if('logoDataUri' in fields) ST.logo=fields.logoDataUri, ST.logoNew=null; else ST.logo=keepLogo; }
+    else Object.assign(d, fields);
+    stInit(d);
+    toast('BOK に保存しました');
+    for(const w of j.warnings||[]) setTimeout(()=>toast(w,true), 1900);
+  }catch(e){ toast(e.message,true); if(/先に変更|読み直/.test(e.message)){ ST.saving=''; return BK_LOAD.settings(); } }
+  ST.saving=''; render();
+}
+function stAct(a, el){
+  const d=bk('settings').data; if(!d) return;
+  const dr=ST.dr;
+  if(a==='st-week'){ const v=dr.weekStart; if(!/^\d{4}-\d{2}-\d{2}$/.test(v)) return toast('日付を入れてください',true);
+    return bkConfirm({title:'対象週を変えますか？', ok:'変える', danger:true, html:`<p>${esc(d.weekStart)} → <b>${esc(v)}</b>${wdayOf(v)!==1?' <span class="warn">（月曜日ではありません）</span>':''}</p><p class="sub">セラピストに出るシフト提出の週が変わります。</p>`, run:()=>stSave(a,{weekStart:v})}); }
+  if(a==='st-rooms'){ const rooms=ST.rooms.map(x=>x.trim()).filter(Boolean); if(!rooms.length) return toast('ルームを1つ以上入れてください',true);
+    return stSave(a,{rooms:rooms.join(', '), areas:splitList(dr.areas).join(', ')}); }
+  if(a==='st-links'){ const f={}; for(const [k] of ST_LINKS) f[k]=String(dr[k]||'').trim(); return stSave(a,f); }
+  if(a==='st-tg'){ const f={telegramChatId:String(dr.telegramChatId||'').trim(), telegramMemoChatId:String(dr.telegramMemoChatId||'').trim()};
+    if(ST.tokEdit && String(dr.telegramToken||'').trim()) f.telegramToken=String(dr.telegramToken).trim();
+    return stSave(a,f); }
+  if(a==='st-hime') return stSave(a,{himeNgMessage:String(dr.himeNgMessage||'').trim()});
+  if(a==='st-logo'){ if(!ST.logoNew) return; if(ST.logoNew.length>45000) return toast('画像が大きすぎます',true); return stSave(a,{logoDataUri:ST.logoNew}); }
+  if(a==='st-pass'){ S.modal={type:'bkpass', draft:{p1:'',p2:''}}; render(); return; }
+}
+BK_MODAL.bkpass = m => bkModalWrap('管理者パスコードを変える',
+  bkField('新しいパスコード', `<input class="inp" type="password" inputmode="numeric" data-bkf="p1" value="${esc(m.draft.p1)}" autocomplete="new-password">`)+
+  bkField('もう一度', `<input class="inp" type="password" inputmode="numeric" data-bkf="p2" value="${esc(m.draft.p2)}" autocomplete="new-password">`)+
+  '<div class="bkbad" style="margin:0">変えると、BOK の管理画面には新しいパスコードでしか入れなくなります。</div>',
+  '<button type="button" class="btn" data-act="close">やめる</button><button type="button" class="btn pri warnbtn" data-act="st-passgo">変える</button>');
+function stPassGo(){ const m=S.modal, a=String(m.draft.p1||'').trim(), b=String(m.draft.p2||'').trim();
+  if(!a) return toast('新しいパスコードを入れてください',true); if(a!==b) return toast('2回の入力が違います',true);
+  S.modal=null; render(); stSave('st-pass',{newPasscode:a}); }
+async function stLogoLoad(){ ST.logoLoading=true; render(); try{ const j=await bokCall('settings.get',{fields:['logoDataUri']}); ST.logo=j.logoDataUri||''; }catch(e){ toast(e.message,true); } ST.logoLoading=false; render(); }
+// ロゴ：BOK に入る大きさ（45,000文字まで）になるまで縮める
+async function stLogoPick(file){
+  try{
+    const url=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(file); });
+    const img=await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=url; });
+    for(const size of [512,400,320,256,200,160,128,96]) for(const [type,q] of [['image/png'],['image/jpeg',0.88],['image/jpeg',0.72]]){
+      const sc=Math.min(1,size/Math.max(img.width,img.height)), c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(img.width*sc)); c.height=Math.max(1,Math.round(img.height*sc));
+      const g=c.getContext('2d'); if(type==='image/jpeg'){ g.fillStyle='#fff'; g.fillRect(0,0,c.width,c.height); } g.drawImage(img,0,0,c.width,c.height);
+      const out=c.toDataURL(type,q); if(out.length<=44000){ ST.logoNew=out; render(); return; }
+    }
+    toast('画像を小さくしきれませんでした。もう少し軽い画像を選んでください',true);
+  }catch(e){ toast('画像を読めませんでした',true); }
+}
+function stDemo(){ if(!BOK_DEMO._st) BOK_DEMO._st={weekStart:'2026-12-07', areas:'北千住, 柏', rooms:'北千住, 柏, 蒲田', logoDataUri:'', homepageUrl:'https://example.com/', xUrl:'', zeroTwoUrl:'', externalShiftUrl:'', telegramToken:'123456:見本', telegramChatId:'-1001', telegramMemoChatId:'-1002', himeNgMessage:'', himeNgDefaultMessage:'ただいま姫予約を受け付けていません。'}; return BOK_DEMO._st; }
+BOK_DEMO['settings.get'] = p => { const a=stDemo(); if(Array.isArray(p.fields)&&p.fields.length){ const o={ok:true}; for(const f of p.fields) if(f in a) o[f]=a[f]; if(p.fields.includes('himeNgMessage')) o.himeNgDefaultMessage=a.himeNgDefaultMessage; return o; } return {ok:true, ...clone(a)}; };
+BOK_DEMO['settings.save'] = p => { const a=stDemo(), w=[];
+  for(const [k,v] of Object.entries(p.was||{})) if(String(a[k]??'')!==v) return {ok:false, error:'ほかの人が先に変更しました。読み直してください。'};
+  if('rooms' in p){ const b=splitList(a.rooms), n=splitList(p.rooms); const appendOnly=b.every((x,i)=>n[i]===x);
+    if(!appendOnly && !p.confirmRooms) return {ok:false, needConfirm:'rooms', error:'ルームの順番または名前が変わります。ルーム空室情報の中身が別のルームにずれます。よければ confirmRooms を付けてもう一度送ってください。', detail:{before:b, after:n}};
+    if(!appendOnly) w.push('ルームを変えました。ルーム空室情報の中身を確認してください。'); }
+  if(p.newPasscode) w.push('管理者パスコードを変えました。古いパスコードでは入れません。');
+  for(const k of Object.keys(a)) if(k in p) a[k]=p[k];
+  return {ok:true, settings:{ok:true, ...clone(a)}, warnings:w}; };
+
+BOK_DEMO['maintenance.get'] = () => { const m=BOK_DEMO._mt || (BOK_DEMO._mt={keys:['hime'], message:'', all:[['news','お知らせ'],['shift','シフト提出'],['hime','姫予約'],['confirmedShift','確定シフト'],['reservation','予約状況'],['room','ルームの空き状況'],['roomBroadcast','本日のルーム情報'],['sales','成績',false],['survey','アンケート'],['memo','メモ'],['links','関連リンク'],['help','ヘルプ']]});
+  const def='ただいまメンテナンス中です。\n従来通りLINEでお願いいたします！';
+  return {ok:true, keys:[...m.keys], message:m.message||def, defaultMessage:def, allKeys:m.all.map(([key,label,en])=>({key,label,enabled:en!==false}))}; };
+BOK_DEMO['maintenance.save'] = p => { const m=BOK_DEMO._mt, def='ただいまメンテナンス中です。\n従来通りLINEでお願いいたします！';
+  if(JSON.stringify(p.was.keys)!==JSON.stringify(m.keys) || p.was.message!==(m.message||def)) return {ok:false, error:'ほかの人が先に変更しました。読み直してください。'};
+  m.keys=[...p.keys]; m.message=p.message; return {ok:true, keys:[...m.keys], message:m.message||def}; };
 function rvField(){
   const c=rvConf();
-  return `<form class="field" data-act="save-rvconf" autocomplete="off"><label>空室情報（BOK のささやき）</label>
+  return `<form class="field" data-act="save-rvconf" autocomplete="off"><label>BOK（ささやき）につなぐ</label>
     <div class="subl">
       <input class="inp" name="url" value="${esc(c.url)}" placeholder="ささやきのウェブアプリの URL（…/exec）" autocapitalize="off" spellcheck="false">
       <input class="inp" name="key" type="password" placeholder="${c.key?'鍵は保存済み（変える時だけ入力）':'鍵（BOK で resetActionOsKey を実行したときのログに出たもの）'}" autocomplete="off">
       <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${c.url?'<button type="button" class="btn sm danger" data-act="rv-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
-    </div><div class="hint" style="margin-top:6px">URL と鍵を入れた端末に「空室情報」タブが出ます。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
+    </div><div class="hint" style="margin-top:6px">URL と鍵を入れた端末で、「BOK」タブの機能（空室情報・姫予約ログ・お知らせ など）が使えます。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
 }
 
 // ===== 備品の補充（supplies.md） =====
@@ -1940,7 +2616,7 @@ function render(){
   if(S.notes) tabs.splice(1,0,['notes','引き継ぎ',notesOpenCount()]);
   if(S.supplies) tabs.splice(S.notes?2:1,0,['supplies','補充',supOpenCount()]);
   if(S.rooms) tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0),0,['rooms','清掃',roomsDueCount()]);
-  tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0)+(S.rooms?1:0),0,['bok','BOK','']);  // BOK の機能の入口（すべての端末に出す）
+  tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0)+(S.rooms?1:0),0,['bok','BOK'+himePill(),'']);  // BOK の機能の入口（すべての端末に出す）
   if(pwOn()) tabs.splice(2+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
   if(S.tab==='supplies'&&!S.supplies) S.tab='board';
   if(S.tab==='pw'&&!pwOn()) S.tab='board';
@@ -2020,6 +2696,8 @@ function viewModal(){
   if(m.type==='note') return noteModal(m);
   if(m.type==='pw') return pwModal(m);
   if(m.type==='rv') return rvModal(m);
+  if(m.type==='bkok') return bkOkModal(m);
+  if(BK_MODAL[m.type]) return BK_MODAL[m.type](m);
   if(m.type==='inspect') return supInspectModal(m);
   if(m.type==='supitems') return supItemsModal(m);
   if(m.type==='room' || m.type==='room-clean') return roomModal(m);
@@ -2132,7 +2810,42 @@ document.addEventListener('click', async e=>{
   switch(a){
     case 'tab': if(el.dataset.k==='bok' && S.tab==='bok') S.bok=null;  // BOK を開いているときにもう一度押すと、機能の一覧へ戻る
       S.tab=el.dataset.k; safeSet(LS.tab,S.tab); render(); break;
-    case 'bok-open': S.bok=el.dataset.k; render(); break;
+    case 'bok-open': { const k=el.dataset.k; S.bok=k; if(k!=='rv' && BK_LOAD[k] && rvOn()) BK_LOAD[k](); else render(); break; }  // 開くたびに BOK から読み直す（空室情報は10分の決まり）
+    case 'bk-reload': { const f=BK_LOAD[el.dataset.k]; if(f) f(); break; }
+    case 'mt-set': { const dr=MT.draft; if(!dr) break; const k=el.dataset.key; dr.keys=dr.keys.filter(x=>x!==k); if(el.dataset.v==='1') dr.keys.push(k); render(); break; }
+    case 'mt-save': mtSave(); break;
+    case 'st-week': case 'st-rooms': case 'st-links': case 'st-tg': case 'st-hime': case 'st-logo': case 'st-pass': stAct(a, el); break;
+    case 'st-passgo': stPassGo(); break;
+    case 'st-tok': ST.tokEdit=true; render(); break;
+    case 'st-logoload': stLogoLoad(); break;
+    case 'st-rup': { const i=Number(el.dataset.i); if(i>0){ const r=ST.rooms; [r[i-1],r[i]]=[r[i],r[i-1]]; render(); } break; }
+    case 'st-rdel': ST.rooms.splice(Number(el.dataset.i),1); render(); break;
+    case 'st-radd': { const inp=document.querySelector('[data-stradd]'); const v=inp&&inp.value.trim(); if(v){ ST.rooms.push(v); render(); } break; }
+    case 'si-tog': { const r=Number(el.dataset.row), pk=SI.pick[r]||(SI.pick[r]={tg:false,app:false}); pk[el.dataset.f]=!pk[el.dataset.f]; render(); break; }
+    case 'si-appoff': for(const k in SI.pick) SI.pick[k].app=false; render(); break;
+    case 'si-edit': { const r=Number(el.dataset.row); SI.editing[r]=!SI.editing[r]; render(); break; }
+    case 'si-send': siSendConfirm(); break;
+    case 'rb-open': rbOpen(Number(el.dataset.row)); break;
+    case 'rb-tpl': rbTpl(Number(el.dataset.i)); break;
+    case 'rb-save': rbSave(); break;
+    case 'rb-del': rbDel(); break;
+    case 'rb-pub': rbPubOpen(); break;
+    case 'rb-pubgo': rbPubGo(); break;
+    case 'rb-unpub': rbUnpub(); break;
+    case 'rb-hdel': rbHistDel(Number(el.dataset.i)); break;
+    case 'nw-open': nwOpen(Number(el.dataset.i)); break;
+    case 'nw-save': nwSave(); break;
+    case 'nw-del': nwDel(); break;
+    case 'sv-open': svOpen(Number(el.dataset.i)); break;
+    case 'sv-save': svSave(); break;
+    case 'sv-del': svDel(); break;
+    case 'sv-more': SV.more=true; render(); break;
+    case 'pn-open': pnOpen(Number(el.dataset.row)); break;
+    case 'pn-save': pnSave(); break;
+    case 'pn-del': pnDel(); break;
+    case 'hl-filter': HL.filter=el.dataset.k; render(); break;
+    case 'hl-set': hlSet(Number(el.dataset.row), el.dataset.v); break;
+    case 'bkok-yes': { const run=S.modal && S.modal.run; S.modal=null; render(); if(run) run(); break; }
     case 'bok-back': S.bok=null; render(); break;
     case 'who': { const k=el.dataset.k||null; setWho(S.who===k?null:k); if(S.tab!=='board'&&S.tab!=='timeline') S.tab='board'; render(); break; }
     case 'member-del': { const n=el.dataset.name; const cnt=allTasks().filter(r=>hasWho(r.t,n)).length;
@@ -2178,7 +2891,7 @@ document.addEventListener('click', async e=>{
     case 'rv-reload': rvLoad(); break;
     case 'rv-edit': rvOpen(el.dataset.room); break;
     case 'rv-relist': S.modal=null; rvLoad(); break;
-    case 'rv-forget': if(confirm('この端末から、空室情報（BOK）の接続先と鍵を消しますか？')){ safeSet(LS.rvUrl,null); safeSet(LS.rvKey,null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; render(); toast('空室情報の設定を消しました'); } break;
+    case 'rv-forget': if(confirm('この端末から、BOK（ささやき）の接続先と鍵を消しますか？')){ safeSet(LS.rvUrl,null); safeSet(LS.rvKey,null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; render(); toast('BOK の接続先と鍵を消しました'); } break;
     case 'pw-add': S.modal={type:'pw', id:null, draft:{}}; render(); break;
     case 'pw-edit': { const r=(PWD.rows||[]).find(x=>x.ID===el.dataset.id); if(!r) break; S.modal={type:'pw', id:r.ID, draft:{...r}}; render(); break; }
     case 'pw-show': pwReveal(el.dataset.id); break;
@@ -2214,6 +2927,11 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-pwq]') && !e.isComposing) pwSearch(e.target);
   if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
   if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
+  if(e.target.matches('[data-mtmsg]') && MT.draft) MT.draft.message=e.target.value;
+  if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
+  if(e.target.matches('[data-stroom]') && ST.rooms) ST.rooms[Number(e.target.dataset.stroom)]=e.target.value;
+  if(e.target.matches('[data-siedit]')) SI.edit[Number(e.target.dataset.siedit)]=e.target.value;
+  if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
   // 空室情報の入力は、画面を描き直しても消えないよう、打つたびに下書きへ写す
   if(e.target.matches('[data-rvs],[data-rvh]') && S.modal && S.modal.type==='rv'){
     const d=S.modal.draft;
@@ -2286,6 +3004,12 @@ document.addEventListener('pointercancel', e=>{ if(NDRAG && e.pointerId===NDRAG.
 document.addEventListener('keydown', e=>{ if(NDRAG && e.key==='Escape') ndragEnd(false); });
 document.addEventListener('toggle', e=>{ if(e.target.matches && e.target.matches('details[data-act="sup-tot"]')) S.supTotOpen=e.target.open; }, true);
 document.addEventListener('change', e=>{
+  if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
+  if(e.target.matches('[data-simark]')){ SI.mark=e.target.checked; render(); }
+  if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
+  if(e.target.matches('[data-stlogo]') && e.target.files && e.target.files[0]) stLogoPick(e.target.files[0]);
+  if(e.target.matches('[data-act-change="sv-filter"]')){ SV.filter=e.target.value; SV.more=false; render(); }
+  if(e.target.matches('[data-act-change="pn-filter"]')){ PN.filter=e.target.value; render(); }
   const el=e.target;
   if(el.dataset.catname!==undefined){ const from=el.dataset.catname, to=el.value.trim(); if(to===from) return; const err=badCatName(to); if(err){ el.value=from; return toast(err,true); } renameCategory(from,to); return; }
   if(el.dataset.act==='some-promote' && el.value) removeSomeday(el.dataset.text, el.value);
@@ -2294,6 +3018,7 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Escape' && document.getElementById('guard')){ closeGuard(); return; }
   if(e.key==='Escape' && S.modal){ tryCloseModal(); }
   if(e.key==='Enter' && e.target.matches('[data-newsub]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="sub-add"]').click(); }
+  if(e.key==='Enter' && e.target.matches('[data-stradd]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="st-radd"]').click(); }
 });
 document.addEventListener('submit', async e=>{
   const f=e.target; const a=f.dataset.act; e.preventDefault();
@@ -2312,7 +3037,7 @@ document.addEventListener('submit', async e=>{
   if(a==='save-rvconf'){ const url=f.url.value.trim().replace(/[?#].*$/,''), key=f.key.value.trim()||safeGet(LS.rvKey);  // 管理画面の URL（?admin=1 など）を貼られても、窓口の …/exec だけを使う
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
-    safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='bok'; S.bok='rv'; safeSet(LS.tab,'bok'); } render(); toast(url?'空室情報（BOK）につなぎました':'空室情報の設定を消しました'); return; }
+    safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='bok'; S.bok=null; safeSet(LS.tab,'bok'); } render(); toast(url?'BOK（ささやき）につなぎました':'BOK の接続先と鍵を消しました'); return; }
   if(a==='save-pwconf'){ const url=f.url.value.trim(), key=f.key.value.trim()||safeGet(LS.pwKey);
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
