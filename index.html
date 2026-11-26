@@ -1638,8 +1638,8 @@ function render(){
   const doneCnt=(S.done[monthOf(t)]||[]).length;
   const tabs=[['board','カテゴリ別',st.total],['timeline','期限順',st.total],['someday','いつかやる',S.someday.length],['runs','実行',S.runs.filter(r=>RUN_ST[r.status]?.attn).length],['done','完了',doneCnt]];
   if(S.notes) tabs.splice(1,0,['notes','引き継ぎ',notesOpenCount()]);
-  if(S.rooms) tabs.splice(S.notes?2:1,0,['rooms','清掃',roomsDueCount()]);
-  if(S.supplies) tabs.splice(1+(S.notes?1:0)+(S.rooms?1:0),0,['supplies','補充',supOpenCount()]);
+  if(S.supplies) tabs.splice(S.notes?2:1,0,['supplies','補充',supOpenCount()]);
+  if(S.rooms) tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0),0,['rooms','清掃',roomsDueCount()]);
   if(pwOn()) tabs.splice(1+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
   if(S.tab==='supplies'&&!S.supplies) S.tab='board';
   if(S.tab==='pw'&&!pwOn()) S.tab='board';
