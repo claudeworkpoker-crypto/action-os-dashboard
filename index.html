@@ -200,6 +200,8 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .bkquote{white-space:pre-wrap;word-break:break-word;background:var(--panel2);border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:14px;line-height:1.6;max-height:40vh;overflow:auto}
 .bkcard.rbbad{border-color:color-mix(in srgb,var(--red) 55%,var(--line))}
 .sicard.sel{border-color:#ea580c}
+.siempty{text-align:center;color:var(--sub);font-size:14px;padding:18px 14px}
+.siempty .btn{display:block;width:100%;margin-top:14px;padding:12px 0;font-size:15px;font-weight:600;color:var(--text)}
 .sitog{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .sitog button{flex:1;min-width:130px;border:1px solid var(--line);background:var(--panel2);border-radius:10px;padding:10px 8px;font-size:14px;color:var(--sub)}
 .sitog button.on{background:#ea580c;border-color:#ea580c;color:#fff;font-weight:600}
@@ -2230,6 +2232,7 @@ BOK_DEMO['roomBroadcast.deleteHistory'] = p => { const r=rbDemo(); r.history.spl
 const SI = {pick:{}, mark:true, edit:{}, editing:{}, fails:{}, sending:false, prog:null};
 const SI_ALREADY = /もう送ってあります/;  // ほかの人がもう送った回答（BOK v7.99 が送る直前に色を見て止める）
 BK_LOAD.surveyImport = () => bkLoad('surveyImport','surveyImport.list',{}, d=>{
+  if(!SI.sending) SI.prog=null;  // 読み直したら、前に送った結果の表示は消す
   const keep=SI.pick; SI.pick={};
   for(const it of d.items||[]) SI.pick[it.row] = keep[it.row] && SI.fails[it.row] ? keep[it.row] : {tg:!!d.hasTelegram, app:!!it.matchedName};
   for(const r of Object.keys(SI.fails)) if(!(d.items||[]).some(it=>String(it.row)===r)) delete SI.fails[r];
@@ -2242,6 +2245,13 @@ BK_VIEW.surveyImport = () => {
   const w=bkWait('surveyImport'); if(w) return bkBar('surveyImport')+w;
   const d=bk('surveyImport').data, items=d.items||[], tgOk=!!d.hasTelegram, plan=siPlan();
   const tgN=plan.filter(x=>x.tg).length, appN=plan.filter(x=>x.app).length, busy=SI.sending;
+  // 送れる回答が無いときは、BOK の管理画面と同じく「ありません」と「更新」だけにする（送ったばかりなら結果を1行だけ添える）
+  if(!items.length && !busy){
+    const p=SI.prog, bad=Object.keys(SI.fails).length;
+    return bkBar('surveyImport')+
+      (p&&p.done?`<div class="${bad?'bkbad':'bkok-ok'}">${p.done}件を送り終わりました${bad?`（送れなかったもの ${bad}件）`:'（すべて送れました）'}</div>`:'')+
+      `<div class="bkcard siempty"><div>未送信のアンケートはありません。</div><button type="button" class="btn" data-act="bk-reload" data-k="surveyImport">更新</button></div>`;
+  }
   return bkBar('surveyImport', `・未送信 ${d.total??items.length}件${(d.total||0)>items.length?`（新しい ${items.length}件を表示）`:''}`)+
     (tgOk?'':'<div class="bkwarn">Telegram のメモグループが設定されていないので、Telegram へは送れません（BOK の「設定」で入れてください）。</div>')+
     '<div class="bkbad" style="background:var(--panel2);color:var(--sub)">送ると取り消せません。送った回答は、集計表の行に色が付いて一覧から消えます。</div>'+
