@@ -391,7 +391,7 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   .stat{padding:10px 12px}
   .stat .n{font-size:20px}
   .board{grid-template-columns:1fr}
-  .today{display:none}
+  .today{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
   .ov{align-items:flex-end;padding:0}
   .modal{border-radius:18px 18px 0 0;max-height:92vh;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 }
@@ -747,7 +747,9 @@ async function mutateFile(path, fn, message, init=''){
 }
 // 画面はすぐ変え、GitHubへの保存は裏で1件ずつ順番に行う
 const Q=[]; let qRunning=false;
-function setSyncIndicator(){ const b=document.querySelector('[data-act="reload"]'); if(b) b.classList.toggle('spin', S.loading||qRunning); }
+// 最終更新（GitHub から読み込んだ・保存し終わった時刻）。日付の後ろに出す
+const updLabel = () => S.loadedAt ? ` · ${new Date(S.loadedAt).toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'})} 更新` : '';
+function setSyncIndicator(){ const b=document.querySelector('[data-act="reload"]'); if(b) b.classList.toggle('spin', S.loading||qRunning); const u=document.getElementById('upd'); if(u) u.textContent=updLabel(); }
 function enqueue(label, local, remote){
   try{ local(); }catch(e){ console.warn(e); }
   render(); if(label) toast(label);
@@ -2647,7 +2649,7 @@ function render(){
   const active=document.activeElement; const keep = active && active.closest && active.closest('form.quick') ? {cat:active.closest('form').dataset.cat, act:active.closest('form').dataset.act, v:active.value} : null;
   app.innerHTML=`
   <header><div class="wrap hd">
-    <span class="brand">Action OS</span><span class="today">${esc(mdw(t))}${S.be.kind==='demo'?' · デモ':''}</span><span class="sp"></span>
+    <span class="brand">Action OS</span><span class="today">${esc(mdw(t))}<span id="upd">${updLabel()}</span>${S.be.kind==='demo'?' · デモ':''}</span><span class="sp"></span>
     <button class="iconbtn ${S.loading||qRunning?'spin':''}" data-act="reload" title="最新に更新">${icon('refresh')}</button>
     <button class="iconbtn" data-act="settings" title="設定">${icon('gear')}</button>
   </div></header>
