@@ -279,6 +279,106 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
   .ov{align-items:flex-end;padding:0}
   .modal{border-radius:18px 18px 0 0;max-height:92vh;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 }
+
+/* ===== 引き継ぎ・メモ ===== */
+.notes{display:flex;flex-direction:column;gap:26px}
+.ncat .colhd .tools{display:flex;gap:2px}
+.ncat .colhd .btn svg{width:13px;height:13px;vertical-align:-2px}
+.ncat .colhd .tools .iconbtn.sm:hover{color:var(--accent);background:var(--accent-soft)}
+.ncat .colhd .tools .iconbtn.sm.del:hover{color:var(--red);background:var(--red-soft)}
+.nlist{background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:4px 6px}
+.ncat.rule .nlist{background:var(--panel2)}
+.nrow{display:flex;align-items:flex-start;gap:10px;padding:8px 6px;border-radius:8px}
+.nrow+.nrow{border-top:1px solid var(--line)}
+.ncat.rule .nrow+.nrow{border-top-color:color-mix(in srgb,var(--line) 60%,transparent)}
+.nchk{flex:none;width:20px;height:20px;margin-top:2px;border-radius:5px;border:2px solid var(--faint);background:transparent;display:flex;align-items:center;justify-content:center;padding:0;color:#fff}
+.nchk svg{width:12px;height:12px;opacity:0}
+.nchk.on{background:var(--accent);border-color:var(--accent)}
+.nchk.on svg{opacity:1}
+.nbul{flex:none;width:20px;text-align:center;color:var(--faint);margin-top:1px}
+.nt{flex:1;min-width:0;word-break:break-word;white-space:pre-wrap;cursor:pointer;line-height:1.6}
+.nrow.done .nt{color:var(--faint);text-decoration:line-through}
+.nt .em{color:var(--red);font-weight:600}
+.nlist .empty{padding:8px 6px}
+.ncat .quick{padding:8px 0 0}
+.nfoot{border-top:1px dashed var(--line);padding-top:14px}
+.chkline{display:flex;gap:8px;align-items:flex-start;font-weight:400 !important;color:var(--text) !important;font-size:14px !important;line-height:1.5}
+.chkline input{margin-top:3px;width:18px;height:18px;flex:none}
+/* ===== ルームの清掃 ===== */
+.rsum{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.rsum span{font-size:13px;border-radius:999px;padding:3px 10px;background:var(--panel2);color:var(--sub)}
+.rsum span.red{background:var(--red-soft);color:var(--red)} .rsum span.amber{background:var(--amber-soft);color:var(--amber)}
+.rooms{display:flex;flex-direction:column;gap:6px}
+.room{display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px}
+.room.red{border-color:color-mix(in srgb,var(--red) 55%,var(--line))}
+.room.amber{border-color:color-mix(in srgb,var(--amber) 55%,var(--line))}
+.room .rmain{flex:1;min-width:0;cursor:pointer}
+.room .rname{font-weight:700;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.room .rb{font-weight:400;font-size:13px;color:var(--sub)}
+.room .rmeta{font-size:13px;color:var(--sub);margin-top:2px;display:flex;flex-wrap:wrap;gap:2px 12px}
+.room .rnext{font-weight:600;color:var(--text)}
+.room.red .rnext{color:var(--red)} .room.amber .rnext{color:var(--amber)} .room.soon .rnext{color:var(--accent)}
+.room .btn{flex:none}
+.room .rmemo{font-size:13px;color:var(--sub);margin-top:2px;white-space:pre-wrap;word-break:break-word}
+@media (max-width:640px){ .room{align-items:flex-start} .room .btn{margin-top:2px} }
+
+/* ===== パスワード表 ===== */
+.pwbar{display:flex;gap:6px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+.pwbar .inp{flex:1;min-width:180px}
+.pwlist{display:flex;flex-direction:column;gap:6px}
+.pwlist .grouphd{padding:10px 2px 2px}
+.pwrow{display:flex;align-items:flex-start;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px}
+.pwmain{flex:1;min-width:0}
+.pwname{font-weight:700;margin-bottom:4px;word-break:break-word}
+.pwname a{color:var(--accent);text-decoration:none}
+.pwline{display:flex;align-items:center;gap:8px;font-size:14px;margin-top:3px;flex-wrap:wrap}
+.pwline .lb{font-size:12px;color:var(--sub);width:64px;flex:none}
+.pwline .v{min-width:0;word-break:break-all}
+.pwline .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em}
+.pwmemo{font-size:13px;color:var(--sub);margin-top:4px;word-break:break-word}
+.pwrow .iconbtn.sm{width:30px;height:30px;border:0;background:transparent;color:var(--faint)}
+.pwrow .iconbtn.sm:hover{color:var(--accent);background:var(--accent-soft)}
+
+/* ===== 備品の補充 ===== */
+.supinsp{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+.supa .grouphd{padding:6px 2px 4px}
+.supchips{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+.supchip{display:flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 10px;color:var(--text);box-shadow:var(--shadow)}
+.supchip b{font-size:14px} .supchip span{font-size:12px;color:var(--sub)} .supchip small{font-size:11px;color:var(--faint)}
+.supchip.red{border-color:color-mix(in srgb,var(--red) 60%,var(--line))} .supchip.red span{color:var(--red);font-weight:600}
+.supchip.amber{border-color:color-mix(in srgb,var(--amber) 60%,var(--line))} .supchip.amber span{color:var(--amber);font-weight:600}
+.suptools{display:flex;gap:6px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+.suptools .btn svg{width:13px;height:13px;vertical-align:-2px}
+.suptot{margin:0 0 16px}
+.suptot summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--sub);padding:4px 2px 8px}
+.suproom .colhd .hint{font-size:12px}
+.suproom .nrow .iconbtn.sm{width:26px;height:26px;border:0;background:transparent;color:var(--faint);flex:none}
+.suproom .nrow .iconbtn.sm:hover{color:var(--red);background:var(--red-soft)}
+.suplv{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:0 6px;margin-right:2px;vertical-align:1px}
+.suplv.red{background:var(--red-soft);color:var(--red)} .suplv.amber{background:var(--amber-soft);color:var(--amber)}
+.supq{color:var(--accent);font-weight:700}
+.room .rsup{font-size:12px;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:var(--accent);cursor:pointer}
+.inslist{display:flex;flex-direction:column;gap:8px}
+.insrow{display:flex;flex-direction:column;gap:4px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.insname{font-weight:700;font-size:14px;display:flex;align-items:center;gap:4px}
+.pinbtn{border:0;background:transparent;color:var(--faint);font-size:17px;line-height:1;padding:0 2px;cursor:pointer}
+.pinbtn.on{color:var(--amber)}
+.supsearch{margin:0 0 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.supsearch .inp{flex:1;min-width:200px}
+.supfilter{flex:none}
+.insseg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.insseg button{display:flex;flex-direction:column;align-items:center;gap:1px;border-radius:10px;padding:6px 4px;line-height:1.3}
+.insseg button small{font-size:11px;color:var(--faint);font-weight:400}
+.insseg button.on.urgent{background:var(--red);border-color:var(--red);color:#fff} .insseg button.on.urgent small{color:#fff;opacity:.85}
+.insseg button.on.need{background:var(--amber);border-color:var(--amber);color:#fff} .insseg button.on.need small{color:#fff;opacity:.85}
+.insseg button.on.ok{background:var(--green);border-color:var(--green);color:#fff} .insseg button.on.ok small{color:#fff;opacity:.85}
+
+/* ===== 閉じる前の確認 ===== */
+.guard{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:70;display:flex;align-items:center;justify-content:center;padding:16px}
+.gbox{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:0 20px 50px rgba(0,0,0,.35);padding:18px;max-width:420px;width:100%}
+.gtitle{font-weight:700;font-size:16px;margin-bottom:6px}
+.gbtns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.gbtns .btn{width:100%;padding:11px 12px;font-size:15px}
 </style>
 </head>
 <body>
@@ -293,7 +393,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -307,6 +407,8 @@ const ICON = {
   x:'<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
   up:'<polyline points="18 15 12 9 6 15"/>',
   chev:'<polyline points="9 6 15 12 9 18"/>',
+  copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   play:'<polygon points="6 4 20 12 6 20 6 4"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
@@ -448,7 +550,7 @@ function demoBackend(){
 
 // ===== 状態 =====
 const S = {
-  be:null, sections:[], someday:[], done:{}, issues:[], runs:[], progress:{}, loading:false,
+  be:null, sections:[], someday:[], done:{}, issues:[], runs:[], progress:{}, notes:null, rooms:null, supplies:null, supRoom:'', supTotOpen:false, loading:false,
   tab: safeGet(LS.tab) || 'board', filter:null, modal:null, toast:null, loadedAt:0,
 };
 function safeGet(k){ try{ return localStorage.getItem(k); }catch{ return null; } }
@@ -462,11 +564,14 @@ async function loadAll(quiet){
   S.loading=true; render();
   try{
     const ym=monthOf(todayStr());
-    const [todo, some, d1, d2, iss, runs, prog] = await Promise.all([
+    const [todo, some, d1, d2, iss, runs, prog, notes, rooms, sup] = await Promise.all([
       S.be.read('todo.md'), S.be.read('someday.md'), S.be.read(`done/${ym}.md`), S.be.read(`done/${prevMonth(ym)}.md`),
       S.be.issues().catch(e=>{ console.warn(e); return null; }),
       S.be.read('runs.json').catch(()=>null),
       S.be.read('progress.json').catch(()=>null),
+      S.be.read('notes.md').catch(()=>null),
+      S.be.read('rooms.md').catch(()=>null),
+      S.be.read('supplies.md').catch(()=>null),
     ]);
     S.runs=parseRuns(runs&&runs.text);
     S.progress=parseProgress(prog&&prog.text);
@@ -474,6 +579,9 @@ async function loadAll(quiet){
     S.someday=parseSomeday(some?some.text:'');
     S.done={[ym]:d1?parseDone(d1.text):[], [prevMonth(ym)]:d2?parseDone(d2.text):[]};
     S.issues=iss;
+    S.notes = notes ? parseNotes(notes.text) : null;   // ファイルがあるときだけタブを出す
+    S.rooms = rooms ? parseRooms(rooms.text) : null;
+    S.supplies = sup ? parseSupplies(sup.text) : null;
     S.loadedAt=Date.now();
   }catch(e){ handleErr(e); }
   S.loading=false; render();
@@ -1037,12 +1145,505 @@ function viewInbox(){
     <button class="btn sm pri" >取り込む</button></form>`).join('')}</div>`;
 }
 
+// ===== 引き継ぎ・メモ（notes.md）と ルームの清掃（rooms.md） =====
+// どちらも、リポジトリにファイルがあるときだけタブを出す（設定画面から作れる）。Claude Code で話しかけて書き換えてもよい（CLAUDE.md の決まり）。
+const NOTES_INIT = '# 引き継ぎ・メモ\n\n## 重要\n\n## 引き継ぎ\n\n## メモ\n';
+const ROOMS_INIT = '# ルームの清掃\n\n| ルーム | エリア | 建物 | 次回清掃 | 前回清掃 | 間隔（日） | メモ |\n|---|---|---|---|---|---|---|\n';
+
+// --- 引き継ぎ・メモ ---
+// notes.md: 「## 区分」ごとに、チェック付き（- [ ] / - [x]）か、チェック無し（- ）の箇条書き。**で囲んだところは赤く強調する
+function parseNotes(text){
+  const cats=[]; let cur=null, title='引き継ぎ・メモ';
+  for(const line of String(text||'').replace(/\r/g,'').split('\n')){
+    const h1=line.match(/^#\s+(.+?)\s*$/); if(h1 && !cats.length){ title=h1[1]; continue; }
+    const h=line.match(/^##\s+(.+?)\s*$/); if(h){ cur={name:h[1], items:[]}; cats.push(cur); continue; }
+    if(!cur || !line.trim()) continue;
+    let m=line.match(/^\s*[-*] \[( |x|X)\]\s?(.*)$/); if(m){ cur.items.push({text:m[2].trim(), check:m[1]!==' '}); continue; }
+    m=line.match(/^\s*[-*・]\s*(.*)$/); cur.items.push({text:(m?m[1]:line).trim(), check:null});
+  }
+  return {title, cats};
+}
+function serializeNotes(n){
+  let out=`# ${n.title||'引き継ぎ・メモ'}\n`;
+  for(const c of n.cats){
+    out+=`\n## ${c.name}\n`;
+    if(c.items.length){ out+='\n'; for(const it of c.items){ const t=it.text.replace(/\s*\n\s*/g,' '); out+= it.check===null ? `- ${t}\n` : `- [${it.check?'x':' '}] ${t}\n`; } }
+  }
+  return out;
+}
+const fmtNote = t => esc(t).replace(/\*\*(.+?)\*\*/g,'<span class="em">$1</span>');
+const notesFile = (fn,msg) => mutateFile('notes.md', t=>{ const n=parseNotes(t); if(fn(n)===false) return false; return serializeNotes(n); }, msg, NOTES_INIT);
+function noteOp(label, fn, msg){ enqueue(label, ()=>{ if(S.notes) fn(S.notes); }, ()=>notesFile(fn, msg)); }
+const findCat = (n, name) => n.cats.find(c=>c.name===name);
+const findNote = (n, ref) => { const c=findCat(n, ref.cat); if(!c) return null; const i=c.items.findIndex(x=>x.text===ref.text); return i<0?null:{c, i, it:c.items[i]}; };
+// 区分の既定：中身がすべてチェック無しなら、足すものもチェック無し（「重要」のような決まりごとの区分）
+const catPlain = c => c.items.length>0 && c.items.every(x=>x.check===null);
+function notesOpenCount(){ return S.notes ? S.notes.cats.reduce((a,c)=>a+c.items.filter(x=>x.check===false).length,0) : 0; }
+
+function addNote(cat, text, check){
+  noteOp('追加しました', n=>{ const c=findCat(n,cat); if(!c) return false; c.items.push({text, check: check?false:null}); }, `dashboard: 「${cat}」に「${text.slice(0,30)}」を追加`);
+}
+function toggleNote(ref){
+  noteOp('', n=>{ const f=findNote(n,ref); if(!f || f.it.check===null) return false; f.it.check=!f.it.check; }, `dashboard: 「${ref.text.slice(0,30)}」のチェックを切り替え`);
+}
+function updateNote(ref, patch){
+  noteOp('更新しました', n=>{
+    const f=findNote(n,ref); if(!f) return false;
+    f.it.text=patch.text;
+    f.it.check = patch.kind==='plain' ? null : (f.it.check===null ? false : f.it.check);
+    if(patch.cat && patch.cat!==ref.cat){ const to=findCat(n,patch.cat); if(!to) return false; f.c.items.splice(f.i,1); to.items.push(f.it); }
+  }, `dashboard: 「${patch.text.slice(0,30)}」を更新`);
+}
+function deleteNote(ref){ noteOp('削除しました', n=>{ const f=findNote(n,ref); if(!f) return false; f.c.items.splice(f.i,1); }, `dashboard: 「${ref.text.slice(0,30)}」を削除`); }
+function clearChecked(cat){ noteOp('済みを消しました', n=>{ const c=findCat(n,cat); if(!c) return false; const before=c.items.length; c.items=c.items.filter(x=>x.check!==true); if(c.items.length===before) return false; }, `dashboard: 「${cat}」の済みを消す`); }
+function badNoteCat(name, except){
+  if(!name) return '区分の名前を入れてください';
+  if(/[#\n]/.test(name)) return '区分の名前に # は使えません';
+  if(S.notes && S.notes.cats.some(c=>c.name===name && c.name!==except)) return '同じ名前の区分があります';
+  return null;
+}
+function addNoteCat(name){ noteOp('区分を追加しました', n=>{ if(findCat(n,name)) return false; n.cats.push({name, items:[]}); }, `dashboard: 引き継ぎに区分「${name}」を追加`); }
+function renameNoteCat(from, to){ noteOp('区分の名前を変えました', n=>{ const c=findCat(n,from); if(!c || findCat(n,to)) return false; c.name=to; }, `dashboard: 区分「${from}」を「${to}」に変更`); }
+function deleteNoteCat(name){ noteOp('区分を削除しました', n=>{ const i=n.cats.findIndex(c=>c.name===name); if(i<0) return false; n.cats.splice(i,1); }, `dashboard: 区分「${name}」を削除`); }
+function moveNoteCat(name){ noteOp('', n=>{ const i=n.cats.findIndex(c=>c.name===name); if(i<=0) return false; const [c]=n.cats.splice(i,1); n.cats.splice(i-1,0,c); }, `dashboard: 区分「${name}」を上へ`); }
+
+// 区分のメモを、貼り付け用の文にする（チェック付きは未対応だけ。** の強調は外す）
+function noteCatText(c){
+  const list=c.items.filter(x=>x.check!==true).map(x=>`・${x.text.replace(/\*\*(.+?)\*\*/g,'$1')}`);
+  return list.length ? `【${c.name}】${mdw(todayStr())}\n${list.join('\n')}` : '';
+}
+function viewNotes(){
+  const cats=S.notes.cats;
+  const ref = (c,it) => esc(JSON.stringify({cat:c.name, text:it.text}));
+  const body = cats.map((c,ci)=>{
+    const plain=catPlain(c), doneN=c.items.filter(x=>x.check===true).length;
+    const rows = c.items.length ? c.items.map(it=>`<div class="nrow ${it.check===true?'done':''}">
+        ${it.check===null?(/^\p{Extended_Pictographic}/u.test(it.text)?'':'<span class="nbul">•</span>'):`<button class="nchk ${it.check?'on':''}" data-act="note-toggle" data-ref='${ref(c,it)}' title="${it.check?'未対応に戻す':'対応済みにする'}">${icon('check')}</button>`}
+        <div class="nt" data-act="note-edit" data-ref='${ref(c,it)}'>${fmtNote(it.text)}</div></div>`).join('')
+      : '<div class="empty">まだありません</div>';
+    return `<section class="ncat ${plain?'rule':''}" style="--cc:var(${PALETTE[ci%PALETTE.length]})">
+      <div class="colhd"><span class="name">${esc(c.name)}</span><span class="count">${c.items.length}</span><span class="sp"></span>
+        ${c.items.some(x=>x.check!==true)?`<button class="btn sm" data-act="note-copy" data-cat="${esc(c.name)}" title="${plain?'この区分を全部':'まだ対応していないものを'}コピー">${icon('copy')} コピー</button>`:''}
+        ${doneN?`<button class="btn sm" data-act="note-clear" data-cat="${esc(c.name)}">済みを消す（${doneN}）</button>`:''}
+        <span class="tools">
+          ${ci>0?`<button class="iconbtn sm" data-act="ncat-up" data-cat="${esc(c.name)}" title="上へ">${icon('up')}</button>`:''}
+          <button class="iconbtn sm" data-act="ncat-rename" data-cat="${esc(c.name)}" title="名前を変える">${icon('edit')}</button>
+          <button class="iconbtn sm del" data-act="ncat-del" data-cat="${esc(c.name)}" title="区分を削除">${icon('x')}</button>
+        </span></div>
+      <div class="nlist">${rows}</div>
+      <form class="quick" data-act="note-add" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加${plain?'':'（チェック付き）'}" autocomplete="off" enterkeyhint="done"></form>
+    </section>`;
+  }).join('');
+  return `<div class="notes">${body||'<div class="empty">区分がありません。下から追加してください</div>'}
+    <div class="nfoot"><form class="quick" data-act="ncat-add"><input name="q" placeholder="＋ 区分を追加（例：セラピスト情報）" autocomplete="off" enterkeyhint="done"></form>
+    <div class="hint" style="margin-top:8px">チェックを押すと「対応済み」になります。済んだものは区分の「済みを消す」でまとめて片付けられます。文字を押すと編集できます。**で囲んだところは赤く強調されます。</div></div></div>`;
+}
+function noteModal(m){
+  const d=m.draft;
+  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-note">
+    <h2>メモを編集</h2>
+    <div class="field"><label>内容</label><textarea class="inp" name="text" rows="4" required>${esc(d.text)}</textarea>
+      <div class="hint" style="margin-top:6px">**で囲んだところは赤く強調されます（例：**絶対に開封しない**）</div></div>
+    <div class="field"><label>種類</label><div class="seg">
+      <button type="button" class="${d.kind==='check'?'on':''}" data-act="nset" data-f="kind" data-v="check">チェック付き（対応したら消す）</button>
+      <button type="button" class="${d.kind==='plain'?'on':''}" data-act="nset" data-f="kind" data-v="plain">チェック無し（ずっと残す決まりごと）</button></div></div>
+    <div class="field"><label>区分</label><div class="seg">${S.notes.cats.map(c=>`<button type="button" class="${d.cat===c.name?'on':''}" data-act="nset" data-f="cat" data-v="${esc(c.name)}">${esc(c.name)}</button>`).join('')}</div></div>
+    <div class="actions"><button type="button" class="btn danger left" data-act="note-del">削除</button>
+      <button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">保存</button></div>
+  </form></div>`;
+}
+
+// --- ルームの清掃 ---
+// rooms.md: 表（ルーム・建物・次回清掃・前回清掃・間隔（日）・メモ）。日付は YYYY-MM-DD
+function normDate(s){
+  s=String(s||'').trim(); let m;
+  if((m=s.match(/^(\d{4})[-/年.](\d{1,2})[-/月.](\d{1,2})日?$/))) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+  return '';
+}
+function parseRooms(text){
+  const rows=[]; let hdr=null;
+  for(const line of String(text||'').replace(/\r/g,'').split('\n')){
+    if(!/^\s*\|/.test(line)) continue;
+    const cells=line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>x.trim());
+    if(!hdr){ if(cells.some(x=>/ルーム|部屋/.test(x))) hdr=cells.map(x=>x.replace(/\s/g,'')); continue; }
+    if(cells.every(x=>/^:?-{2,}:?$/.test(x)||x==='')) continue;
+    const get=(...ks)=>{ const i=hdr.findIndex(h=>ks.some(k=>h.startsWith(k))); return i>=0?(cells[i]||''):''; };
+    const name=get('ルーム','部屋'); if(!name) continue;
+    rows.push({name, area:get('エリア','店舗','地域'), bldg:get('建物','備考'), next:normDate(get('次回')), last:normDate(get('前回')), every:parseInt(get('間隔'),10)||null, memo:get('メモ')});
+  }
+  return rows;
+}
+function serializeRooms(rows){
+  const cell=v=>String(v??'').replace(/\|/g,'／').replace(/\s*\n\s*/g,' ').trim();
+  return ROOMS_INIT + rows.map(r=>`| ${[r.name,r.area,r.bldg,r.next,r.last,r.every||'',r.memo].map(cell).join(' | ')} |`).join('\n') + (rows.length?'\n':'');
+}
+const roomsFile = (fn,msg) => mutateFile('rooms.md', t=>{ const r=parseRooms(t); if(fn(r)===false) return false; return serializeRooms(r); }, msg, ROOMS_INIT);
+function roomOp(label, fn, msg){ enqueue(label, ()=>{ if(S.rooms) fn(S.rooms); }, ()=>roomsFile(fn, msg)); }
+const findRoom = (rows, name) => rows.find(r=>r.name===name);
+function roomState(r){
+  const t=todayStr();
+  if(!r.next) return {cls:'', label:'未定'};
+  if(r.next<t){ const d=Math.round((new Date(t)-new Date(r.next))/864e5); return {cls:'red', label:`${d}日過ぎ`}; }
+  if(r.next===t) return {cls:'amber', label:'今日'};
+  const d=Math.round((new Date(r.next)-new Date(t))/864e5);
+  return {cls: d<=3?'soon':'', label: d===1?'明日':`あと${d}日`};
+}
+function roomsDueCount(){ const t=todayStr(); return S.rooms ? S.rooms.filter(r=>r.next && r.next<=t).length : 0; }
+function cleanedRoom(name, next, every){
+  const t=todayStr();
+  roomOp('清掃済みにしました', rows=>{ const r=findRoom(rows,name); if(!r) return false; r.last=t; if(every!==undefined) r.every=every; r.next = next!==undefined ? next : (r.every ? addDays(t, r.every) : r.next); }, `dashboard: ${name} を清掃済みにする`);
+}
+function saveRoom(orig, v){
+  roomOp(orig?'更新しました':'追加しました', rows=>{
+    if(orig){ const r=findRoom(rows,orig); if(!r) return false; if(v.name!==orig && findRoom(rows,v.name)) return false; Object.assign(r, v); }
+    else { if(findRoom(rows,v.name)) return false; rows.push(v); }
+  }, orig?`dashboard: ルーム ${v.name} を更新`:`dashboard: ルーム ${v.name} を追加`);
+}
+function deleteRoom(name){ roomOp('削除しました', rows=>{ const i=rows.findIndex(r=>r.name===name); if(i<0) return false; rows.splice(i,1); }, `dashboard: ルーム ${name} を削除`); }
+
+function viewRooms(){
+  const t=todayStr();
+  const rows=S.rooms.slice().sort((a,b)=>(a.next||'9999')<(b.next||'9999')?-1:(a.next||'9999')>(b.next||'9999')?1:a.name.localeCompare(b.name,'ja'));
+  const over=rows.filter(r=>r.next&&r.next<t).length, today=rows.filter(r=>r.next===t).length, soon=rows.filter(r=>r.next>t&&r.next<=addDays(t,3)).length;
+  const list = rows.length ? rows.map(r=>{ const st=roomState(r);
+    return `<div class="room ${st.cls}">
+      <div class="rmain" data-act="room-edit" data-name="${esc(r.name)}">
+        <div class="rname">${esc(r.name)}${r.area||r.bldg?`<span class="rb">${esc([r.area,r.bldg].filter(Boolean).join('・'))}</span>`:''}${supRoomCount(r.name)?`<span class="rsup" data-act="sup-go" data-room="${esc(r.name)}">補充 ${supRoomCount(r.name)}</span>`:''}</div>
+        <div class="rmeta"><span>次回 <span class="rnext">${r.next?esc(mdw(r.next)):'未定'}</span>${r.next?`（${st.label}）`:''}</span>${r.last?`<span>前回 ${esc(mdw(r.last))}</span>`:''}${r.every?`<span>${r.every}日ごと</span>`:''}</div>
+        ${r.memo?`<div class="rmemo">${esc(r.memo)}</div>`:''}
+      </div>
+      <button class="btn sm" data-act="room-clean" data-name="${esc(r.name)}">清掃した</button>
+    </div>`; }).join('') : '<div class="plain"><div class="empty">ルームがありません。下から追加してください</div></div>';
+  return `<div class="rsum"><span class="${over?'red':''}">期限切れ ${over}</span><span class="${today?'amber':''}">今日 ${today}</span><span>3日以内 ${soon}</span><span>全 ${rows.length}室</span></div>
+    <div class="rooms">${list}</div>
+    <form class="quick" data-act="room-add" style="padding-top:12px"><input name="q" placeholder="＋ ルームを追加（例：F402 ライジングプレイス）" autocomplete="off" enterkeyhint="done"></form>
+    <div class="hint" style="margin-top:8px">次回清掃が近い順に並びます。「清掃した」を押すと、前回清掃が今日になり、次回清掃が間隔のぶん先に進みます（間隔が無いときは次回の日を聞きます）。ルームを押すと編集できます。</div>`;
+}
+function roomModal(m){
+  const d=m.draft, t=todayStr();
+  const quick=(f,list)=>`<div class="dates">${list.map(([l,v])=>`<button type="button" class="btn sm" data-act="rset" data-f="${f}" data-v="${v}">${l}${v?` <span style="color:var(--faint)">${mdw(v)}</span>`:''}</button>`).join('')}</div>`;
+  const nexts=[['3日後',addDays(t,3)],['1週間後',addDays(t,7)],['2週間後',addDays(t,14)],['なし','']];
+  if(m.type==='room-clean') return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-room-clean">
+    <h2>${esc(m.name)} を清掃済みにする</h2>
+    <div class="field"><label>次回の清掃日</label><input class="inp" type="date" name="next" value="${esc(d.next||'')}">${quick('next',nexts)}</div>
+    <div class="field"><label class="chkline"><input type="checkbox" name="keep" ${d.keep?'checked':''}> 今日からの日数を、このルームの間隔として覚える（次からは「清掃した」だけで進む）</label></div>
+    <div class="actions"><button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">清掃済みにする</button></div>
+  </form></div>`;
+  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-room">
+    <h2>${m.orig?'ルームを編集':'ルームを追加'}</h2>
+    <div class="field"><label>ルーム</label><input class="inp" name="name" value="${esc(d.name)}" required autocomplete="off"></div>
+    <div class="field"><label>エリア</label><input class="inp" name="area" value="${esc(d.area||'')}" list="roomareas" placeholder="例：北千住" autocomplete="off"><datalist id="roomareas">${[...new Set((S.rooms||[]).map(r=>r.area).filter(Boolean))].map(a=>`<option value="${esc(a)}">`).join('')}</datalist></div>
+    <div class="field"><label>建物</label><input class="inp" name="bldg" value="${esc(d.bldg)}" autocomplete="off"></div>
+    <div class="field"><label>次回清掃</label><input class="inp" type="date" name="next" value="${esc(d.next)}">${quick('next',[['今日',t],['明日',addDays(t,1)],...nexts])}</div>
+    <div class="field"><label>前回清掃</label><input class="inp" type="date" name="last" value="${esc(d.last)}"></div>
+    <div class="field"><label>間隔（日。空なら自動で進めない）</label><input class="inp" type="number" name="every" min="1" max="365" value="${esc(d.every||'')}" inputmode="numeric"></div>
+    <div class="field"><label>メモ</label><input class="inp" name="memo" value="${esc(d.memo)}" autocomplete="off"></div>
+    <div class="actions">${m.orig?'<button type="button" class="btn danger left" data-act="room-del">削除</button>':''}
+      <button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">${m.orig?'保存':'追加'}</button></div>
+  </form></div>`;
+}
+function syncRoomDraft(){
+  const m=S.modal; const f=document.querySelector('form[data-act="save-room"],form[data-act="save-room-clean"]'); if(!m||!f) return;
+  for(const k of ['name','area','bldg','next','last','every','memo']) if(f[k]) m.draft[k]=f[k].value;
+  if(f.keep) m.draft.keep=f.keep.checked;
+}
+
+// --- 設定画面：タブを使い始める ---
+function extraTabsField(){
+  if(!S.be) return '';
+  const btn=(on,act,label)=>on?`<span class="hint">使用中</span>`:`<button type="button" class="btn sm" data-act="${act}">${label}</button>`;
+  return `<div class="field"><label>追加のタブ</label><div class="subl">
+    <div class="row"><span class="cname" style="flex:1">引き継ぎ・メモ</span>${btn(S.notes,'enable-notes','使う')}</div>
+    <div class="row"><span class="cname" style="flex:1">ルームの清掃</span>${btn(S.rooms,'enable-rooms','使う')}</div>
+    <div class="row"><span class="cname" style="flex:1">備品の補充</span>${btn(S.supplies,'enable-supplies','使う')}</div>
+  </div><div class="hint" style="margin-top:6px">「使う」を押すと、リポジトリに notes.md・rooms.md・supplies.md を作ってタブを出します。</div></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
+}
+function enableFile(path, init, key, parse, label){
+  enqueue(label, ()=>{ if(!S[key]) S[key]=parse(init); }, ()=>mutateFile(path, t=>t&&t.trim()?t:init, `dashboard: ${path} を作る`, ''));
+}
+
+// ===== パスワード表（Google スプレッドシート。正本はスプレッドシート） =====
+// 読み書きは、スプレッドシートに置いた Apps Script（gas/passwords/Code.gs）を通して行う。GitHub には一切書かない。
+// 接続先の URL と鍵は、この端末のブラウザにだけ保存する。表の中身はブラウザに残さない（開いている間だけ持つ）。
+const PW_FIELDS = ['区分','サービス','ログインURL','ID・メール','パスワード','メモ'];
+const pwConf = () => ({url:safeGet(LS.pwUrl)||'', key:safeGet(LS.pwKey)||''});
+const pwOn = () => S.be && (S.be.kind==='demo' || !!pwConf().url);
+const PWD = {rows:null, loading:false, error:'', q:'', shown:new Set(), timers:{}};
+let pwDemo = null;
+async function pwCall(action, payload={}){
+  if(S.be && S.be.kind==='demo' && !pwConf().url){  // デモ（接続先が未設定のとき）：画面の中だけで動かす
+    if(!pwDemo) pwDemo=[
+      {ID:'d1','区分':'媒体','サービス':'見本の媒体（管理画面）','ログインURL':'https://example.com/login','ID・メール':'shop@example.com','パスワード':'sample-Pass-123','メモ':'二段階認証は店のスマホ','更新日':todayStr()},
+      {ID:'d2','区分':'連絡','サービス':'見本の LINE 公式アカウント','ログインURL':'https://manager.line.biz/','ID・メール':'info@example.com','パスワード':'demo-0042','メモ':'','更新日':todayStr()},
+      {ID:'d3','区分':'店舗','サービス':'見本のルーム Wi-Fi','ログインURL':'','ID・メール':'ROOM-WIFI','パスワード':'0123456789','メモ':'D105 の冷蔵庫の横','更新日':todayStr()}];
+    await new Promise(r=>setTimeout(r,150));
+    if(action==='list') return {ok:true, rows:pwDemo.map(r=>({...r}))};
+    if(action==='add'){ const r={...payload.row, ID:'d'+Date.now(), '更新日':todayStr()}; pwDemo.push(r); return {ok:true, row:r}; }
+    if(action==='update'){ const r=pwDemo.find(x=>x.ID===payload.id); if(!r) return {ok:false,error:'見つかりません'}; Object.assign(r, payload.row, {'更新日':todayStr()}); return {ok:true, row:r}; }
+    if(action==='delete'){ pwDemo=pwDemo.filter(x=>x.ID!==payload.id); return {ok:true}; }
+  }
+  const {url,key}=pwConf();
+  if(!url||!key) throw new Error('パスワード表の接続先と鍵が設定されていません（設定画面）');
+  // text/plain で送ると、Apps Script へ事前確認なしで届く
+  const r=await fetch(url,{method:'POST', body:JSON.stringify({key, action, ...payload}), redirect:'follow'});
+  if(!r.ok) throw new Error(`パスワード表に接続できませんでした（${r.status}）`);
+  const j=await r.json().catch(()=>{ throw new Error('パスワード表の返事を読めませんでした（URL が正しいか確かめてください）'); });
+  if(!j.ok) throw new Error(j.error||'パスワード表でエラーが出ました');
+  return j;
+}
+async function pwLoad(){
+  PWD.loading=true; PWD.error=''; render();
+  try{ const j=await pwCall('list'); PWD.rows=j.rows||[]; }
+  catch(e){ PWD.error=e.message; }
+  PWD.loading=false; render();
+}
+async function pwSave(id, row){
+  try{
+    if(id) await pwCall('update',{id,row}); else await pwCall('add',{row});
+    toast(id?'スプレッドシートを更新しました':'スプレッドシートに追加しました'); await pwLoad();
+  }catch(e){ toast(e.message,true); }
+}
+async function pwDelete(id){
+  try{ await pwCall('delete',{id}); toast('スプレッドシートから削除しました'); await pwLoad(); }
+  catch(e){ toast(e.message,true); }
+}
+function pwReveal(id){
+  if(PWD.shown.has(id)){ PWD.shown.delete(id); clearTimeout(PWD.timers[id]); }
+  else { PWD.shown.add(id); clearTimeout(PWD.timers[id]); PWD.timers[id]=setTimeout(()=>{ PWD.shown.delete(id); render(); }, 20000); }  // 20秒で隠す
+  render();
+}
+async function pwCopy(text, what){
+  let ok=false; try{ await navigator.clipboard.writeText(text); ok=true; }catch{ ok=copyNow(text); }
+  toast(ok?`${what}をコピーしました`:'コピーできませんでした', !ok);
+}
+function viewPw(){
+  if(PWD.rows===null && !PWD.loading && !PWD.error){ setTimeout(pwLoad,0); }
+  const head=`<form class="pwbar" data-act="pw-search" onsubmit="return false"><input class="inp" data-pwq placeholder="さがす（サービス・区分・ID・メモ）" value="${esc(PWD.q)}" autocomplete="off">
+    <button type="button" class="btn sm" data-act="pw-reload" title="スプレッドシートから読み直す">${icon('refresh').replace('<svg','<svg width="14" height="14"')} 読み直す</button>
+    <button type="button" class="btn sm pri" data-act="pw-add">${icon('plus').replace('<svg','<svg width="14" height="14"')} 追加</button></form>`;
+  if(PWD.error) return head+`<div class="plain"><div class="empty" style="color:var(--red)">${esc(PWD.error)}</div></div>`;
+  if(PWD.rows===null) return head+'<div class="plain"><div class="empty">スプレッドシートから読み込んでいます…</div></div>';
+  const q=PWD.q.trim().toLowerCase();
+  const rows=PWD.rows.filter(r=>!q || ['区分','サービス','ID・メール','メモ','ログインURL'].some(k=>String(r[k]||'').toLowerCase().includes(q)))
+    .sort((a,b)=>(a['区分']||'').localeCompare(b['区分']||'','ja') || (a['サービス']||'').localeCompare(b['サービス']||'','ja'));
+  let cur=null;
+  const list=rows.map(r=>{
+    const g=r['区分']||'（区分なし）'; const hd = g!==cur ? `<div class="grouphd">${esc(g)}</div>` : ''; cur=g;
+    const shown=PWD.shown.has(r.ID), pw=r['パスワード']||'';
+    const url=/^https?:\/\//i.test(r['ログインURL']||'') ? r['ログインURL'] : '';
+    return hd+`<div class="pwrow">
+      <div class="pwmain">
+        <div class="pwname">${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(r['サービス']||'（名前なし）')}</a>`:esc(r['サービス']||'（名前なし）')}</div>
+        <div class="pwline"><span class="lb">ID</span><span class="v">${esc(r['ID・メール']||'—')}</span>${r['ID・メール']?`<button class="btn sm" data-act="pw-copy" data-id="${esc(r.ID)}" data-f="ID・メール">コピー</button>`:''}</div>
+        <div class="pwline"><span class="lb">パスワード</span><span class="v mono">${pw?(shown?esc(pw):'••••••••'):'—'}</span>${pw?`<button class="btn sm" data-act="pw-show" data-id="${esc(r.ID)}">${shown?'隠す':'表示'}</button><button class="btn sm" data-act="pw-copy" data-id="${esc(r.ID)}" data-f="パスワード">コピー</button>`:''}</div>
+        ${r['メモ']?`<div class="pwmemo">${esc(r['メモ'])}</div>`:''}
+      </div>
+      <button class="iconbtn sm" data-act="pw-edit" data-id="${esc(r.ID)}" title="編集">${icon('edit')}</button>
+    </div>`;
+  }).join('');
+  return head+`<div class="pwlist">${list||'<div class="plain"><div class="empty">'+(q?'見つかりません':'まだありません。「追加」から入れてください')+'</div></div>'}</div>
+    <div class="hint" style="margin-top:10px">正本は Google スプレッドシートです。ここで足したり直したりすると、スプレッドシートも同じように変わります（スプレッドシートで直した分は「読み直す」で出ます）。パスワードは押したときだけ表示し、20秒で隠れます。</div>`;
+}
+function pwModal(m){
+  const d=m.draft;
+  const groups=[...new Set((PWD.rows||[]).map(r=>r['区分']).filter(Boolean))];
+  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-pw" autocomplete="off">
+    <h2>${m.id?'アカウントを編集':'アカウントを追加'}</h2>
+    <div class="field"><label>区分</label><input class="inp" name="区分" value="${esc(d['区分']||'')}" list="pwgroups" placeholder="例：媒体・連絡・店舗"><datalist id="pwgroups">${groups.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
+    <div class="field"><label>サービス</label><input class="inp" name="サービス" value="${esc(d['サービス']||'')}" required></div>
+    <div class="field"><label>ログインURL</label><input class="inp" name="ログインURL" value="${esc(d['ログインURL']||'')}" inputmode="url" placeholder="https://"></div>
+    <div class="field"><label>ID・メール</label><input class="inp" name="ID・メール" value="${esc(d['ID・メール']||'')}" autocapitalize="off" spellcheck="false"></div>
+    <div class="field"><label>パスワード</label><div class="row" style="display:flex;gap:6px"><input class="inp" name="パスワード" type="password" value="${esc(d['パスワード']||'')}" autocomplete="new-password" autocapitalize="off" spellcheck="false" style="flex:1"><button type="button" class="btn sm" data-act="pw-peek">表示</button></div></div>
+    <div class="field"><label>メモ</label><input class="inp" name="メモ" value="${esc(d['メモ']||'')}"></div>
+    <div class="actions">${m.id?'<button type="button" class="btn danger left" data-act="pw-del">削除</button>':''}
+      <button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">${m.id?'保存':'追加'}</button></div>
+  </form></div>`;
+}
+function pwField(){
+  const c=pwConf();
+  return `<form class="field" data-act="save-pwconf" autocomplete="off"><label>パスワード表（Google スプレッドシート）</label>
+    <div class="subl">
+      <input class="inp" name="url" value="${esc(c.url)}" placeholder="Apps Script のウェブアプリの URL（…/exec）" autocapitalize="off" spellcheck="false">
+      <input class="inp" name="key" type="password" placeholder="${c.key?'鍵は保存済み（変える時だけ入力）':'鍵（setup のログに出たもの）'}" autocomplete="off">
+      <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${c.url?'<button type="button" class="btn sm danger" data-act="pw-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
+    </div><div class="hint" style="margin-top:6px">設置のしかたは SETUP.md の「パスワード表」。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
+}
+
+// ===== 備品の補充（supplies.md） =====
+// 「## チェック項目」の表に、品目ごとの目安（至急・補充必要・補充の必要無）を持つ。
+// 「## ルーム名」ごとに、点検した日（点検: YYYY-MM-DD）と、補充が要るものをチェック付きの箇条書きで持つ（例：- [ ] お茶【至急】）。
+// 足りているものは書かない。ファイルがあるときだけタブを出す。
+const SUP_INIT = '# 備品の補充\n\n## チェック項目\n\n| 品目 | 至急 | 補充必要 | 補充の必要無 | ピン |\n|---|---|---|---|---|\n';
+const SUP_LV = {urgent:{tag:'至急', cls:'red'}, need:{tag:'補充', cls:'amber'}};
+function supItemOf(t){
+  let s=String(t), level='need', qty=1;
+  const lv=s.match(/【\s*(至急|補充|補充必要)\s*】/); if(lv){ level = lv[1]==='至急'?'urgent':'need'; s=s.replace(lv[0],''); }
+  const q=s.match(/\s*[×xX＊*]\s*(\d+)\s*$/); if(q){ qty=+q[1]; s=s.slice(0,q.index); }
+  return {name:s.trim(), level, qty};
+}
+function parseSupplies(text){
+  const d={items:[], rooms:[]}; let cur=null, inItems=false;
+  for(const line of String(text||'').replace(/\r/g,'').split('\n')){
+    const h=line.match(/^##\s+(.+?)\s*$/);
+    if(h){ inItems = /^チェック項目$/.test(h[1]); cur = inItems ? null : {room:h[1], checked:'', items:[]}; if(cur) d.rooms.push(cur); continue; }
+    if(inItems){
+      if(!/^\s*\|/.test(line)) continue;
+      const c=line.trim().replace(/^\|/,'').replace(/\|$/,'').split('|').map(x=>x.trim());
+      if(c[0]==='品目' || c.every(x=>/^:?-{2,}:?$/.test(x)||x==='')) continue;
+      if(c[0]) d.items.push({name:c[0], urgent:c[1]||'', need:c[2]||'', ok:c[3]||'', pin:/★|☆|1|ピン|○|〇/.test(c[4]||'')});
+      continue;
+    }
+    if(!cur || !line.trim()) continue;
+    const ck=line.match(/^\s*点検\s*[:：]\s*(\d{4}-\d{2}-\d{2})/); if(ck){ cur.checked=ck[1]; continue; }
+    const m=line.match(/^\s*[-*] (?:\[( |x|X)\]\s?)?(.*)$/); if(!m) continue;
+    const it=supItemOf(m[2]); if(!it.name) continue;
+    cur.items.push({...it, done: m[1]!==undefined && m[1]!==' '});
+  }
+  return d;
+}
+function serializeSupplies(d){
+  const cell=v=>String(v??'').replace(/\|/g,'／').replace(/\s*\n\s*/g,' ').trim();
+  let out=SUP_INIT;
+  for(const it of d.items) out+=`| ${[it.name,it.urgent,it.need,it.ok,it.pin?'★':''].map(cell).join(' | ')} |\n`;
+  for(const r of d.rooms){
+    if(!r.items.length && !r.checked) continue;
+    out+=`\n## ${r.room}\n\n`;
+    if(r.checked) out+=`点検: ${r.checked}\n\n`;
+    for(const it of r.items) out+=`- [${it.done?'x':' '}] ${it.name}【${SUP_LV[it.level].tag}】${it.qty>1?` ×${it.qty}`:''}\n`;
+  }
+  return out;
+}
+const suppliesFile = (fn,msg) => mutateFile('supplies.md', t=>{ const d=parseSupplies(t); if(fn(d)===false) return false; return serializeSupplies(d); }, msg, SUP_INIT);
+function supOp(label, fn, msg){ enqueue(label, ()=>{ if(S.supplies) fn(S.supplies); }, ()=>suppliesFile(fn, msg)); }
+const supRoom = (d, room) => d.rooms.find(r=>r.room===room);
+const supFind = (d, ref) => { const r=supRoom(d, ref.room); if(!r) return null; const i=r.items.findIndex(x=>x.name===ref.name && !!x.done===!!ref.done); return i<0?null:{r, i, it:r.items[i]}; };
+const supOpen = r => r.items.filter(x=>!x.done);
+function supOpenCount(){ return S.supplies ? S.supplies.rooms.reduce((a,r)=>a+supOpen(r).length,0) : 0; }
+function supRoomCount(room){ const r=S.supplies && supRoom(S.supplies, room); return r ? supOpen(r).length : 0; }
+// ルームの並び：清掃の表の順（エリアごと）。補充リストにだけあるルームは後ろ
+function supRoomNames(){ return [...new Set([...(S.rooms||[]).map(r=>r.name), ...(S.supplies?S.supplies.rooms.map(r=>r.room):[])])]; }
+const roomArea = n => ((S.rooms||[]).find(x=>x.name===n)||{}).area || '';
+
+// 点検の結果を書く：選んだ品目は「至急／補充」にし、「足りている」にした品目の未補充の行は消す。点検した日も書く
+function saveInspection(room, picks){
+  const day=todayStr();
+  supOp('点検の結果を保存しました', d=>{
+    let r=supRoom(d, room); if(!r){ r={room, checked:'', items:[]}; d.rooms.push(r); }
+    for(const [name, lv] of Object.entries(picks)){
+      const open=r.items.find(x=>x.name===name && !x.done);
+      if(lv==='ok'){ if(open) r.items.splice(r.items.indexOf(open),1); }
+      else if(open) open.level=lv;
+      else r.items.push({name, level:lv, qty:1, done:false});
+    }
+    r.checked=day;
+  }, `dashboard: ${room} の備品を点検`);
+}
+function addSupply(room, name, level){
+  supOp('補充リストに足しました', d=>{
+    let r=supRoom(d, room); if(!r){ r={room, checked:'', items:[]}; d.rooms.push(r); }
+    const open=r.items.find(x=>x.name===name && !x.done);
+    if(open) open.level=level; else r.items.push({name, level, qty:1, done:false});
+  }, `dashboard: ${room} に「${name}」の補充を追加`);
+}
+function toggleSupply(ref){ supOp('', d=>{ const f=supFind(d,ref); if(!f) return false; f.it.done=!f.it.done; }, `dashboard: ${ref.room} の「${ref.name}」を${ref.done?'未補充に戻す':'補充済みにする'}`); }
+function delSupply(ref){ supOp('消しました', d=>{ const f=supFind(d,ref); if(!f) return false; f.r.items.splice(f.i,1); }, `dashboard: ${ref.room} の「${ref.name}」を消す`); }
+function roomSupplyDone(room){ supOp('このルームの補充を済みにしました', d=>{ const r=supRoom(d,room); if(!r || !supOpen(r).length) return false; r.items.forEach(x=>x.done=true); }, `dashboard: ${room} の補充をすべて済みにする`); }
+function clearDoneSupplies(){ supOp('済みを消しました', d=>{ let hit=false; d.rooms.forEach(r=>{ const n=r.items.length; r.items=r.items.filter(x=>!x.done); if(r.items.length!==n) hit=true; }); if(!hit) return false; }, 'dashboard: 補充済みを消す'); }
+function toggleSupPin(name){ supOp('', d=>{ const it=d.items.find(x=>x.name===name); if(!it) return false; it.pin=!it.pin; }, `dashboard: 点検項目「${name}」のピンを切り替え`); }
+function saveSupItems(items){ supOp('点検項目を保存しました', d=>{ d.items=items; }, 'dashboard: 備品の点検項目を更新'); }
+
+// 絞り込み：all＝すべて／open＝要対応だけ（補充済みは隠す）／urgent＝至急だけ
+const supF = () => ['all','open','urgent'].includes(safeGet(LS.supF)) ? safeGet(LS.supF) : 'all';
+const supShow = x => { const f=supF(); return f==='all' ? true : f==='open' ? !x.done : (!x.done && x.level==='urgent'); };
+// 送る用の文面（いまは貼り付けて使う。Telegram などに自動で送るかは別に決める）。至急だけに絞っているときは至急だけ
+function supText(){
+  const lines=[];
+  for(const n of supRoomNames()){ const r=supRoom(S.supplies,n); if(!r) continue; const o=supOpen(r); if(!o.length) continue;
+    const u=o.filter(x=>x.level==='urgent').map(x=>x.name), nd=supF()==='urgent' ? [] : o.filter(x=>x.level!=='urgent').map(x=>x.name);
+    if(!u.length && !nd.length) continue;
+    lines.push(`■ ${n}${roomArea(n)?`（${roomArea(n)}）`:''}`); if(u.length) lines.push(`　至急：${u.join('、')}`); if(nd.length) lines.push(`　補充：${nd.join('、')}`); }
+  return lines.length ? `【備品の補充${supF()==='urgent'?'（至急）':''}】${mdw(todayStr())}\n${lines.join('\n')}` : '';
+}
+function supTotals(){
+  const m=new Map();
+  for(const r of S.supplies.rooms) for(const x of supOpen(r).filter(supShow)){ const e=m.get(x.name)||{urgent:[], need:[]}; e[x.level==='urgent'?'urgent':'need'].push(r.room); m.set(x.name,e); }
+  return [...m.entries()].sort((a,b)=>(b[1].urgent.length-a[1].urgent.length)||((b[1].urgent.length+b[1].need.length)-(a[1].urgent.length+a[1].need.length))||a[0].localeCompare(b[0],'ja'));
+}
+function viewSupplies(){
+  const d=S.supplies, open=supOpenCount(), doneN=d.rooms.reduce((a,r)=>a+r.items.filter(x=>x.done).length,0);
+  const names=supRoomNames();
+  // 点検：エリアごとにルームを並べ、押すと点検の画面を開く
+  const areas=[...new Set(names.map(n=>roomArea(n)||'その他'))];
+  const f=supF(), roomShow=n=>{ if(f==='all') return true; const r=supRoom(d,n); return !!r && supOpen(r).some(supShow); };
+  const insp=`<div class="supinsp">${areas.filter(a=>names.some(n=>(roomArea(n)||'その他')===a && roomShow(n))).map(a=>`<div class="supa"><div class="grouphd">${esc(a)}</div><div class="supchips">${names.filter(n=>(roomArea(n)||'その他')===a && roomShow(n)).map(n=>{ const r=supRoom(d,n), c=r?supOpen(r):[], u=c.filter(x=>x.level==='urgent').length;
+      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`:'—'}</span><small>${r&&r.checked?`点検 ${esc(mdw(r.checked))}`:'未点検'}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
+  const qq=(S.supQ||'').trim().toLowerCase(), hit=t=>!qq || String(t).toLowerCase().includes(qq);
+  const urgentN=d.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0);
+  const search=`<form class="supsearch" onsubmit="return false"><input class="inp" data-supq placeholder="さがす（品目・ルーム）" value="${esc(S.supQ||'')}" autocomplete="off">
+    <div class="seg supfilter">${[['all','すべて',''],['open','要対応だけ',open],['urgent','至急だけ',urgentN]].map(([k,l,n])=>`<button type="button" class="${f===k?'on':''}" data-act="sup-filter" data-k="${k}">${l}${n!==''?` ${n}`:''}</button>`).join('')}</div></form>`;
+  const tools=`<div class="suptools">
+    <button type="button" class="btn sm" data-act="sup-copy" ${open?'':'disabled'}>${icon('copy')} 文面をコピー</button>
+    ${doneN?`<button type="button" class="btn sm" data-act="sup-clear">補充済みを消す（${doneN}）</button>`:''}
+    <button type="button" class="btn sm" data-act="sup-items">点検項目を編集</button>
+    <span class="sp"></span><span class="hint">補充が要るもの ${open}件</span></div>`;
+  const tot=supTotals().filter(([n,e])=>hit(n) || [...e.urgent,...e.need].some(hit));
+  const totals = tot.length ? `<details class="suptot" ${S.supTotOpen?'open':''} data-act="sup-tot"><summary>買い出し用のまとめ（${tot.length}品目）</summary>
+    <div class="plain">${tot.map(([n,e])=>`<div class="prow"><div class="t"><b>${esc(n)}</b> <span class="hint">${[...e.urgent.map(x=>x+'（至急）'), ...e.need].map(esc).join('・')}</span></div><div class="d">${e.urgent.length+e.need.length}室</div></div>`).join('')}</div></details>` : '';
+  const rows = names.map(n=>{ const r=supRoom(d,n); if(!r || !r.items.length) return '';
+    const items = (hit(n) ? r.items : r.items.filter(x=>hit(x.name))).filter(supShow); if(!items.length) return '';
+    const sorted=items.slice().sort((a,b)=>(a.done-b.done)||((a.level==='urgent'?0:1)-(b.level==='urgent'?0:1)));
+    const left=supOpen(r).length;
+    return `<section class="suproom">
+      <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span><span class="sp"></span>
+        ${left?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">全部補充した</button>`:''}</div>
+      <div class="nlist">${sorted.map(x=>{ const ref=esc(JSON.stringify({room:n, name:x.name, done:!!x.done})), lv=SUP_LV[x.level];
+        return `<div class="nrow ${x.done?'done':''}">
+          <button class="nchk ${x.done?'on':''}" data-act="sup-toggle" data-ref='${ref}' title="${x.done?'未補充に戻す':'補充した'}">${icon('check')}</button>
+          <div class="nt"><span class="suplv ${lv.cls}">${lv.tag}</span> ${esc(x.name)}${x.qty>1?` <b class="supq">×${x.qty}</b>`:''}</div>
+          <button class="iconbtn sm" data-act="sup-del" data-ref='${ref}' title="消す">${icon('x')}</button></div>`; }).join('')}</div>
+    </section>`; }).join('');
+  const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
+  return `${search}<div class="grouphd" style="padding-left:0">ルームを押して点検する</div>${inspBlock}${tools}${totals}<div class="notes">${rows||`<div class="plain"><div class="empty">${qq?'見つかりません':f==='urgent'?'至急のものはありません':'補充が要るものはありません'}</div></div>`}</div>
+    <div class="hint" style="margin-top:10px">ルームを押すと、点検項目ごとに「至急・補充必要・足りている」を選べます。「至急」「補充必要」にしたものがここに並びます。補充したらチェックを入れてください。「文面をコピー」で、まだの分をルームごとの文にしてコピーできます（LINE や Telegram に貼り付けて使えます）。</div>`;
+}
+function supInspectModal(m){
+  const d=S.supplies, r=supRoom(d, m.room);
+  const extra=r ? supOpen(r).filter(x=>!d.items.some(i=>i.name===x.name)) : [];
+  const row=(name, crit)=>{ const v=m.picks[name]||'ok';
+    const q=(m.q||'').trim().toLowerCase();
+    return `<div class="insrow" data-name="${esc(name)}" ${q && !name.toLowerCase().includes(q)?'style="display:none"':''}><div class="insname">${crit?`<button type="button" class="pinbtn ${crit.pin?'on':''}" data-act="sup-pin" data-name="${esc(name)}" title="${crit.pin?'ピンを外す':'よく使う品目としてピン留め'}">${crit.pin?'★':'☆'}</button>`:''}${esc(name)}</div>
+      <div class="seg insseg">${[['urgent','至急',crit&&crit.urgent],['need','補充必要',crit&&crit.need],['ok','足りている',crit&&crit.ok]].map(([k,l,c])=>`<button type="button" class="${v===k?'on '+k:''}" data-act="ins-set" data-name="${esc(name)}" data-v="${k}">${l}${c?`<small>${esc(c)}</small>`:''}</button>`).join('')}</div></div>`; };
+  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-inspect">
+    <h2>${esc(m.room)} の備品を点検</h2>
+    <div class="hint" style="margin-bottom:10px">${roomArea(m.room)?esc(roomArea(m.room))+' ・ ':''}${r&&r.checked?`前回の点検 ${esc(mdw(r.checked))}`:'はじめての点検'}。いまの状態を選んで「保存」を押してください。</div>
+    <input class="inp" data-insq placeholder="品目をさがす（☆を押すとピン留めして上に並びます）" value="${esc(m.q||'')}" autocomplete="off" style="margin-bottom:10px">
+    <div class="inslist">${[...d.items.filter(i=>i.pin), ...d.items.filter(i=>!i.pin)].map(i=>row(i.name, i)).join('')}${extra.map(x=>row(x.name, null)).join('')}</div>
+    <div class="field" style="margin-top:12px"><label>ほかに補充が要るもの（任意）</label><div class="row" style="display:flex;gap:6px"><input class="inp" name="other" placeholder="例：ハンガー" style="flex:1"><select class="inp" name="otherlv" style="flex:0 0 120px"><option value="need">補充必要</option><option value="urgent">至急</option></select></div></div>
+    <div class="actions"><button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">保存</button></div>
+  </form></div>`;
+}
+function supItemsModal(m){
+  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-supitems">
+    <h2>点検項目を編集</h2>
+    <div class="hint" style="margin-bottom:10px">1行に1品目。「品目｜至急の目安｜補充必要の目安｜補充の必要無の目安｜★」の形で書きます（目安は空でもかまいません。最後に ★ を付けるとピン留め）。</div>
+    <textarea class="inp" name="items" rows="16" spellcheck="false">${esc(m.text)}</textarea>
+    <div class="actions"><button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">保存</button></div>
+  </form></div>`;
+}
+
 function render(){
   const app=document.getElementById('app');
   if(!S.be){ app.innerHTML=viewSetup(); return; }
   const st=stats(); const t=todayStr();
   const doneCnt=(S.done[monthOf(t)]||[]).length;
   const tabs=[['board','カテゴリ別',st.total],['timeline','期限順',st.total],['someday','いつかやる',S.someday.length],['runs','実行',S.runs.filter(r=>RUN_ST[r.status]?.attn).length],['done','完了',doneCnt]];
+  if(S.notes) tabs.splice(1,0,['notes','引き継ぎ',notesOpenCount()]);
+  if(S.rooms) tabs.splice(S.notes?2:1,0,['rooms','清掃',roomsDueCount()]);
+  if(S.supplies) tabs.splice(1+(S.notes?1:0)+(S.rooms?1:0),0,['supplies','補充',supOpenCount()]);
+  if(pwOn()) tabs.splice(1+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
+  if(S.tab==='supplies'&&!S.supplies) S.tab='board';
+  if(S.tab==='pw'&&!pwOn()) S.tab='board';
+  if((S.tab==='notes'&&!S.notes)||(S.tab==='rooms'&&!S.rooms)) S.tab='board';
   const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
   const showStats = S.tab==='board'||S.tab==='timeline';
   // 入力中の内容とフォーカスを保つ
@@ -1065,13 +1666,34 @@ function render(){
       <div class="tabs">${tabs.map(([k,l,n])=>`<button class="tab ${S.tab===k?'on':''}" data-act="tab" data-k="${k}">${l}<span class="cnt">${n}</span></button>`).join('')}</div>
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
-    ${S.tab==='board'?viewBoard():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
-  <button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>
+  ${S.tab==='notes'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
-  if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${keep.cat}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
+  if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
   renderToast();
+  if(S.modal && S.modal.snap0===undefined){ if(S.modal.draft) syncDraftSafe(); S.modal.snap0 = modalSnap(); }
 }
+// ===== 入力の画面を閉じる前の確認 =====
+// 開いたときから何か変えていたら、閉じる前に「保存しますか？」と聞く（画面の外を押した・Esc・キャンセル）
+function modalForm(){ const f=document.querySelector('.ov form.modal'); return f && /^save-|^run-start$/.test(f.dataset.act||'') ? f : null; }
+function modalSnap(){
+  const f=modalForm(); if(!f) return '';
+  const vals=[...f.querySelectorAll('input,textarea,select')].filter(i=>!i.matches('[data-insq],[data-pwq]')).map(i=>i.type==='checkbox'?i.checked:i.value);
+  return JSON.stringify([vals, S.modal.picks||null, S.modal.draft||null]);
+}
+function modalDirty(){ if(!S.modal || !modalForm()) return false; if(S.modal.draft) syncDraftSafe(); return S.modal.snap0!==undefined && modalSnap()!==S.modal.snap0; }
+function syncDraftSafe(){ try{ if(document.querySelector('form[data-act="save-task"]')) syncDraft(); }catch{} }
+function tryCloseModal(){
+  if(!S.modal) return;
+  if(!modalDirty()){ S.modal=null; render(); return; }
+  if(document.getElementById('guard')) return;
+  const g=document.createElement('div'); g.id='guard'; g.className='guard';
+  g.innerHTML=`<div class="gbox" role="alertdialog" aria-label="入力した内容を保存しますか？"><div class="gtitle">入力した内容を保存しますか？</div><div class="hint">このまま閉じると、いま入力した内容は消えます。</div>
+    <div class="gbtns"><button class="btn pri" data-act="guard-save">保存する</button><button class="btn danger" data-act="guard-discard">保存しないで閉じる</button><button class="btn" data-act="guard-back">入力に戻る</button></div></div>`;
+  document.body.appendChild(g); g.querySelector('[data-act="guard-back"]').focus();
+}
+const closeGuard = () => document.getElementById('guard')?.remove();
 
 // ===== モーダル =====
 function viewModal(){
@@ -1091,7 +1713,12 @@ function viewModal(){
     <textarea class="inp" rows="12" readonly>${esc(m.text)}</textarea>
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><a class="btn pri" href="${esc(m.link)}">親スレッドを開く</a></div>
   </div></div>`;
-  if(m.type==='settings') return `<div class="ov" data-act="close-ov"><div class="modal">${catManager()}${settingsForm(true)}</div></div>`;
+  if(m.type==='settings') return `<div class="ov" data-act="close-ov"><div class="modal">${catManager()}${extraTabsField()}${pwField()}${settingsForm(true)}</div></div>`;
+  if(m.type==='note') return noteModal(m);
+  if(m.type==='pw') return pwModal(m);
+  if(m.type==='inspect') return supInspectModal(m);
+  if(m.type==='supitems') return supItemsModal(m);
+  if(m.type==='room' || m.type==='room-clean') return roomModal(m);
   const isEdit=m.type==='edit', d=m.draft;
   const quickDates=[['今日',todayStr()],['明日',addDays(todayStr(),1)],['金曜',nextWeekday(5)],['来週月曜',nextWeekday(1,1)],['なし','']];
   return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-task">
@@ -1177,7 +1804,10 @@ document.addEventListener('click', async e=>{
   if(e.target.closest('a[href]')) return; // リンク（スレッドを開く）はそのまま開く
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act;
-  if(a==='close-ov'){ if(e.target===el){ S.modal=null; render(); } return; }
+  if(a==='close-ov'){ if(e.target===el) tryCloseModal(); return; }
+  if(a==='guard-back'){ closeGuard(); return; }
+  if(a==='guard-discard'){ closeGuard(); S.modal=null; render(); return; }
+  if(a==='guard-save'){ closeGuard(); const f=modalForm(); if(f){ if(f.reportValidity()) f.requestSubmit(); } return; }
   if(el.tagName==='FORM' || el.tagName==='SELECT') return;
   const ref = el.dataset.ref ? JSON.parse(el.dataset.ref) : null;
   switch(a){
@@ -1187,7 +1817,7 @@ document.addEventListener('click', async e=>{
     case 'settings': S.modal={type:'settings'}; render(); break;
     case 'logout': safeSet(LS.token,null); S.be=null; S.modal=null; render(); break;
     case 'add': S.modal={type:'add', draft:{text:'', notes:'', cat:INBOX, due:'', prio:false, subs:[]}}; render(); break;
-    case 'close': S.modal=null; render(); break;
+    case 'close': tryCloseModal(); break;
     case 'done': { const row=el.closest('.task'); row&&(row.style.opacity='.35'); completeTask(ref); break; }
     case 'edit': openEdit(ref); break;
     case 'toggle': { const k=el.dataset.key; setOpen(k, !isOpen(k)); render(); break; }
@@ -1205,15 +1835,67 @@ document.addEventListener('click', async e=>{
     case 'run-close': if(confirm('この実行を終えますか？（タスクは残ります。デスクトップアプリのスレッドは、必要ならアプリ側でアーカイブしてください）')) setRun(el.dataset.id,{status:'closed'},'スレッドを終えました','dashboard: スレッドを終える'); break;
     case 'run-complete': { const r=S.runs.find(x=>x.id===el.dataset.id); if(!confirm(`「${r.task}」を完了にして、スレッドを終えますか？`)) break; setRun(r.id,{status:'closed'},'スレッドを終えました','dashboard: スレッドを終える'); if(findTask(S.sections,runRef(r))) completeTask(runRef(r)); break; }
     case 'some-del': if(confirm(`「${el.dataset.text}」を削除しますか？`)) removeSomeday(el.dataset.text); break;
+    // 備品の補充
+    case 'enable-supplies': enableFile('supplies.md', SUP_INIT, 'supplies', parseSupplies, '補充のタブを作りました'); break;
+    case 'sup-toggle': toggleSupply(ref); break;
+    case 'sup-del': if(confirm(`「${ref.name}」を補充リストから消しますか？`)) delSupply(ref); break;
+    case 'sup-room-done': roomSupplyDone(el.dataset.room); break;
+    case 'sup-clear': if(confirm('補充済み（チェック済み）のものを消しますか？')) clearDoneSupplies(); break;
+    case 'sup-inspect': { const n=el.dataset.room, r=supRoom(S.supplies,n), picks={}; S.supplies.items.forEach(i=>picks[i.name]='ok'); if(r) supOpen(r).forEach(x=>picks[x.name]=x.level); S.modal={type:'inspect', room:n, picks}; render(); break; }
+    case 'ins-set': { S.modal.picks[el.dataset.name]=el.dataset.v; const row=el.closest('.insseg'); row.querySelectorAll('button').forEach(b=>b.className=b===el?'on '+el.dataset.v:''); break; }
+    case 'sup-items': S.modal={type:'supitems', text:S.supplies.items.map(i=>[i.name,i.urgent,i.need,i.ok,i.pin?'★':''].join('｜').replace(/｜$/,'')).join('\n')}; render(); break;
+    case 'sup-pin': { const n=el.dataset.name, it=S.supplies.items.find(x=>x.name===n); if(!it) break; toggleSupPin(n); break; }
+    case 'sup-filter': safeSet(LS.supF, el.dataset.k); render(); break;
+    case 'sup-go': { e.stopPropagation(); S.tab='supplies'; safeSet(LS.tab,'supplies'); render(); break; }
+    case 'sup-copy': { const t=supText(); if(t) pwCopy(t, '補充リストの文面'); break; }
+    // パスワード表
+    case 'pw-reload': pwLoad(); break;
+    case 'pw-add': S.modal={type:'pw', id:null, draft:{}}; render(); break;
+    case 'pw-edit': { const r=(PWD.rows||[]).find(x=>x.ID===el.dataset.id); if(!r) break; S.modal={type:'pw', id:r.ID, draft:{...r}}; render(); break; }
+    case 'pw-show': pwReveal(el.dataset.id); break;
+    case 'pw-copy': { const r=(PWD.rows||[]).find(x=>x.ID===el.dataset.id); if(r) pwCopy(r[el.dataset.f]||'', el.dataset.f==='パスワード'?'パスワード':'ID'); break; }
+    case 'pw-peek': { const i=el.closest('form').querySelector('input[name="パスワード"]'); i.type=i.type==='password'?'text':'password'; el.textContent=i.type==='password'?'表示':'隠す'; break; }
+    case 'pw-del': { const m=S.modal; if(!confirm(`「${m.draft['サービス']||''}」をスプレッドシートから削除しますか？（元に戻せません）`)) return; S.modal=null; render(); pwDelete(m.id); break; }
+    case 'pw-forget': if(confirm('この端末から、パスワード表の接続先と鍵を消しますか？')){ safeSet(LS.pwUrl,null); safeSet(LS.pwKey,null); PWD.rows=null; PWD.error=''; S.modal=null; render(); } break;
+    // 引き継ぎ・メモ
+    case 'note-toggle': toggleNote(ref); break;
+    case 'note-edit': { const f=findNote(S.notes, ref); if(!f) break; S.modal={type:'note', ref, draft:{text:f.it.text, kind:f.it.check===null?'plain':'check', cat:ref.cat}}; render(); break; }
+    case 'nset': { const fm=document.querySelector('form[data-act="save-note"]'); if(fm) S.modal.draft.text=fm.text.value; S.modal.draft[el.dataset.f]=el.dataset.v; render(); break; }
+    case 'note-del': { const r=S.modal.ref; if(!confirm('このメモを削除しますか？')) return; S.modal=null; deleteNote(r); break; }
+    case 'note-copy': { const c=findCat(S.notes, el.dataset.cat); const t=c&&noteCatText(c); if(t) pwCopy(t, `「${c.name}」`); break; }
+    case 'note-clear': { const c=el.dataset.cat; if(!confirm(`「${c}」の対応済み（チェック済み）のメモを消しますか？`)) return; clearChecked(c); break; }
+    case 'ncat-up': moveNoteCat(el.dataset.cat); break;
+    case 'ncat-rename': { const from=el.dataset.cat; const to=(prompt('区分の新しい名前', from)||'').trim(); if(!to||to===from) break; const err=badNoteCat(to, from); if(err) return toast(err,true); renameNoteCat(from,to); break; }
+    case 'ncat-del': { const c=el.dataset.cat; const cnt=(findCat(S.notes,c)?.items.length)||0; if(!confirm(`区分「${c}」を削除しますか？`+(cnt?`\n中のメモ${cnt}件も消えます。`:''))) return; deleteNoteCat(c); break; }
+    case 'enable-notes': enableFile('notes.md', NOTES_INIT, 'notes', parseNotes, '引き継ぎのタブを作りました'); break;
+    // ルームの清掃
+    case 'room-edit': { const r=findRoom(S.rooms, el.dataset.name); if(!r) break; S.modal={type:'room', orig:r.name, draft:{...r, every:r.every||''}}; render(); break; }
+    case 'room-clean': { const r=findRoom(S.rooms, el.dataset.name); if(!r) break; if(r.every){ cleanedRoom(r.name); break; } S.modal={type:'room-clean', name:r.name, draft:{next:addDays(todayStr(),7), keep:true}}; render(); break; }
+    case 'rset': { syncRoomDraft(); S.modal.draft[el.dataset.f]=el.dataset.v; render(); break; }
+    case 'room-del': { const n=S.modal.orig; if(!confirm(`ルーム「${n}」を削除しますか？`)) return; S.modal=null; deleteRoom(n); break; }
+    case 'enable-rooms': enableFile('rooms.md', ROOMS_INIT, 'rooms', parseRooms, '清掃のタブを作りました'); break;
   }
 });
+// 検索欄：日本語の変換中は絞り込まない（変換が切れるため）。変換が終わったときと、英数字の入力のたびに絞り込む
+const pwSearch = el => { PWD.q=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-pwq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
+document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); });
+const supSearch = el => { S.supQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-supq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
+// 点検の画面の検索は、選んだ状態を保つため、画面を作り直さずに行を出し入れする
+const insSearch = el => { if(S.modal) S.modal.q=el.value; const q=el.value.trim().toLowerCase(); document.querySelectorAll('.insrow').forEach(r=>{ r.style.display = !q || r.dataset.name.toLowerCase().includes(q) ? '' : 'none'; }); };
+document.addEventListener('input', e=>{
+  if(e.target.matches('[data-pwq]') && !e.isComposing) pwSearch(e.target);
+  if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
+  if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
+});
+document.addEventListener('toggle', e=>{ if(e.target.matches && e.target.matches('details[data-act="sup-tot"]')) S.supTotOpen=e.target.open; }, true);
 document.addEventListener('change', e=>{
   const el=e.target;
   if(el.dataset.catname!==undefined){ const from=el.dataset.catname, to=el.value.trim(); if(to===from) return; const err=badCatName(to); if(err){ el.value=from; return toast(err,true); } renameCategory(from,to); return; }
   if(el.dataset.act==='some-promote' && el.value) removeSomeday(el.dataset.text, el.value);
 });
 document.addEventListener('keydown', e=>{
-  if(e.key==='Escape' && S.modal){ S.modal=null; render(); }
+  if(e.key==='Escape' && document.getElementById('guard')){ closeGuard(); return; }
+  if(e.key==='Escape' && S.modal){ tryCloseModal(); }
   if(e.key==='Enter' && e.target.matches('[data-newsub]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="sub-add"]').click(); }
 });
 document.addEventListener('submit', async e=>{
@@ -1223,6 +1905,27 @@ document.addEventListener('submit', async e=>{
   if(a==='run-resume'){ handover(f.dataset.id, f.note.value.trim()); return; }
   if(a==='cat-add'){ const v=f.q.value.trim(); if(!v) return; const err=badCatName(v); if(err) return toast(err,true); f.q.value=''; addCategory(v); return; }
   if(a==='someday-add'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; addSomeday(v); }
+  if(a==='save-inspect'){ const m=S.modal; const picks={...m.picks}; const o=f.other.value.trim(); if(o) picks[o]=f.otherlv.value; S.modal=null; render(); saveInspection(m.room, picks); return; }
+  if(a==='save-supitems'){ const items=f.items.value.split('\n').map(l=>l.split(/[｜|]/).map(x=>x.trim())).filter(c=>c[0]).map(c=>({name:c[0], urgent:c[1]||'', need:c[2]||'', ok:c[3]||'', pin:/★|☆|1|ピン|○|〇/.test(c[4]||'')})); S.modal=null; render(); saveSupItems(items); return; }
+  if(a==='save-pw'){ const m=S.modal; const row={}; for(const k of PW_FIELDS) row[k]=(f.elements[k]?.value||'').trim(); if(!row['サービス']) return toast('サービス名を入れてください',true); S.modal=null; render(); pwSave(m.id, row); return; }
+  if(a==='save-pwconf'){ const url=f.url.value.trim(), key=f.key.value.trim()||safeGet(LS.pwKey);
+    if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
+    if(url && !key) return toast('鍵を入れてください',true);
+    safeSet(LS.pwUrl,url||null); safeSet(LS.pwKey,url?key:null); PWD.rows=null; PWD.error=''; S.modal=null; if(url){ S.tab='pw'; safeSet(LS.tab,'pw'); } render(); toast(url?'パスワード表につなぎました':'パスワード表の設定を消しました'); return; }
+  if(a==='note-add'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; const c=findCat(S.notes, f.dataset.cat); addNote(f.dataset.cat, v, !(c&&catPlain(c))); return; }
+  if(a==='ncat-add'){ const v=f.q.value.trim(); if(!v) return; const err=badNoteCat(v); if(err) return toast(err,true); f.q.value=''; addNoteCat(v); return; }
+  if(a==='save-note'){ const m=S.modal, text=f.text.value.trim(); if(!text) return; S.modal=null; updateNote(m.ref, {text, kind:m.draft.kind, cat:m.draft.cat}); return; }
+  if(a==='room-add'){ const v=f.q.value.trim(); if(!v) return; const [name,...rest]=v.split(/\s+/); if(findRoom(S.rooms,name)) return toast('同じ名前のルームがあります',true); f.q.value=''; saveRoom(null, {name, area:'', bldg:rest.join(' '), next:'', last:'', every:null, memo:''}); return; }
+  if(a==='save-room'){
+    const m=S.modal; const v={name:f.name.value.trim(), area:f.area.value.trim(), bldg:f.bldg.value.trim(), next:f.next.value, last:f.last.value, every:parseInt(f.every.value,10)||null, memo:f.memo.value.trim()};
+    if(!v.name) return; if(v.name!==m.orig && findRoom(S.rooms, v.name)) return toast('同じ名前のルームがあります',true);
+    S.modal=null; saveRoom(m.orig, v); return;
+  }
+  if(a==='save-room-clean'){
+    const m=S.modal, next=f.next.value; const t=todayStr();
+    const every = f.keep.checked && next>t ? Math.round((new Date(next)-new Date(t))/864e5) : undefined;
+    S.modal=null; cleanedRoom(m.name, next, every); return;
+  }
   if(a==='import'){ const iss=S.issues.find(i=>i.number===+f.dataset.num); importIssue(iss, f.dest.value, f.due.value); }
   if(a==='save-task'){
     syncDraft(); const m=S.modal, d=m.draft; const text=d.text.replace(/📅|🔺/g,'').trim(); if(!text) return;
