@@ -138,6 +138,20 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .rvrow .inp{min-width:0;padding-left:8px;padding-right:8px}
 .rvhrow{margin:6px 0 0 30px}
 .rverr{color:var(--red);background:var(--red-soft);border-radius:8px;padding:8px 10px;margin-top:12px;font-size:13px}
+.boksub{font-size:13px;color:var(--sub);margin:0 0 10px}
+.boklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.bokfn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);color:inherit}
+.bokfn .ic{width:34px;height:34px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}
+.bokfn .ic svg{width:18px;height:18px}
+.bokfn .tx{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.bokfn .t1{font-weight:600;font-size:15px}
+.bokfn .t2{font-size:12px;color:var(--sub)}
+.bokfn>svg{width:16px;height:16px;color:var(--faint);flex:none}
+.bokfn.off{opacity:.55;border-style:dashed;box-shadow:none}
+.bokfn .tag{font-size:11px;font-weight:400;padding:1px 7px;border-radius:999px;background:var(--panel2);color:var(--sub);margin-left:6px}
+.bokback{display:flex;align-items:center;gap:8px;margin:0 0 12px}
+.bokback .ttl{font-weight:700;font-size:15px}
+.bokback .iconbtn svg{width:16px;height:16px}
 .chip.cat{background:transparent;border:1px solid var(--line)}
 .chip.cat i{width:8px;height:8px;border-radius:50%;background:var(--cc);display:inline-block}
 .task.done .ttext{text-decoration:line-through;color:var(--faint)}
@@ -440,6 +454,7 @@ const ICON = {
   edit:'<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
   play:'<polygon points="6 4 20 12 6 20 6 4"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+  back:'<polyline points="15 18 9 12 15 6"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -588,6 +603,7 @@ const S = {
   be:null, sections:[], someday:[], done:{}, issues:[], runs:[], progress:{}, notes:null, rooms:null, supplies:null, supRoom:'', supTotOpen:false, loading:false,
   members:[],  // 担当者の一覧（members.md）
   tab: safeGet(LS.tab) || 'board', filter:null, who: safeGet(LS.who) || null, modal:null, toast:null, loadedAt:0,
+  bok:null,  // BOK のタブで開いている機能（null＝機能の一覧）
 };
 function safeGet(k){ try{ return localStorage.getItem(k); }catch{ return null; } }
 function safeSet(k,v){ try{ v===null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch{} }
@@ -1669,6 +1685,31 @@ async function rvSave(){
     if(S.modal===m) render(); else toast(e.message,true);
   }
 }
+// ===== BOK のタブ（BOK の管理画面の機能の入口） =====
+// 並びは BOK の管理画面と同じ。「セラピスト管理」は出さない（名簿の正本は外部のセラピストDBのため）。
+// on のものだけ使える。ほかは BOK 側に窓口ができたら、1つずつ使えるようにする（それまでは「準備中」の枠）。
+const BOK_FEATURES = [
+  {k:'news', name:'お知らせ管理'},
+  {k:'personalNews', name:'個人へのお知らせ'},
+  {k:'rv', name:'ルーム空室情報の編集', desc:'北千住・柏などの曜日ごとの空き時間帯', on:true},
+  {k:'survey', name:'アンケート管理'},
+  {k:'surveyImport', name:'アンケート取り込み'},
+  {k:'himeLog', name:'姫予約ログ'},
+  {k:'roomBroadcast', name:'本日のルーム配信'},
+  {k:'maintenance', name:'メンテナンス管理'},
+  {k:'settings', name:'設定'},
+];
+function viewBok(){
+  const f=BOK_FEATURES.find(x=>x.k===S.bok && x.on);
+  if(f){
+    const back=`<div class="bokback"><button type="button" class="iconbtn sm" data-act="bok-back" title="BOK の機能の一覧へ">${icon('back')}</button><span class="ttl">BOK ／ ${esc(f.name)}</span></div>`;
+    if(f.k==='rv') return back+(rvOn()?viewRv():'<div class="plain"><div class="empty">この端末は、まだ BOK につながっていません。設定（右上の歯車）の「空室情報（BOK のささやき）」に、ささやきの URL と鍵を入れてください。</div></div>');
+  }
+  S.bok=null;
+  return `<div class="boksub">BOK（ささやき）</div><div class="boklist">${BOK_FEATURES.map(x=>x.on
+    ? `<button type="button" class="bokfn" data-act="bok-open" data-k="${x.k}"><span class="ic">${icon('cal')}</span><span class="tx"><span class="t1">${esc(x.name)}</span><span class="t2">${esc(x.desc||'')}</span></span>${icon('chev')}</button>`
+    : `<div class="bokfn off"><span class="tx"><span class="t1">${esc(x.name)}<span class="tag">準備中</span></span><span class="t2">BOK 側の窓口ができたら使えます</span></span></div>`).join('')}</div>`;
+}
 function rvField(){
   const c=rvConf();
   return `<form class="field" data-act="save-rvconf" autocomplete="off"><label>空室情報（BOK のささやき）</label>
@@ -1850,11 +1891,11 @@ function render(){
   if(S.notes) tabs.splice(1,0,['notes','引き継ぎ',notesOpenCount()]);
   if(S.supplies) tabs.splice(S.notes?2:1,0,['supplies','補充',supOpenCount()]);
   if(S.rooms) tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0),0,['rooms','清掃',roomsDueCount()]);
-  if(rvOn()) tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0)+(S.rooms?1:0),0,['rv','空室情報',RV.rows?RV.rows.length:'']);
-  if(pwOn()) tabs.splice(1+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0)+(rvOn()?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
+  tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0)+(S.rooms?1:0),0,['bok','BOK','']);  // BOK の機能の入口（すべての端末に出す）
+  if(pwOn()) tabs.splice(2+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
   if(S.tab==='supplies'&&!S.supplies) S.tab='board';
   if(S.tab==='pw'&&!pwOn()) S.tab='board';
-  if(S.tab==='rv'&&!rvOn()) S.tab='board';
+  if(S.tab==='rv'){ S.tab='bok'; S.bok='rv'; }  // 前の「空室情報」タブを覚えていた端末は、BOK の中の空室情報へ
   if((S.tab==='notes'&&!S.notes)||(S.tab==='rooms'&&!S.rooms)) S.tab='board';
   const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
   const showStats = S.tab==='board'||S.tab==='timeline';
@@ -1879,9 +1920,9 @@ function render(){
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
     ${S.tab==='board'||S.tab==='timeline'?whoBar():''}
-    ${S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='rv'?viewRv():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
-  ${S.tab==='notes'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='rv'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
+  ${S.tab==='notes'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
   renderToast();
@@ -2040,7 +2081,10 @@ document.addEventListener('click', async e=>{
   if(el.tagName==='FORM' || el.tagName==='SELECT') return;
   const ref = el.dataset.ref ? JSON.parse(el.dataset.ref) : null;
   switch(a){
-    case 'tab': S.tab=el.dataset.k; safeSet(LS.tab,S.tab); render(); break;
+    case 'tab': if(el.dataset.k==='bok' && S.tab==='bok') S.bok=null;  // BOK を開いているときにもう一度押すと、機能の一覧へ戻る
+      S.tab=el.dataset.k; safeSet(LS.tab,S.tab); render(); break;
+    case 'bok-open': S.bok=el.dataset.k; render(); break;
+    case 'bok-back': S.bok=null; render(); break;
     case 'who': { const k=el.dataset.k||null; setWho(S.who===k?null:k); if(S.tab!=='board'&&S.tab!=='timeline') S.tab='board'; render(); break; }
     case 'member-del': { const n=el.dataset.name; const cnt=allTasks().filter(r=>hasWho(r.t,n)).length;
       if(confirm(cnt?`「${n}」を担当者の一覧から外しますか？（担当になっているタスク ${cnt}件の印はそのまま残ります）`:`「${n}」を担当者の一覧から外しますか？`)) removeMember(n); break; }
@@ -2157,7 +2201,7 @@ document.addEventListener('submit', async e=>{
   if(a==='save-rvconf'){ const url=f.url.value.trim().replace(/[?#].*$/,''), key=f.key.value.trim()||safeGet(LS.rvKey);  // 管理画面の URL（?admin=1 など）を貼られても、窓口の …/exec だけを使う
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
-    safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='rv'; safeSet(LS.tab,'rv'); } render(); toast(url?'空室情報（BOK）につなぎました':'空室情報の設定を消しました'); return; }
+    safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='bok'; S.bok='rv'; safeSet(LS.tab,'bok'); } render(); toast(url?'空室情報（BOK）につなぎました':'空室情報の設定を消しました'); return; }
   if(a==='save-pwconf'){ const url=f.url.value.trim(), key=f.key.value.trim()||safeGet(LS.pwKey);
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
