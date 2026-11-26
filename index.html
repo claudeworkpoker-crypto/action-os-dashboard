@@ -639,6 +639,7 @@ async function loadAll(quiet){
     S.loadedAt=Date.now();
   }catch(e){ handleErr(e); }
   S.loading=false; render();
+  rvPrefetch();  // BOK につないだ端末では、空室情報も裏で読み始めておく
 }
 
 // ファイルを最新に読み直してから変更を当てて保存する（同時編集・競合に強くする）
@@ -1572,7 +1573,8 @@ function pwField(){
 // 接続先の URL と鍵は、この端末のブラウザにだけ保存する。中身はブラウザに残さない（開いている間だけ持つ）。
 const rvConf = () => ({url:safeGet(LS.rvUrl)||'', key:safeGet(LS.rvKey)||''});
 const rvOn = () => S.be && (S.be.kind==='demo' || !!rvConf().url);
-const RV = {rows:null, names:[], loading:false, error:'', at:''};
+const RV = {rows:null, names:[], loading:false, error:'', at:'', loadedAt:0, ms:0};
+const RV_STALE_MS = 10*60*1000;  // これより前に読んだものは、開いたときに読み直す
 const rvDay = d => String(d||'').replace(/曜日$/,'');
 const rvNone = s => { const t=String(s||'').trim(); return !t || t==='-' || t==='−' || t==='ー'; };  // BOK と同じ「空きなし」の決まり
 // 書いてよい形（半角の数字をハイフンでつなぐ。30分単位などの小数も可：10-17、24-6、10-14.5）。「10:00」「1/2」は BOK で化けて戻らないため使わせない
@@ -1620,16 +1622,25 @@ async function rvCall(action, payload={}){
   }
   return j;
 }
-async function rvLoad(){
-  RV.loading=true; RV.error=''; render();
-  try{ const j=await rvCall('room.list'); RV.rows=j.rooms||[]; RV.names=j.therapistNames||[]; RV.at=new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}); }
-  catch(e){ RV.error=e.message; }
-  RV.loading=false; render();
+// quiet：ダッシュボードを開いたときに裏で読んでおく用。画面は、BOK のタブを見ていて入力の画面が開いていないときだけ描き直す
+async function rvLoad(quiet){
+  if(RV.loading) return;
+  RV.loading=true; RV.error=''; if(!quiet) render();
+  const t0=performance.now();
+  try{ const j=await rvCall('room.list'); RV.rows=j.rooms||[]; RV.names=j.therapistNames||[]; RV.loadedAt=Date.now(); RV.at=new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}); }
+  catch(e){ if(!quiet || S.tab==='bok') RV.error=e.message; }  // 裏で読んで失敗したときは、開いたときに読み直す
+  RV.ms=performance.now()-t0;
+  RV.loading=false;
+  if(!quiet || (S.tab==='bok' && !S.modal)) render();
 }
+// ダッシュボードを開いたとき（BOK につないだ端末だけ）に、裏で空室情報を読み始めておく
+function rvPrefetch(){ if(rvConf().url && RV.rows===null && !RV.loading && !RV.error) rvLoad(true); }
+const rvSec = ms => `${(ms/1000).toFixed(1)}秒`;
 function viewRv(){
-  if(RV.rows===null && !RV.loading && !RV.error) setTimeout(rvLoad,0);
+  // まだ読んでいない・前に読んでから時間がたっているときは読み直す（古い内容は出したまま、上に「読み込んでいます」を出す）
+  if(!RV.loading && !RV.error && (RV.rows===null || Date.now()-RV.loadedAt>RV_STALE_MS)) setTimeout(()=>rvLoad(),0);
   const demo = S.be && S.be.kind==='demo' && !rvConf().url;
-  const head=`<div class="rvbar">${icon('refresh')}<span>${RV.loading?'BOK から読み込んでいます…（数秒かかります）':RV.at?`BOK（ささやき）から ${esc(RV.at)} に読み込み`:''}${demo?'（デモ）':''}</span><span class="sp"></span><button type="button" class="btn sm" data-act="rv-reload" ${RV.loading?'disabled':''}>読み直す</button></div>`;
+  const head=`<div class="rvbar">${icon('refresh')}<span>${RV.loading?'BOK から読み込んでいます…（数秒かかります）':RV.at?`BOK（ささやき）から ${esc(RV.at)} に読み込み（${rvSec(RV.ms)}）`:''}${demo?'（デモ）':''}</span><span class="sp"></span><button type="button" class="btn sm" data-act="rv-reload" ${RV.loading?'disabled':''}>読み直す</button></div>`;
   if(RV.error) return head+`<div class="plain"><div class="empty" style="color:var(--red)">${esc(RV.error)}</div></div>`;
   if(RV.rows===null) return head+'<div class="plain"><div class="empty">BOK から読み込んでいます…</div></div>';
   if(!RV.rows.length) return head+'<div class="plain"><div class="empty">ルームがありません（BOK の設定のルーム一覧を確かめてください）</div></div>';
@@ -1678,11 +1689,12 @@ async function rvSave(){
     if(unk.length && !confirm(`名簿にない名前があります：${unk.join('、')}\n書き間違いだと、見せたくない人に見えてしまいます。このまま保存しますか？`)) return;
   }
   m.draft=days.map(d=>({...d, slots:[...d.slots]})); m.saving=true; m.error=''; m.conflict=false; render();
+  const t0=performance.now();
   try{
     const j=await rvCall('room.update', {room:m.room, days, was:m.was});
     const i=(RV.rows||[]).findIndex(r=>r.room===m.room); if(i>=0 && j.room) RV.rows[i]=j.room;
     if(S.modal===m) S.modal=null;
-    render(); toast('BOK に保存しました（セラピストが次に開いたときから反映）');
+    render(); toast(`BOK に保存しました（${rvSec(performance.now()-t0)}。セラピストが次に開いたときから反映）`);
   }catch(e){
     m.saving=false; m.error=e.message; m.conflict=/先に変更/.test(e.message);
     if(S.modal===m) render(); else toast(e.message,true);
