@@ -1575,9 +1575,10 @@ const rvOn = () => S.be && (S.be.kind==='demo' || !!rvConf().url);
 const RV = {rows:null, names:[], loading:false, error:'', at:''};
 const rvDay = d => String(d||'').replace(/曜日$/,'');
 const rvNone = s => { const t=String(s||'').trim(); return !t || t==='-' || t==='−' || t==='ー'; };  // BOK と同じ「空きなし」の決まり
-const RV_OK = /^\d{1,2}-\d{1,2}$/;  // 書いてよい形（半角の数字をハイフンでつなぐ）。「10:00」「1/2」は BOK で化けて戻らないため使わせない
-// 入力を半角にそろえる（全角の数字、数字にはさまれた全角のハイフン・長音・波線を「-」に、空白は取る）
-const rvClean = s => String(s||'').replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[\s　]/g,'').replace(/(\d)[－−ー―‐〜～~](?=\d)/g,'$1-');
+// 書いてよい形（半角の数字をハイフンでつなぐ。30分単位などの小数も可：10-17、24-6、10-14.5）。「10:00」「1/2」は BOK で化けて戻らないため使わせない
+const RV_OK = /^\d{1,2}(\.\d{1,2})?-\d{1,2}(\.\d{1,2})?$/;
+// 入力を半角にそろえる（全角の数字・小数点、数字にはさまれた全角のハイフン・長音・波線を「-」に、空白は取る）
+const rvClean = s => String(s||'').replace(/[０-９]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/．/g,'.').replace(/[\s　]/g,'').replace(/(\d)[－−ー―‐〜～~](?=\d)/g,'$1-');
 // 「見せない人」の名前の照合（BOK と同じく、全角→半角・スペース無視）
 const rvNorm = s => String(s||'').replace(/[０-９Ａ-Ｚａ-ｚ]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[\s　]/g,'');
 let rvDemo = null;
@@ -1588,7 +1589,7 @@ async function rvCall(action, payload={}){
       const D=['月曜日','火曜日','水曜日','木曜日','金曜日','土曜日','日曜日'];
       const mk=a=>D.map((day,i)=>({day, slots:[...(a[i]||[]),'','',''].slice(0,3), hidden:''}));
       rvDemo={days:D, names:['山田まり','佐藤花子'], rooms:[
-        {room:'北千住', shared:false, days:mk([['10-17','20-24'],[],['24-6'],['10-17'],['10-17','20-24'],['12-24'],['-']])},
+        {room:'北千住', shared:false, days:mk([['10-17','20-24'],[],['24-6'],['10-17'],['10-14.5','20-24'],['12-24'],['-']])},
         {room:'柏', shared:true, days:mk([[],['20-24'],['20-24'],[],['18-24'],['10-24'],['10-18']])},
         {room:'見本（設定ずれ）', shared:true, problem:'共有先の設定にこのルームがありません', days:mk([])}]};
       rvDemo.rooms[0].days[1].hidden='山田まり';
@@ -1654,7 +1655,7 @@ function rvModal(m){
   const names=RV.names||[];
   return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-rv" autocomplete="off">
     <h2>${esc(m.room)} の空き時間帯</h2>
-    <div class="hint">半角の数字をハイフンでつないで書きます（例：10-17、24-6）。空欄か「-」は空きなし。「10:00」や「1/2」の形は使えません。${m.shared?'<br><b>共有ルームです。</b>ほかの店舗にも同じ内容が出ます。':''}</div>
+    <div class="hint">半角の数字をハイフンでつないで書きます（例：10-17、24-6、10-14.5）。空欄か「-」は空きなし。「10:00」や「1/2」の形は使えません。${m.shared?'<br><b>共有ルームです。</b>ほかの店舗にも同じ内容が出ます。':''}</div>
     ${m.draft.map((d,di)=>`<div class="rvrow"><span class="dl">${esc(rvDay(d.day))}</span>${[0,1,2].map(si=>`<input class="inp" data-rvs="${di}-${si}" value="${esc(d.slots[si]||'')}" placeholder="—" autocomplete="off" autocapitalize="off" spellcheck="false">`).join('')}</div>
       <div class="rvhrow"><input class="inp" data-rvh="${di}" value="${esc(d.hidden||'')}" placeholder="見せない人（空欄なら全員に見せる。複数は「、」で区切る）" autocomplete="off"${names.length?' list="rvnames"':''}></div>`).join('')}
     ${names.length?`<datalist id="rvnames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`:''}
@@ -1665,10 +1666,12 @@ function rvModal(m){
 }
 async function rvSave(){
   const m=S.modal; if(!m || m.type!=='rv' || m.saving) return;
-  // 書き方をそろえる（空きなしの印はそのまま、それ以外は半角に）
-  const days=m.draft.map(d=>({day:d.day, slots:d.slots.map(s=>rvNone(s)?String(s||'').trim():rvClean(s)), hidden:String(d.hidden||'').trim()}));
-  const bad=[]; days.forEach(d=>d.slots.forEach(v=>{ if(!rvNone(v) && !RV_OK.test(v)) bad.push(`${rvDay(d.day)}の「${v}」`); }));
-  if(bad.length){ m.error=`使えない書き方があります：${bad.join('、')}。半角の数字をハイフンでつないでください（例：10-17、24-6）。`; m.conflict=false; render(); return; }
+  // 今回さわっていないマス（BOK に前から入っている値）は、そのまま戻す（書き方も確かめない）。
+  // 書いたり書き換えたりしたマスだけ、書き方をそろえて（空きなしの印はそのまま、それ以外は半角に）確かめる
+  const old=(di,si)=>String(((m.was[di]||{}).slots||[])[si]??'');
+  const days=m.draft.map((d,di)=>({day:d.day, slots:d.slots.map((s,si)=>{ const v=String(s??''); if(v===old(di,si)) return v; return rvNone(v)?v.trim():rvClean(v); }), hidden:String(d.hidden||'').trim()}));
+  const bad=[]; days.forEach((d,di)=>d.slots.forEach((v,si)=>{ if(v!==old(di,si) && !rvNone(v) && !RV_OK.test(v)) bad.push(`${rvDay(d.day)}の「${v}」`); }));
+  if(bad.length){ m.error=`使えない書き方があります：${bad.join('、')}。半角の数字をハイフンでつないでください（例：10-17、24-6、10-14.5）。`; m.conflict=false; render(); return; }
   if(RV.names.length){  // 見せない人の名前を名簿と照らす（書き間違いだと、見せたくない人に見えてしまうため）
     const known=new Set(RV.names.map(rvNorm));
     const unk=[...new Set(days.flatMap(d=>d.hidden.split(/[,、]/).map(s=>s.trim()).filter(Boolean)).filter(n=>!known.has(rvNorm(n))))];
