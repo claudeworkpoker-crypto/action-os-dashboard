@@ -506,6 +506,11 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 @media (max-width:640px){ .room{align-items:flex-start} .room .btn{margin-top:2px} }
 
 /* ===== パスワード表 ===== */
+.keybox{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;gap:8px}
+.kbrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kblab{font-size:12px;color:var(--sub)}
+.kbval{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;word-break:break-all;flex:1;min-width:0;user-select:all}
+.kbbtns{justify-content:flex-end}
 .cpinfo{font-size:13px;color:var(--sub);margin:0 0 10px}
 .cplist{display:flex;flex-direction:column;gap:8px}
 .cpcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
@@ -1790,13 +1795,26 @@ function pwModal(m){
       <button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">${m.id?'保存':'追加'}</button></div>
   </form></div>`;
 }
+// ===== 設定画面：保存している鍵を見せる・写す（パスワード表・クーポン・BOK） =====
+// 鍵は伏せて出し、「表示」で見せる。「貼る文字をコピー」は URL と鍵を # でつないだ1行で、ほかの端末の設定画面の URL の欄に貼ればそのままつながる
+const KB_CONF = {pw:()=>pwConf(), cp:()=>cpConf(), rv:()=>rvConf()};
+function keyBox(k){
+  const c=KB_CONF[k](); if(!c.url || !c.key) return '';
+  return `<div class="keybox"><div class="kbrow"><span class="kblab">保存している鍵</span><code class="kbval" data-kb="${k}">${'•'.repeat(12)}</code></div>
+    <div class="kbrow kbbtns"><button type="button" class="btn sm" data-act="kb-peek" data-k="${k}">表示</button><button type="button" class="btn sm" data-act="kb-copy" data-k="${k}" data-what="key">鍵をコピー</button><button type="button" class="btn sm" data-act="kb-copy" data-k="${k}" data-what="line">貼る文字をコピー</button></div>
+    <div class="hint">「貼る文字」は URL と鍵を # でつないだ1行です。ほかの人の端末の、この欄の URL のところに貼って「保存」すれば、そのままつながります。鍵はパスワードと同じように、本人にだけ渡してください。</div></div>`;
+}
+// 「URL#鍵」の1行を、URL と鍵に分ける（鍵の欄に入れた値があれば、そちらを使う）
+function splitUrlKey(url, key){ const i=url.indexOf('#'); if(i>=0){ if(!key) key=url.slice(i+1).trim(); url=url.slice(0,i).trim(); } return {url, key}; }
+
 function pwField(){
   const c=pwConf();
   return `<form class="field" data-act="save-pwconf" autocomplete="off"><label>パスワード表（Google スプレッドシート）</label>
     <div class="subl">
-      <input class="inp" name="url" value="${esc(c.url)}" placeholder="Apps Script のウェブアプリの URL（…/exec）" autocapitalize="off" spellcheck="false">
+      <input class="inp" name="url" value="${esc(c.url)}" placeholder="Apps Script のウェブアプリの URL（…/exec）。「貼る文字」ならそのまま" autocapitalize="off" spellcheck="false">
       <input class="inp" name="key" type="password" placeholder="${c.key?'鍵は保存済み（変える時だけ入力）':'鍵（setup のログに出たもの）'}" autocomplete="off">
       <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${c.url?'<button type="button" class="btn sm danger" data-act="pw-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
+      ${keyBox('pw')}
     </div><div class="hint" style="margin-top:6px">設置のしかたは SETUP.md の「パスワード表」。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
 }
 
@@ -1898,6 +1916,7 @@ function cpField(){
       <input class="inp" name="url" value="${esc(c.url)}" placeholder="アンケートの窓口の URL（…/exec）。「設定画面に貼る文字」ならそのまま" autocapitalize="off" spellcheck="false">
       <input class="inp" name="key" type="password" placeholder="${c.key?'鍵は保存済み（変える時だけ入力）':'鍵（上に「設定画面に貼る文字」を貼ったときは空でよい）'}" autocomplete="off">
       <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${c.url?'<button type="button" class="btn sm danger" data-act="cp-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
+      ${keyBox('cp')}
     </div><div class="hint" style="margin-top:6px">鍵は、アンケートの Apps Script のエディタで resetActionOsKey を実行すると、ログに出ます。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
 }
 
@@ -2681,9 +2700,10 @@ function rvField(){
   const c=rvConf();
   return `<form class="field" data-act="save-rvconf" autocomplete="off"><label>BOK（ささやき）につなぐ</label>
     <div class="subl">
-      <input class="inp" name="url" value="${esc(c.url)}" placeholder="ささやきのウェブアプリの URL（…/exec）" autocapitalize="off" spellcheck="false">
+      <input class="inp" name="url" value="${esc(c.url)}" placeholder="ささやきのウェブアプリの URL（…/exec）。「貼る文字」ならそのまま" autocapitalize="off" spellcheck="false">
       <input class="inp" name="key" type="password" placeholder="${c.key?'鍵は保存済み（変える時だけ入力）':'鍵（BOK で resetActionOsKey を実行したときのログに出たもの）'}" autocomplete="off">
       <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${c.url?'<button type="button" class="btn sm danger" data-act="rv-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
+      ${keyBox('rv')}
     </div><div class="hint" style="margin-top:6px">URL と鍵を入れた端末で、「BOK」タブの機能（空室情報・姫予約ログ・お知らせ など）が使えます。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
 }
 
@@ -3123,6 +3143,8 @@ document.addEventListener('click', async e=>{
     case 'nav-toggle': if(navWide()){ S.navPin=!S.navPin; safeSet(LS.navPin, S.navPin?'1':'0'); document.body.classList.toggle('navpin', S.navPin); if(!S.navPin) navSet(false); } else navSet(!S.nav); break;
     case 'nav-close': navSet(false); break;
     case 'cp-use': cpMark(+el.dataset.row, true); break;
+    case 'kb-peek': { const v=document.querySelector(`[data-kb="${el.dataset.k}"]`); if(!v) break; const show=el.textContent==='表示'; v.textContent = show ? KB_CONF[el.dataset.k]().key : '•'.repeat(12); el.textContent = show ? '隠す' : '表示'; break; }
+    case 'kb-copy': { const c=KB_CONF[el.dataset.k](); if(!c.key) break; pwCopy(el.dataset.what==='line' ? `${c.url}#${c.key}` : c.key, el.dataset.what==='line' ? '貼る文字' : '鍵'); break; }
     case 'cp-unuse': cpMark(+el.dataset.row, false); break;
     case 'cp-clear': CP.q=''; cpSearch(''); break;
     case 'cp-forget': if(confirm('この端末から、クーポンの接続先と鍵を消しますか？')){ safeSet(LS.cpUrl,null); safeSet(LS.cpKey,null); CP.items=null; CP.error=''; S.modal=null; render(); } break;
@@ -3364,18 +3386,17 @@ document.addEventListener('submit', async e=>{
   if(a==='save-supitems'){ const items=f.items.value.split('\n').map(l=>l.split(/[｜|]/).map(x=>x.trim())).filter(c=>c[0]).map(c=>({name:c[0], urgent:c[1]||'', need:c[2]||'', ok:c[3]||'', pin:/★|☆|1|ピン|○|〇/.test(c[4]||'')})); S.modal=null; render(); saveSupItems(items); return; }
   if(a==='save-pw'){ const m=S.modal; const row={}; for(const k of PW_FIELDS) row[k]=(f.elements[k]?.value||'').trim(); if(!row['サービス']) return toast('サービス名を入れてください',true); S.modal=null; render(); pwSave(m.id, row); return; }
   if(a==='save-rv'){ rvSave(); return; }
-  if(a==='save-rvconf'){ const url=f.url.value.trim().replace(/[?#].*$/,''), key=f.key.value.trim()||safeGet(LS.rvKey);  // 管理画面の URL（?admin=1 など）を貼られても、窓口の …/exec だけを使う
+  if(a==='save-rvconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url.replace(/[?#].*$/,''), key=sp.key||safeGet(LS.rvKey);  // 管理画面の URL（?admin=1 など）を貼られても、窓口の …/exec だけを使う
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='bok'; S.bok=null; safeSet(LS.tab,'bok'); } render(); toast(url?'BOK（ささやき）につなぎました':'BOK の接続先と鍵を消しました'); return; }
   if(a==='cp-search'){ CP.q=f.q.value.trim(); f.q.blur(); cpSearch(CP.q); return; }
-  if(a==='save-cpconf'){ let url=f.url.value.trim(), key=f.key.value.trim();
-    const hk=url.indexOf('#'); if(hk>=0){ if(!key) key=url.slice(hk+1).trim(); url=url.slice(0,hk).trim(); }  // 「設定画面に貼る文字」（URL#鍵）もそのまま受け付ける
-    if(!key) key=safeGet(LS.cpKey)||'';
+  if(a==='save-cpconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url;  // 「設定画面に貼る文字」（URL#鍵）もそのまま受け付ける
+    const key=sp.key||safeGet(LS.cpKey)||'';
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.cpUrl,url||null); safeSet(LS.cpKey,url?key:null); CP.items=null; CP.error=''; S.modal=null; if(url) navGo('coupon'); else render(); toast(url?'クーポンにつなぎました':'クーポンの設定を消しました'); return; }
-  if(a==='save-pwconf'){ const url=f.url.value.trim(), key=f.key.value.trim()||safeGet(LS.pwKey);
+  if(a==='save-pwconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url, key=sp.key||safeGet(LS.pwKey);
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.pwUrl,url||null); safeSet(LS.pwKey,url?key:null); PWD.rows=null; PWD.error=''; S.modal=null; if(url){ S.tab='pw'; safeSet(LS.tab,'pw'); } render(); toast(url?'パスワード表につなぎました':'パスワード表の設定を消しました'); return; }
@@ -3425,7 +3446,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:c59dbe2c8caf';
+const BUILD = 'AOS_BUILD:5cc515a3854a';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
