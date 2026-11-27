@@ -865,6 +865,110 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .rdhit.other{background:var(--amber-soft);color:var(--amber)}
 .rdmt{font-size:11px;padding:1px 7px;border-radius:999px;background:var(--red-soft);color:var(--red)}
 @media (max-width:640px){ .rdgrid{grid-template-columns:1fr} .rdtools select.inp{flex:1 1 40%} .rdgridc{grid-template-columns:1fr} }
+/* ===== セラピストDB の見た目（Action OS のほかの画面にそろえる） ===== */
+.rdhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.rdhead .vseg{height:40px;align-items:stretch}
+.rdhead .rdadd{margin-left:auto;height:40px;display:inline-flex;align-items:center;gap:6px;padding:0 14px;white-space:nowrap}
+.rdhead .rdadd svg,.rdbtns .btn svg{width:15px;height:15px}
+.pwbar .btn.tgl.rdalarm{border-color:color-mix(in srgb,var(--amber) 60%,var(--line));color:var(--amber);font-weight:600}
+/* 反映の状況（ふだんは1行） */
+.rdsync{display:flex;align-items:center;gap:8px;margin:0 0 10px;min-height:32px}
+.rdsysum{display:inline-flex;align-items:center;gap:8px;border:0;background:none;padding:4px 0;font:inherit;font-size:13px;color:var(--sub);cursor:pointer;text-align:left;min-width:0}
+.rdsyst{display:inline-flex;align-items:center;gap:5px}
+.rdsyst svg{width:14px;height:14px;flex:none}
+.rdsyst.ok{color:var(--green)}
+.rdsyst.bad{color:var(--red);font-weight:700}
+.rdsyat{color:var(--faint);font-size:12px}
+.rdcaret{color:var(--faint);font-size:11px}
+.rdsync .btn{flex:none}
+.rdsyncd{display:flex;gap:6px;flex-wrap:wrap;margin:-4px 0 10px}
+/* 名簿の一覧：広い画面は列をそろえた表、スマホは2行のカード */
+.rdtable{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.rdtr{display:grid;grid-template-columns:minmax(170px,2.2fr) 64px 124px 86px 86px 92px minmax(56px,1fr);gap:10px;align-items:center;padding:11px 14px;border-top:1px solid var(--line);font-size:14px;cursor:pointer;font-variant-numeric:tabular-nums}
+.rdtr:first-child{border-top:0}
+.rdtr:hover{background:color-mix(in srgb,var(--accent-soft) 45%,transparent)}
+.rdtr:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.rdtr.hd{cursor:default;font-size:12px;color:var(--faint);font-weight:600;padding-top:9px;padding-bottom:9px;background:var(--panel2)}
+.rdtr.hd:hover{background:var(--panel2)}
+.rdtr.blank{box-shadow:inset 3px 0 0 var(--amber);background:color-mix(in srgb,var(--amber-soft) 55%,transparent)}
+.rdtr .c-nm{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
+.rdtr .c-nm b{font-size:15px;margin-right:2px}
+.rdtr .c-pri{white-space:nowrap}
+.rdtr>span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+/* 特徴：写真を大きく見せるカード */
+.rdgridc{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.rdcard{flex-direction:column;gap:0;padding:0;overflow:hidden;border-radius:var(--radius);box-shadow:var(--shadow)}
+.rdcard .rdpho{width:100%;height:auto;aspect-ratio:4/5;border-radius:0;font-size:44px}
+.rdcard .body{padding:10px 12px 12px;gap:3px}
+.rdcard .nm{font-size:15px}
+.rdtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.rdtag{font-size:12px;padding:2px 9px;margin:0}
+.rdsubn{margin-left:4px}
+.cpinfo .rdsubn{font-size:12px;color:var(--faint)}
+/* 詳細：写真と見出し・中の切り替え・まとまりの枠 */
+.rdprof{display:flex;gap:16px;align-items:flex-start;margin:4px 0 14px}
+.rdprof .rdpho.big{width:112px;height:140px;font-size:40px;border-radius:12px}
+.rdprofb{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.rdprofspec{font-size:15px;font-weight:600}
+.rdprofm{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin:0;font-size:13px}
+.rdprofm dt{color:var(--faint);font-size:12px;padding-top:1px}
+.rdprofm dd{margin:0;font-variant-numeric:tabular-nums}
+.rdngmeta{margin:2px 0 12px}
+.rdpane{display:flex;margin:0 0 12px}
+.rdpane button{flex:1}
+.rdmodal .rdsec{border:1px solid var(--line);border-radius:12px;padding:12px 14px 4px;margin:0 0 12px}
+.rdmodal .rdsec>h3{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.rdmodal .rdsec>h3 small{font-size:12px;font-weight:400;color:var(--faint)}
+.rdmodal .rdsec.int{background:var(--panel2);border-color:transparent}
+.rdmodal .rdsec .rdhist{margin-bottom:8px}
+.rdmodal .rdsec .rdstats{margin-bottom:8px}
+.rdmodal .rdsec .rdstlink{margin:0 0 10px}
+.rdmodal .field>label{font-size:12px;color:var(--sub)}
+.rdgrid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+/* ％・円・分 は欄の中の右端に */
+.rdunit{position:relative;display:block}
+.rdunit .inp{padding-right:38px}
+.rdunit span{position:absolute;right:12px;top:50%;transform:translateY(-50%);pointer-events:none}
+/* 特徴の詳細：項目名の幅をそろえる */
+.rdkv{grid-template-columns:7.5em 1fr;gap:8px 12px}
+.rdkv dt{font-size:13px}
+.rdmodal .rdsec .rdkv{margin-bottom:10px}
+.rdmodal .rdgrp>h3{font-size:14px;color:var(--text)}
+.rdstats{font-variant-numeric:tabular-nums}
+.rdstats th{font-size:12px;color:var(--faint);font-weight:600}
+.rdstlink{font-size:12px;color:var(--sub);margin-top:8px}
+/* 受け入れNG：3つの欄をそろえて並べる */
+.rdnghint{margin:0 0 10px}
+.rdngq{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1.6fr) minmax(0,1.4fr);gap:8px;align-items:end;margin:0 0 12px}
+.rdqf{display:flex;flex-direction:column;gap:4px;min-width:0}
+.rdqf .lb{font-size:12px;color:var(--sub)}
+.rdqf .inp{height:40px;padding-top:0;padding-bottom:0}
+.rdqf .cpq{min-width:0;flex:none}
+.rdqrow{display:flex;gap:6px}
+.rdqrow select.inp{flex:1;min-width:0;-webkit-appearance:none;appearance:none;padding:0 34px 0 12px;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9893' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
+.rdqrow .iconbtn{width:40px;height:40px;flex:none;border-radius:10px}
+.rditem .rdmeta{display:flex;flex-wrap:wrap;gap:2px 14px}
+@media (max-width:640px){
+  .pgtitle{flex:0 1 auto}
+  .rdhead .vseg{flex:1 1 100%}
+  .rdhead .vseg button{flex:1;padding:7px 6px}
+  .rdhead .rdadd{flex:1 1 100%;justify-content:center;margin-left:0}
+  .rdfil select.inp{flex:1 1 calc(50% - 6px);width:0;min-width:0}
+  .rdfil .btn.tgl{flex:1 1 calc(100% - 52px);width:0;min-width:0;justify-content:center}
+  .rdsysum{font-size:12.5px}
+  .rdtr.hd{display:none}
+  .rdtr{display:flex;flex-wrap:wrap;gap:3px 12px;padding:11px 14px;font-size:13px}
+  .rdtr .c-nm{flex:1 1 100%;margin-bottom:2px}
+  .rdtr>span[data-l]{color:var(--sub)}
+  .rdtr>span[data-l]::before{content:attr(data-l) ' ';color:var(--faint);font-size:12px}
+  .rdgridc{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .rdcard .body{padding:8px 10px 10px}
+  .rdsnip{display:none}
+  .rdprof .rdpho.big{width:88px;height:110px}
+  .rdngq{grid-template-columns:1fr}
+  .rdmodal .rdsec{padding:12px 12px 4px}
+  .rdpane button{padding:7px 4px;font-size:13px}
+}
 </style>
 </head>
 <body>
@@ -3375,9 +3479,9 @@ function rdToInput(type, v){
 }
 // 選ぶだけの欄。値は名簿の書き方のまま（金額＝数、変動＝文字、雑費のなし＝0、特別指名料のなし＝空）
 const RD_PICK = {
-  shimei:[['1000','1,000 円'],['2000','2,000 円'],['3000','3,000 円']],
-  zappi:[['変動','変動'],['-1000','-1,000 円'],['-2000','-2,000 円'],['-3000','-3,000 円'],['0','なし']],
-  tokubetsu:[['1000','1,000 円'],['2000','2,000 円'],['3000','3,000 円'],['','なし']],
+  shimei:[['1000','1,000円'],['2000','2,000円'],['3000','3,000円']],
+  zappi:[['変動','変動'],['-1000','-1,000円'],['-2000','-2,000円'],['-3000','-3,000円'],['0','なし']],
+  tokubetsu:[['1000','1,000円'],['2000','2,000円'],['3000','3,000円'],['','なし']],
 };
 function rdPickVal(v){ v=String(v||'').trim(); if(v.replace(/\s/g,'')==='変動') return '変動'; const y=rdToInput('yen',v); return y!=='' && !isNaN(Number(y)) ? String(Number(y)) : v; }
 function rdToDate(v){ const m=/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/.exec(rdHan(String(v||'').trim())); return m ? m[1]+'-'+('0'+m[2]).slice(-2)+'-'+('0'+m[3]).slice(-2) : ''; }
@@ -3408,7 +3512,7 @@ const RD_GROUPS = [
   {t:'基本', f:[['name','名前','text'],['status','在籍','status']]},
   {t:'条件（受付の精算に使う）', f:[['bkHon','BK本指名','pct','60'],['bkFree','BKフリー','pct','55'],['shimei','指名料','pick'],['zappi','雑費','pick'],['kotsu','交通費','yen',''],['hime','姫','yen',''],['tokubetsu','特別指名料','pick']]},
   {t:'送信', f:[['noShift','シフト催促','send']]},
-  {t:'シフト', f:[['pri','シフト優先度','pri'],['memo','メモ','textarea']]},
+  {t:'シフト', f:[['pri','シフト優先度','pri'],['memo','シフトのメモ','textarea']]},
   {t:'社内', f:[['tanto','担当内勤','text'],['honmei','本名','text'],['kana','仮名','text'],['debut','デビュー日','date'],['biko','備考','textarea']]},
   {t:'BOK（シフト提出アプリ）', f:[['bokId','ログインID','text'],['bokPin','PIN','text'],['bokNoSurvey','アンケート','bool','送る|送らない'],['bokInterval','姫予約の間隔','min','20'],['bokHimeNg','姫予約','bool','できる|できない']]},
 ];
@@ -3491,17 +3595,17 @@ function rdCastInput(f, m, dis){
   return `<input class="inp" data-bkf="${esc(k)}" value="${esc(v)}" autocomplete="off"${D}>`;
 }
 function rdCastHtml(m, dis){
-  const c=m.castInfo, head='<div class="rdcsec">特徴（ご案内用）</div>';
-  if(!c) return m.loading ? head+'<div class="hint">読み込んでいます…</div>' : '';
-  if(c.error) return head+`<div class="rderr">特徴DBを読めませんでした（${esc(c.error)}）。名簿の欄はこのまま保存できます</div>`;
-  if(c.none) return head+'<div class="hint">特徴DBにつながっていません。在籍か休み中にすると、次の反映で特徴DBに行が作られます</div>';
-  if(c.missing) return head+`<div class="hint">特徴DBに ${esc(c.castId)} の行が見つかりません</div>`;
+  const c=m.castInfo;
+  if(!c) return m.loading ? '<div class="hint">読み込んでいます…</div>' : '';
+  if(c.error) return `<div class="rderr">特徴DBを読めませんでした（${esc(c.error)}）。名簿の欄はこのまま保存できます</div>`;
+  if(c.none) return '<div class="hint">特徴DBにつながっていません。在籍か休み中にすると、次の反映で特徴DBに行が作られます</div>';
+  if(c.missing) return `<div class="hint">特徴DBに ${esc(c.castId)} の行が見つかりません</div>`;
   if(!m.cast) return '';
-  // 項目のまとまりごと。社外秘（社内メモ）はほかの欄と分けて、最後に灰色の枠で出す
+  // 項目のまとまりごとに枠で分ける。社外秘（社内メモ）はほかの欄と分けて、最後に灰色の枠で出す
   const gs=[];
   m.cast.fields.forEach(f=>{ const g=f.internal?'':(f.group||''), it=!!f.internal; let x=gs.find(y=>y.g===g && y.it===it); if(!x) gs.push(x={g, it, fs:[]}); x.fs.push(f); });
   gs.sort((a,b)=>a.it-b.it);
-  return head+gs.map(x=>`<div class="rdgrp${x.it?' rdint':''}">${x.it?'<h3>社外秘（社内メモ）</h3>':x.g?`<h3>${esc(x.g)}</h3>`:''}<div class="rdgrid">${x.fs.map(f=>`<div class="field${f.type==='textarea'||f.type==='multi'?' wide':''}"><label>${esc(f.name)}</label>${rdCastInput(f, m, dis)}</div>`).join('')}</div></div>`).join('');
+  return gs.map(x=>`<section class="rdsec${x.it?' int':''}"><h3>${x.it?'社外秘（社内メモ）':esc(x.g||'特徴')}</h3><div class="rdgrid">${x.fs.map(f=>`<div class="field${f.type==='textarea'||f.type==='multi'?' wide':''}"><label>${esc(f.name)}</label>${rdCastInput(f, m, dis)}</div>`).join('')}</div></section>`).join('');
 }
 function rdAddTag(el){
   const m=S.modal; if(!m || !m.cast) return false;
@@ -3526,9 +3630,9 @@ function rdFill(m, r, cast){
     m.cinit[f.name]=rdCastOut(f, m.draft['c:'+f.name], m);
   });
 }
-function rdOpen(id){
+function rdOpen(id, pane){
   const r=(RD.rows||[]).find(x=>x.id===id) || {id, name:id};
-  const m={type:'rdp', id, step:'edit', loading:true, saving:false, error:'', notice:'', showPin:false, hist:null};
+  const m={type:'rdp', id, pane:pane||'cast', step:'edit', loading:true, saving:false, error:'', notice:'', showPin:false, hist:null};
   rdFill(m, r, null); S.modal=m; render(); rdDetail(m);
 }
 function rdNew(){ const m={type:'rdp', id:'', step:'edit', loading:false, saving:false, error:'', notice:'', showPin:true, hist:null}; rdFill(m, {}, null); S.modal=m; render(); }
@@ -3565,8 +3669,8 @@ function rdDisp(type, k, v, ph0){
   if(type==='pri') return RD_PRI[v] ? `${'★'.repeat(rdStarN(v))} ${RD_PRI[v]}` : v;
   if(type==='send') return '送らない';
   if(type==='bool') return String(ph0||'しない|する').split('|')[1];
-  if(type==='yen' && /^-?\d+$/.test(v)) return Number(v).toLocaleString('ja-JP')+' 円';
-  if(type==='min') return v+' 分';
+  if(type==='yen' && /^-?\d+$/.test(v)) return Number(v).toLocaleString('ja-JP')+'円';
+  if(type==='min') return v+'分';
   return v;
 }
 // 変えた欄（送るもの）と、確かめる画面に出す「前 → 後」
@@ -3609,18 +3713,41 @@ function rdConfirmHtml(m){
     <div class="actions"><button type="button" class="btn" data-act="rd-back" ${m.saving?'disabled':''}>戻る</button><button type="button" class="btn pri" data-act="rd-go" ${m.saving?'disabled':''}>${m.saving?'保存中…':isNew?'登録する':'保存する'}</button></div>
   </form></div>`;
 }
+// 詳細での並べ方（保存の中身は RD_GROUPS のまま。見せるときだけ、すき間が出ないようにまとめ直す）
+const RD_LAYOUT = [
+  {t:'基本', k:['name','status','pri','noShift']},
+  {t:'条件', s:'受付の精算に使う', k:['bkHon','bkFree','shimei','tokubetsu','zappi','kotsu','hime']},
+  {t:'社内', k:['tanto','honmei','kana','debut','memo','biko']},
+  {t:'BOK', s:'シフト提出アプリ', k:['bokId','bokPin','bokNoSurvey','bokHimeNg','bokInterval']},
+];
+const rdFdef = k => { for(const g of RD_GROUPS){ const f=g.f.find(x=>x[0]===k); if(f) return f; } return null; };
+// 上の写真と、ID・店舗などの見出し
+function rdProfHtml(m){
+  const r=m.row, photo=m.cast?rdCastPhoto(m.cast):'';
+  const meta=[['ID',r.id],['店舗',r.shop],['在籍の変更日',r.changed],['特徴DB',r.castId]].filter(([,v])=>String(v||'').trim());
+  return `<div class="rdprof"><span class="rdpho big">${photo?`<img src="${esc(photo)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<span>${esc(String(r.name||'？').slice(0,1))}</span></span>
+    <div class="rdprofb"><div class="rdnmline">${rdStTag(r.status)}${rdIsBlank(r)?'<span class="bktag amber">条件未入力</span>':''}${r.pri?`<span class="rdsubn">シフト優先度 ${rdStars(r.pri)}</span>`:''}</div>
+    <dl class="rdprofm">${meta.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div></div>`;
+}
+// 詳細の中の切り替え（名簿｜特徴｜変更履歴）
+const rdPaneTabs = (m, tabs) => `<div class="vseg rdpane" role="tablist">${tabs.map(([k,l])=>`<button type="button" role="tab" class="${(m.pane||'cast')===k?'on':''}" data-act="rd-pane" data-k="${k}" aria-selected="${(m.pane||'cast')===k}">${l}</button>`).join('')}</div>`;
+const rdHistSec = m => `<section class="rdsec"><h3>変更履歴${m.type==='rdp'?'<small>「元に戻す」で、その変更の前に戻せます</small>':''}</h3><div class="rdhist">${rdHistHtml(m)}</div></section>`;
 BK_MODAL.rdp = m => {
   if(m.step==='confirm') return rdConfirmHtml(m);
-  const isNew=!m.id, r=m.row, dis=m.loading||!!m.loadErr||m.saving, photo=m.cast?rdCastPhoto(m.cast):'';
+  const isNew=!m.id, r=m.row, dis=m.loading||!!m.loadErr||m.saving, pane=isNew?'cast':(m.pane||'cast');
   let body='';
   if(m.notice) body+=`<div class="rdnotice">${m.notice}</div>`;
   if(m.loadErr) body+=`<div class="rderr">${esc(m.loadErr)}</div>`;
   else if(m.loading && !isNew) body+='<div class="rdnotice">最新の内容を読み込んでいます…</div>';
-  if(!isNew && rdIsBlank(r)) body+='<div class="rdalert">⚠ 条件が未入力です。BK本指名・BKフリー・指名料を入れて保存してください。入れるまで受付で担当として選べません。</div>';
-  if(!isNew) body+=`<div class="rdtop">${photo?`<span class="rdpho"><img src="${esc(photo)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()"><span>${esc(String(r.name||'').slice(0,1))}</span></span>`:''}<div class="hint">${esc(r.id)}　在籍の変更日 ${esc(r.changed||'—')}${r.shop?'　店舗 '+esc(r.shop):''}${r.castId?'　特徴DB '+esc(r.castId):''}</div></div>`;
-  RD_GROUPS.forEach(g=>{ const fs = isNew && g.t==='基本' ? [g.f[0]] : g.f; body+=`<div class="rdgrp"><h3>${esc(g.t)}</h3><div class="rdgrid">${fs.map(f=>rdFieldHtml(f, m, dis)).join('')}</div></div>`; });
+  if(!isNew){
+    body+=rdProfHtml(m);
+    if(rdIsBlank(r)) body+='<div class="rdalert">⚠ 条件が未入力です。BK本指名・BKフリー・指名料を入れて保存してください。入れるまで受付で担当として選べません。</div>';
+    body+=rdPaneTabs(m, [['cast','名簿'],['feat','特徴（ご案内用）'],['hist',`変更履歴${m.hist&&m.hist.length?` ${m.hist.length}`:''}`]]);
+  }
+  if(pane==='cast') RD_LAYOUT.forEach(g=>{ const ks=g.k.filter(k=>!(isNew && k==='status')); body+=`<section class="rdsec"><h3>${esc(g.t)}${g.s?`<small>${esc(g.s)}</small>`:''}</h3><div class="rdgrid">${ks.map(k=>rdFieldHtml(rdFdef(k), m, dis)).join('')}</div></section>`; });
+  else if(pane==='feat') body+=rdCastHtml(m, dis);
+  else body+=rdHistSec(m);
   if(isNew) body+='<div class="hint">在籍は「在籍」で登録されます。BOK のログインID・PIN は、空なら次の反映で自動で作られます。</div>';
-  else body+=rdCastHtml(m, dis)+`<div class="rdgrp"><h3>変更履歴</h3><div class="rdhist">${rdHistHtml(m)}</div></div>`;
   if(m.error) body+=`<div class="rderr">${esc(m.error)}</div>`;
   return `<div class="ov" data-act="close-ov"><form class="modal rdmodal" data-act="save-rd" autocomplete="off">
     <div class="mhd"><h2>${isNew?'新しく入った人':esc(r.name||m.id)}</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
@@ -3630,15 +3757,15 @@ BK_MODAL.rdp = m => {
 };
 BK_MODAL.rdng = m => {
   if(m.step==='confirm') return rdConfirmHtml(m);
-  const isNew=!m.id, r=m.row, dis=m.loading||!!m.loadErr||m.saving;
+  const isNew=!m.id, r=m.row, dis=m.loading||!!m.loadErr||m.saving, pane=isNew?'cast':(m.pane||'cast');
   let body='';
   if(m.notice) body+=`<div class="rdnotice">${m.notice}</div>`;
   if(m.loadErr) body+=`<div class="rderr">${esc(m.loadErr)}</div>`;
   else if(m.loading && !isNew) body+='<div class="rdnotice">最新の内容を読み込んでいます…</div>';
-  if(!isNew) body+=`<div class="hint" style="margin-bottom:6px">${esc(r.id)}　登録日 ${esc(r.created||'—')}</div>`;
-  RD_NG_GROUPS.forEach(g=>{ body+=`<div class="rdgrp"><h3>${esc(g.t)}</h3><div class="rdgrid">${g.f.map(f=>rdFieldHtml(f, m, dis)).join('')}</div></div>`; });
-  if(isNew) body+='<div class="hint">登録の前に、同じ人がもう入っていないか、一覧の照会で確かめてください（電話番号も生年月日も無いと、二重の登録を止められません）。</div>';
-  else body+=`<div class="rdgrp"><h3>変更履歴</h3><div class="rdhist">${rdHistHtml(m)}</div></div>`;
+  if(!isNew) body+=`<dl class="rdprofm rdngmeta"><dt>ID</dt><dd>${esc(r.id)}</dd><dt>登録日</dt><dd>${esc(r.created||'—')}</dd></dl>`+rdPaneTabs(m, [['cast','内容'],['hist',`変更履歴${m.hist&&m.hist.length?` ${m.hist.length}`:''}`]]);
+  if(pane==='cast') RD_NG_GROUPS.forEach(g=>{ body+=`<section class="rdsec"><h3>${esc(g.t)}</h3><div class="rdgrid">${g.f.map(f=>rdFieldHtml(f, m, dis)).join('')}</div></section>`; });
+  else body+=rdHistSec(m);
+  if(isNew) body+='<div class="hint">登録の前に、同じ人がもう入っていないか、受け入れNGの画面の上の欄で探して確かめてください（電話番号も生年月日も無いと、二重の登録を止められません）。</div>';
   if(m.error) body+=`<div class="rderr">${esc(m.error)}</div>`;
   return `<div class="ov" data-act="close-ov"><form class="modal rdmodal" data-act="save-rd" autocomplete="off">
     <div class="mhd"><h2>${isNew?'受け入れNG に追加':esc(r.honmei||m.id)}</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
@@ -3702,51 +3829,73 @@ async function rdSync(){
 }
 
 // ----- 画面 -----
-function rdBar(s, what){
-  return `<div class="rvbar rdbar">${icon('refresh')}<span>${s.loading?`セラピストDB から${what}を読み込んでいます…`:s.at?`${esc(s.at)} に読み込み（${rvSec(s.ms)}）`:''}${rdDemo()?'（デモ）':''}</span><span class="sp"></span><button type="button" class="btn sm" data-act="rd-reload" ${s.loading?'disabled':''}>読み直す</button></div>`;
-}
+// 読み込んだ時刻は件数の行の右端、読み直す ↻ は絞り込みの帯の右端（ほかの画面と同じ形）
+const rdAt = s => `<span class="cpat">${s.loading?'読み込んでいます…':s.at?`${esc(s.at)} に読み込み`:''}${rdDemo()?'（見本）':''}</span>`;
+const rdReloadBtn = s => `<button type="button" class="iconbtn ${s.loading?'spin':''}" data-act="rd-reload" title="セラピストDB から読み直す" aria-label="読み直す" ${s.loading?'disabled':''}>${icon('refresh')}</button>`;
 function rdWait(s, what){
-  if(s.error && !s.rows) return `<div class="rderr">${esc(s.error)}</div>`;
+  if(s.error && !s.rows) return `<div class="rderr">${esc(s.error)} <button type="button" class="btn sm" data-act="rd-reload">読み直す</button></div>`;
   if(!s.rows) return `<div class="plain"><div class="empty">セラピストDB から${what}を読み込んでいます…（数秒かかります）</div></div>`;
   return '';
 }
+// 探す欄（打つたびに絞り込む。× で消せる）
+const rdSearch = (k, v, ph, extra='') => `<div class="cpq"><input class="inp" data-rdq="${k}" value="${esc(v)}" placeholder="${esc(ph)}" autocomplete="off" enterkeyhint="search"${extra}>${v?`<button type="button" class="cpx" data-act="rd-qx" data-k="${k}" title="入力を消す" aria-label="入力を消す">${icon('x')}</button>`:''}</div>`;
+// 一覧の見せ方：60% → 60%、¥ 2,000 → 2,000円、¥ (1,000) → -1,000円（詳細の選び欄と同じ書き方）
+const rdPct = v => { const t=rdToInput('pct', v); return t==='' ? '—' : t+'%'; };
+function rdMoney(v){ const raw=String(v||'').trim(); if(!raw) return '—'; if(raw.replace(/\s/g,'')==='変動') return '変動'; const t=rdToInput('yen', raw), n=Number(t); return t!=='' && !isNaN(n) ? (n<0?'-':'')+Math.abs(n).toLocaleString('ja-JP')+'円' : raw; }
 function viewDb(){
   if(!rdOn()) return '<div class="plain"><div class="empty">この端末は、まだセラピストDB につながっていません。設定（右上の歯車）の「セラピストDB につなぐ」に、URL と鍵を入れてください。</div></div>';
-  const subs=[['cast','名簿'],['annai','特徴'],['ng','受け入れNG']];
-  const head=`<div class="rdsubs">${subs.map(([k,l])=>`<button type="button" class="rdsub ${RD.sub===k?'on':''}" data-act="rd-sub" data-k="${k}">${l}</button>`).join('')}<span class="sp"></span>${RD.url?`<a class="btn sm" href="${esc(RD.url)}" target="_blank" rel="noopener">セラピストDB で開く</a>`:''}</div>`;
+  const subs=[['cast','名簿','list'],['annai','特徴','star'],['ng','受け入れNG','flag']];
+  const add = RD.sub==='cast' ? `<button type="button" class="btn pri rdadd" data-act="rd-new">${icon('plus')}新しく入った人</button>`
+    : RD.sub==='ng' ? `<button type="button" class="btn pri rdadd" data-act="rd-ngnew">${icon('plus')}NGに追加</button>` : '';
+  const head=`<div class="rdhead"><div class="vseg" role="tablist" aria-label="セラピストDB の画面">${subs.map(([k,l,ic])=>`<button type="button" role="tab" class="${RD.sub===k?'on':''}" data-act="rd-sub" data-k="${k}" aria-selected="${RD.sub===k}">${icon(ic)}${l}</button>`).join('')}</div>${add}</div>`;
   return head + (RD.sub==='annai' ? rdViewAn() : RD.sub==='ng' ? rdViewNg() : rdViewCast());
 }
 const rdStTag = st => `<span class="bktag ${st==='在籍'?'green':st==='休み中'?'amber':''}">${esc(st||'未設定')}</span>`;
+// 反映の状況：ふだんは1行（すべて○なら「反映済み」と時刻）。押すと4か所の○×、失敗があるときは最初から赤く開く
 function rdSyncHtml(){
   const s=RD.sync||{};
   const hm = at => { const t=new Date(at); return isNaN(t) ? '' : `${t.getMonth()+1}/${t.getDate()} ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`; };
+  const done=RD_SYNC.filter(([k])=>s[k]), bad=RD_SYNC.filter(([k])=>s[k] && !s[k].ok), open=RD.syncOpen||bad.length>0;
+  const last=done.map(([k])=>String(s[k].at||'')).filter(Boolean).sort().pop();
+  const sum = bad.length ? `<span class="rdsyst bad">${icon('x')}反映に失敗：${esc(bad.map(x=>x[1]).join('・'))}</span>`
+    : done.length===RD_SYNC.length ? `<span class="rdsyst ok" title="受付・シフト収集・特徴DB・BOK">${icon('check')}4か所に反映済み</span>${last?`<span class="rdsyat">${esc(hm(last))}</span>`:''}`
+    : '<span class="rdsyst">反映：まだ動いていない所があります</span>';
   const chips=RD_SYNC.map(([k,l])=>{ const x=s[k]; return x ? `<span class="bktag ${x.ok?'green':'red'}" title="${esc(x.msg||'')}">${l}：${x.ok?'○':'× 失敗'} ${hm(x.at)}</span>` : `<span class="bktag">${l}：未実行</span>`; }).join('');
-  const bad=RD_SYNC.filter(([k])=>s[k] && !s[k].ok);
-  return `<div class="rdsync"><span class="rdsl">反映</span>${chips}</div>${bad.length?`<div class="rderr">${bad.map(([k,l])=>`${l}：${esc(s[k].msg||'')}`).join('<br>')}</div>`:''}`;
+  return `<div class="rdsync${bad.length?' bad':''}"><button type="button" class="rdsysum" data-act="rd-syncx" aria-expanded="${open}">${sum}<span class="rdcaret">${open?'▴':'▾'}</span></button><span class="sp"></span>
+      <button type="button" class="btn sm" data-act="rd-sync" ${RD.syncing?'disabled':''}>${RD.syncing?'反映中…（最大90秒）':'今すぐ反映'}</button></div>
+    ${open?`<div class="rdsyncd">${chips}</div>`:''}${bad.length?`<div class="rderr">${bad.map(([k,l])=>`${l}：${esc(s[k].msg||'')}`).join('<br>')}</div>`:''}`;
 }
 function rdViewCast(){
   if(RD.rows===null && !RD.loading && !RD.error) setTimeout(rdLoad,0);
-  const bar=rdBar(RD,'名簿'), w=rdWait(RD,'名簿'); if(w) return bar+w;
+  const w=rdWait(RD,'名簿'); if(w) return w;
   const q=RD.q.trim(), blanks=RD.rows.filter(rdIsBlank);
   let rows=RD.rows.filter(r=>(!RD.fst||r.status===RD.fst) && (!RD.fpri||(RD.fpri==='none'?!r.pri:r.pri===RD.fpri)) && (!RD.blank||r.blankCond) && (!q||String(r.name||'').includes(q)||String(r.kana||'').includes(q)));
   rows=rows.filter(rdIsBlank).concat(rows.filter(r=>!rdIsBlank(r)));   // 条件未入力の人を先頭に
-  const cond=[RD.fst, RD.fpri?(RD.fpri==='none'?'シフト優先度なし':'シフト優先度 '+RD_PRI[RD.fpri]):'', RD.blank?'条件未入力':''].filter(Boolean);
-  const tools=`<div class="rdtools"><form onsubmit="return false"><input class="inp" type="search" data-rdq="q" value="${esc(RD.q)}" placeholder="名前で探す" autocomplete="off" enterkeyhint="search"></form>
-    <select class="inp" data-rds="fst">${[...RD.st,''].map(s=>`<option value="${esc(s)}" ${RD.fst===s?'selected':''}>${esc(s||'すべて')}</option>`).join('')}</select>
-    <select class="inp" data-rds="fpri">${[['','シフト優先度：すべて'],['1','★★★ 高'],['2','★★ 中'],['3','★ 低'],['none','シフト優先度なし']].map(([v,l])=>`<option value="${v}" ${RD.fpri===v?'selected':''}>${l}</option>`).join('')}</select>
-    <button type="button" class="btn sm${RD.blank?' pri':blanks.length?' rdalarm':''}" data-act="rd-blank">条件未入力 <b>${blanks.length}</b></button>
-    <button type="button" class="btn sm" data-act="rd-new">${icon('plus')} 新しく入った人</button>
-    <button type="button" class="btn sm" data-act="rd-sync" ${RD.syncing?'disabled':''}>${RD.syncing?'反映中…（最大90秒）':'今すぐ反映'}</button></div>`;
-  const alert = blanks.length ? `<div class="rdalert"><b>⚠ 条件が未入力の人が ${blanks.length} 人います</b><br>BK本指名などを入れるまで、受付で担当として選べません。名前を押して入力してください。<div class="names">${blanks.map(r=>`<button type="button" class="btn sm" data-act="rd-open" data-id="${esc(r.id)}">${esc(r.name)}</button>`).join('')}</div></div>` : '';
+  const FST={'在籍':'在籍の人','休み中':'休み中の人','退店':'退店した人'};
+  const cond=[RD.fst?FST[RD.fst]||RD.fst:'', RD.fpri?(RD.fpri==='none'?'シフト優先度なし':'シフト優先度 '+RD_PRI[RD.fpri]):'', RD.blank?'条件未入力':'', q?`「${q}」`:''].filter(Boolean);
+  const tools=`<div class="pwbar rdfil">${rdSearch('q', RD.q, '名前で探す')}
+    <select class="inp" data-rds="fst" aria-label="在籍で絞る">${[...RD.st,''].map(s=>`<option value="${esc(s)}" ${RD.fst===s?'selected':''}>${esc(s?FST[s]||s:'すべての人')}</option>`).join('')}</select>
+    <select class="inp" data-rds="fpri" aria-label="シフト優先度で絞る">${[['','優先度：すべて'],['1','優先度 ★★★ 高'],['2','優先度 ★★ 中'],['3','優先度 ★ 低'],['none','優先度なし']].map(([v,l])=>`<option value="${v}" ${RD.fpri===v?'selected':''}>${l}</option>`).join('')}</select>
+    <button type="button" class="btn tgl ${RD.blank?'on':blanks.length?'rdalarm':''}" data-act="rd-blank" aria-pressed="${RD.blank}" title="BK本指名などの条件が入っていない人だけ">${RD.blank?icon('check'):''}条件未入力 ${blanks.length}</button>
+    ${rdReloadBtn(RD)}</div>`;
   const notice = RD.notice ? `<div class="rdnotice">${RD.notice} <button type="button" class="btn sm" data-act="rd-notice-x">閉じる</button></div>` : '';
-  const list = rows.map(r=>{
-    let tags=''; if(rdIsBlank(r)) tags+='<span class="bktag amber">条件未入力・受付に未反映</span>'; if(r.noShift) tags+='<span class="bktag">シフト送らない</span>';
-    return `<div class="rditem${rdIsBlank(r)?' blank':''}" data-act="rd-open" data-id="${esc(r.id)}"><div class="top"><span class="nm">${esc(r.name)}</span>${tags}${rdStTag(r.status)}</div>
-      <div class="rdmeta">${esc(r.id)}${r.shop?'　'+esc(r.shop):''}　BK ${esc(r.bkHon||'—')} / ${esc(r.bkFree||'—')}　指名料 ${esc(r.shimei||'—')}　雑費 ${esc(r.zappi||'—')}　シフト優先度 ${rdStars(r.pri)}${r.tanto?'　担当 '+esc(r.tanto):''}</div></div>`;
+  const showSt=!RD.fst;   // 在籍などで絞っているときは、どの行にも同じ札が付くので出さない
+  const list = rows.map(r=>{ const bl=rdIsBlank(r);
+    const tags=(bl?'<span class="bktag amber">条件未入力・受付に未反映</span>':'')+(r.noShift?'<span class="bktag">シフト送らない</span>':'')+(showSt?rdStTag(r.status):'');
+    const bk = !String(r.bkHon||'').trim() && !String(r.bkFree||'').trim() ? '—' : `${rdPct(r.bkHon)} / ${rdPct(r.bkFree)}`;
+    return `<div class="rdtr${bl?' blank':''}" role="button" tabindex="0" data-act="rd-open" data-id="${esc(r.id)}">
+      <span class="c-nm"><b>${esc(r.name)}</b>${tags}</span>
+      <span data-l="店">${esc(r.shop||'—')}</span>
+      <span data-l="BK">${esc(bk)}</span>
+      <span data-l="指名料">${esc(rdMoney(r.shimei))}</span>
+      <span data-l="雑費">${esc(rdMoney(r.zappi))}</span>
+      <span data-l="優先度" class="c-pri">${rdStars(r.pri)}</span>
+      <span data-l="担当">${esc(r.tanto||'—')}</span></div>`;
   }).join('');
-  return bar+(RD.error?`<div class="rderr">${esc(RD.error)}</div>`:'')+notice+rdSyncHtml()+tools+alert+`<div class="rdcount">${rows.length} 人${cond.length?`（${esc(cond.join('・'))}）`:'（すべて）'}</div><div class="rdlist">${list||'<div class="plain"><div class="empty">該当する人がいません</div></div>'}</div>`;
+  const thead='<div class="rdtr hd" aria-hidden="true"><span>名前</span><span>店</span><span>BK 本指名 / フリー</span><span>指名料</span><span>雑費</span><span>シフト優先度</span><span>担当</span></div>';
+  return rdSyncHtml()+tools+`<div class="cpinfo">${rows.length}人${cond.length?`（${esc(cond.join('・'))}）`:''}${rdAt(RD)}</div>`+(RD.error?`<div class="rderr">${esc(RD.error)}</div>`:'')+notice
+    +(list?`<div class="rdtable">${thead}${list}</div>`:`<div class="plain"><div class="empty">当てはまる人がいません ${q||RD.fst||RD.fpri||RD.blank?'<button type="button" class="btn sm" data-act="rd-freset">絞り込みを解く</button>':''}</div></div>`);
 }
-
 // ----- 特徴（ご案内用の「さがす」。見るだけ。直すのは名簿の詳細の「特徴」） -----
 const RD_UNIT = {年齢:'歳', 身長:'cm'};
 const RD_GUIDE = ['体型','タイプ','性格','推しポイント'];
@@ -3760,7 +3909,7 @@ const rdPho = (r, big) => { const u=rdAnImg(r); return `<span class="rdpho${big?
 function rdViewAn(){
   const A=RD.an;
   if(A.rows===null && !A.loading && !A.error) setTimeout(rdAnLoad,0);
-  const bar=rdBar(A,'特徴'), w=rdWait(A,'特徴'); if(w) return bar+w;
+  const w=rdWait(A,'特徴'); if(w) return w;
   const q=A.q.trim().toLowerCase(), words=q?q.split(/\s+/):[];
   const inSt = r => !A.fst || r._st===A.fst;
   let rows=A.rows.filter(r=>{ if(!inSt(r)) return false; if(!words.length) return true; const hay=A.fields.filter(f=>f.type!=='image'&&f.type!=='url'&&!f.internal).map(f=>r[f.name]||'').join(' ').toLowerCase(); return words.every(x=>hay.includes(x)); });
@@ -3771,14 +3920,15 @@ function rdViewAn(){
     updated:(a,b)=>String(b['更新日時']||'').localeCompare(String(a['更新日時']||''))}[A.sort] || (()=>0);
   rows=rows.slice().sort(cmp);
   const tagF=A.fields.filter(f=>f.list && f.type==='multi'), snipF=A.fields.find(f=>f.list && f.type==='textarea' && !f.internal);
-  const tools=`<div class="rdtools"><form onsubmit="return false"><input class="inp" type="search" data-rdq="aq" value="${esc(A.q)}" placeholder="名前・よみ・推しポイントなど何でも" autocomplete="off" enterkeyhint="search"></form>
-    <select class="inp" data-rds="afst">${[['在籍','在籍'],['休み中','休み中'],['','すべて']].map(([v,l])=>`<option value="${v}" ${A.fst===v?'selected':''}>${l}</option>`).join('')}</select>
-    <select class="inp" data-rds="asort">${[['debut','新人順（デビュー日）'],['reco','おすすめ度が高い順'],['name','名前順'],['age','年齢が若い順'],['height','身長が低い順'],['updated','更新が新しい順']].map(([v,l])=>`<option value="${v}" ${A.sort===v?'selected':''}>${l}</option>`).join('')}</select></div>`;
+  const tools=`<div class="pwbar">${rdSearch('aq', A.q, '名前・よみ・推しポイントなど何でも')}
+    <select class="inp" data-rds="afst" aria-label="在籍で絞る">${[['在籍','在籍の人'],['休み中','休み中の人'],['','すべての人']].map(([v,l])=>`<option value="${v}" ${A.fst===v?'selected':''}>${l}</option>`).join('')}</select>
+    <select class="inp" data-rds="asort" aria-label="並べ方">${[['debut','新人順'],['reco','おすすめ順'],['name','名前順'],['age','年齢が若い順'],['height','身長が低い順'],['updated','更新が新しい順']].map(([v,l])=>`<option value="${v}" ${A.sort===v?'selected':''}>${l}</option>`).join('')}</select>
+    ${rdReloadBtn(A)}</div>`;
   const base=A.rows.filter(inSt);
-  const cards=rows.map(r=>`<button type="button" class="rdcard" data-act="rd-an" data-id="${esc(r.ID)}">${rdPho(r)}<span class="body"><span class="rdnmline"><span class="nm">${esc(r['名前'])}</span>${rdAnStars(r['おすすめ度'])}${rdAnDone(r)}</span>
-    <span class="rdspec">${esc(rdAnSpec(r))}</span><span>${tagF.flatMap(f=>rdSplit(r[f.name])).map(t=>`<span class="rdtag">${esc(t)}</span>`).join('')}</span>${snipF&&r[snipF.name]?`<span class="rdsnip">${esc(r[snipF.name])}</span>`:''}</span></button>`).join('');
-  return bar+(A.error?`<div class="rderr">${esc(A.error)}</div>`:'')+tools+`<div class="rdcount">${rows.length} 人が該当（${esc(A.fst||'すべて')} ${base.length} 人・作り込み完了 ${base.filter(r=>String(r['作り込み完了']||'').trim()).length} 人）</div>`+
-    `<div class="rdgridc">${cards||'<div class="plain"><div class="empty">条件に合う人がいません</div></div>'}</div>`;
+  const cards=rows.map(r=>`<button type="button" class="rdcard" data-act="rd-an" data-id="${esc(r.ID)}">${rdPho(r)}<span class="body"><span class="rdnmline"><span class="nm">${esc(r['名前'])}</span>${rdAnStars(r['おすすめ度'])}</span>
+    <span class="rdspec">${esc(rdAnSpec(r))}${rdAnDone(r)?' '+rdAnDone(r):''}</span><span class="rdtags">${tagF.flatMap(f=>rdSplit(r[f.name])).map(t=>`<span class="rdtag">${esc(t)}</span>`).join('')}</span>${snipF&&r[snipF.name]?`<span class="rdsnip">${esc(r[snipF.name])}</span>`:''}</span></button>`).join('');
+  return tools+`<div class="cpinfo">${rows.length}人${words.length?`（「${esc(A.q.trim())}」）`:''}<span class="rdsubn">${esc(A.fst?({'在籍':'在籍','休み中':'休み中'}[A.fst]||A.fst):'すべて')} ${base.length}人のうち、作り込み完了 ${base.filter(r=>String(r['作り込み完了']||'').trim()).length}人</span>${rdAt(A)}</div>`+(A.error?`<div class="rderr">${esc(A.error)}</div>`:'')+
+    `<div class="rdgridc">${cards||`<div class="plain"><div class="empty">条件に合う人がいません ${A.q||A.fst!=='在籍'?'<button type="button" class="btn sm" data-act="rd-afreset">絞り込みを解く</button>':''}</div></div>`}</div>`;
 }
 function rdAnFmt(f, v){
   if(v===''||v==null) return '';
@@ -3790,12 +3940,14 @@ function rdAnFmt(f, v){
   return esc(v);
 }
 const rdNameKey = n => String(n||'').trim().replace(/[（(]\s*[F北柏FfｆＦ]\s*[）)]/g,'').replace(/[12１２]+$/,'').trim().replace(/[\s　]/g,'');
+// 元のセラピストDB の画面（成績表の取り込みだけは、まだそちらで行う）
+const rdAppUrl = () => rdSafeUrl(RD.url || rdConf().url);
 function rdStatsHtml(r){
   const st=RD.an.stats||{}, months=st.months||[]; if(!months.length) return '';
   const key=rdNameKey(r['名前']), mine=(st.rows||[]).filter(x=>rdNameKey(x['名前'])===key);
   const rate = v => { const t=String(v??'').trim(); if(!t||/%$/.test(t)) return t; const n=parseFloat(t); return isNaN(n)?t:`${Math.round((n<=1?n*100:n)*10)/10}%`; };
   const cell = (x,k,u='') => x && x[k]!=='' && x[k]!=null ? `<td>${esc(x[k])}${u}</td>` : '<td class="none">—</td>';
-  return `<div class="rdgrp"><h3>直近${months.length}か月の成績</h3><table class="rdstats"><thead><tr><th>月</th><th>出勤日数</th><th>総本数</th><th>本指名率</th><th>姫予約</th></tr></thead><tbody>${months.map(mo=>{ const x=mine.find(y=>y['月']===mo); return `<tr><td>${+String(mo).split('-')[1]}月</td>${cell(x,'出勤日数','日')}${cell(x,'総数','本')}${cell(x&&{本指名率:rate(x['本指名率'])},'本指名率')}${cell(x,'姫予約','本')}</tr>`; }).join('')}</tbody></table>${mine.length?'':'<div class="hint">成績表にこの名前がありません</div>'}</div>`;
+  return `<section class="rdsec"><h3>直近${months.length}か月の成績</h3><table class="rdstats"><thead><tr><th>月</th><th>出勤日数</th><th>総本数</th><th>本指名率</th><th>姫予約</th></tr></thead><tbody>${months.map(mo=>{ const x=mine.find(y=>y['月']===mo); return `<tr><td>${+String(mo).split('-')[1]}月</td>${cell(x,'出勤日数','日')}${cell(x,'総数','本')}${cell(x&&{本指名率:rate(x['本指名率'])},'本指名率')}${cell(x,'姫予約','本')}</tr>`; }).join('')}</tbody></table>${mine.length?'':'<div class="hint">成績表にこの名前がありません</div>'}${rdAppUrl()?`<div class="rdstlink">成績表（PDF）の取り込みは、元のセラピストDB の画面で行います（<a href="${esc(rdAppUrl())}" target="_blank" rel="noopener">元の画面を開く</a>）</div>`:''}</section>`;
 }
 function rdGuideText(r){
   const lines=[`【${r['名前']}】`], spec=rdAnSpec(r); if(spec) lines.push(spec);
@@ -3806,19 +3958,22 @@ BK_MODAL.rdan = m => {
   const r=(RD.an.rows||[]).find(x=>x.ID===m.id); if(!r) return '';
   const groups={};
   RD.an.fields.filter(f=>f.type!=='image' && f.name!=='名前').forEach(f=>{ if(r[f.name]===''||r[f.name]==null) return; const g=f.internal?'__memo':(f.group||''); (groups[g]=groups[g]||[]).push(f); });
-  const block = (t, fs, memo) => `<div class="rdgrp${memo?' rdint':''}">${t?`<h3>${esc(t)}</h3>`:''}<dl class="rdkv">${fs.map(f=>`<dt>${esc(f.name)}</dt><dd>${rdAnFmt(f, r[f.name])}</dd>`).join('')}</dl></div>`;
+  const block = (t, fs, memo) => `<section class="rdsec${memo?' int':''}">${t?`<h3>${esc(t)}</h3>`:''}<dl class="rdkv">${fs.map(f=>`<dt>${esc(f.name)}</dt><dd>${rdAnFmt(f, r[f.name])}</dd>`).join('')}</dl></section>`;
   const prof=RD.an.fields.find(f=>f.type==='url' && rdSafeUrl(r[f.name]));
   return `<div class="ov" data-act="close-ov"><div class="modal rdmodal">
     <div class="mhd"><h2>${esc(r['名前'])}</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
-    <div class="rdtop">${rdPho(r, true)}<div>${rdAnStars(r['おすすめ度'])} ${rdAnDone(r)}<div class="rdspec" style="margin-top:4px">${esc(rdAnSpec(r))}</div><div class="rdspec">${esc(r.ID)}・${esc(r._st||'名簿に無し')}・更新 ${esc(r['更新日時']||'—')}</div></div></div>
-    <div class="rdbtns"><button type="button" class="btn sm" data-act="rd-guide" data-id="${esc(r.ID)}">${icon('copy')} 案内文をコピー</button>${prof?`<a class="btn sm" href="${esc(rdSafeUrl(r[prof.name]))}" target="_blank" rel="noopener">公式</a>`:''}${r._sid?`<button type="button" class="btn sm pri" data-act="rd-edit" data-id="${esc(r._sid)}">${icon('edit')} 名簿で直す</button>`:''}</div>
+    <div class="rdprof">${rdPho(r, true)}<div class="rdprofb">
+      <div class="rdnmline">${rdAnStars(r['おすすめ度'])}${rdAnDone(r)}</div>
+      <div class="rdprofspec">${esc(rdAnSpec(r))}</div>
+      <div class="rdspec">${esc(r._st||'名簿に無し')}・更新 ${esc(r['更新日時']||'—')}・${esc(r.ID)}</div>
+      <div class="rdbtns"><button type="button" class="btn sm pri" data-act="rd-guide" data-id="${esc(r.ID)}">${icon('copy')} 案内文をコピー</button>${prof?`<a class="btn sm" href="${esc(rdSafeUrl(r[prof.name]))}" target="_blank" rel="noopener">公式のページ</a>`:''}${r._sid?`<button type="button" class="btn sm" data-act="rd-edit" data-id="${esc(r._sid)}">${icon('edit')} 特徴を直す</button>`:''}</div>
+    </div></div>
     ${Object.entries(groups).filter(([g])=>g!=='__memo').map(([g,fs])=>block(g,fs)).join('')}
     ${rdStatsHtml(r)}
     ${groups.__memo?block('社外秘（社内メモ）', groups.__memo, true):''}
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button></div>
   </div></div>`;
 };
-
 // ----- 受け入れNG（照会・追加・編集。ほかへは写さない） -----
 function rdNgMatch(r, c){
   const m=[];
@@ -3831,30 +3986,33 @@ const rdNgStrong = m => m.includes('電話番号') || (m.includes('生年月日'
 function rdViewNg(){
   const N=RD.ng;
   if(N.rows===null && !N.loading && !N.error) setTimeout(rdNgLoad,0);
-  const bar=rdBar(N,'受け入れNG'), w=rdWait(N,'受け入れNG'); if(w) return bar+w;
+  const w=rdWait(N,'受け入れNG'); if(w) return w;
   const c={q:rdKana(N.q), dob:N.dob?N.dob.replace(/-/g,'/'):'', tel:rdTelKey(N.tel)}, st=N.fst, searching=!!(c.q||c.dob||c.tel);
   let rows=N.rows.filter(r=>!st||r.st===st).map(r=>({r, m:rdNgMatch(r,c)}));
   if(searching) rows=rows.filter(x=>x.m.length).sort((a,b)=>((rdNgStrong(b.m)?10:0)+b.m.length)-((rdNgStrong(a.m)?10:0)+a.m.length));
   const strong=rows.filter(x=>rdNgStrong(x.m)).length;
   const other = st && searching ? N.rows.filter(r=>r.st!==st && rdNgMatch(r,c).length).length : 0;
-  const tools=`<div class="rdtools"><form onsubmit="return false"><input class="inp" type="search" data-rdq="nq" value="${esc(N.q)}" placeholder="名前・かな・源氏名で照会" autocomplete="off"></form>
-    <label class="rddob">生年月日 <input class="inp" type="date" data-rdq="ndob" value="${esc(N.dob)}"></label>
-    <form onsubmit="return false"><input class="inp" type="search" inputmode="tel" data-rdq="ntel" value="${esc(N.tel)}" placeholder="電話番号で照会" autocomplete="off"></form>
-    <select class="inp" data-rds="nfst">${[['NG','NG'],['解除','解除'],['','すべて']].map(([v,l])=>`<option value="${v}" ${st===v?'selected':''}>${l}</option>`).join('')}</select>
-    <button type="button" class="btn sm" data-act="rd-ngclear">照会を消す</button>
-    <button type="button" class="btn sm" data-act="rd-ngnew">${icon('plus')} NGに追加</button></div>`;
+  // 名前・生年月日・電話番号の3つの欄をそろえて並べる。どれか1つでも入れると探す
+  const tools=`<div class="hint rdnghint">面接や応募のときに、受け入れNGの人でないかを確かめる画面です。名前・生年月日・電話番号のどれかを入れると、当てはまる人が出ます。</div>
+    <div class="rdngq">
+      <div class="rdqf"><span class="lb">名前・かな・源氏名</span>${rdSearch('nq', N.q, '例 やまだ')}</div>
+      <div class="rdqf"><span class="lb">生年月日</span><input class="inp" type="date" data-rdq="ndob" value="${esc(N.dob)}" aria-label="生年月日"></div>
+      <div class="rdqf"><span class="lb">電話番号</span>${rdSearch('ntel', N.tel, '例 090-1234-5678', ' inputmode="tel"')}</div>
+      <div class="rdqf rdqst"><span class="lb">状態</span><div class="rdqrow"><select class="inp" data-rds="nfst" aria-label="状態で絞る">${[['NG','NG の人'],['解除','解除した人'],['','すべて']].map(([v,l])=>`<option value="${v}" ${st===v?'selected':''}>${l}</option>`).join('')}</select>${rdReloadBtn(N)}</div></div>
+    </div>`;
   const hit = (!searching ? '' : rows.length
     ? `<div class="rdhit yes">⚠ 受け入れNGに当てはまる可能性がある人：${rows.length} 人${strong?`（うち強く一致 ${strong} 人）`:''}。一致した項目を確かめてください</div>`
     : `<div class="rdhit no">✓ 受け入れNG${st?`（${esc(st)}）`:''}に当てはまる人はいません</div>`) +
     (other ? `<div class="rdhit other">状態が「${esc(st)}」以外の人にも ${other} 人当てはまります（状態を「すべて」にすると出ます）</div>` : '');
   const notice = N.notice ? `<div class="rdnotice">${N.notice} <button type="button" class="btn sm" data-act="rd-ngnotice-x">閉じる</button></div>` : '';
-  const list=rows.map(({r,m})=>`<div class="rditem${searching&&rdNgStrong(m)?' strong':''}" data-act="rd-ng" data-id="${esc(r.id)}"><div class="top"><span class="nm">${esc(r.honmei)}${r.kana?`<span class="rdsubn">（${esc(r.kana)}）</span>`:''}</span>${m.map(t=>`<span class="rdmt">${t}が一致</span>`).join('')}<span class="bktag ${r.st==='NG'?'red':''}">${esc(r.st||'—')}</span></div>
-    <div class="rdmeta">${esc(r.id)}　源氏名 ${esc(r.genji||'—')}　生年月日 ${esc(r.dob||'—')}　電話 ${esc(rdTelShow(r.tel)||'—')}</div>${r.reason?`<div class="rdmeta">理由：${esc(r.reason)}</div>`:''}</div>`).join('');
-  return bar+(N.error?`<div class="rderr">${esc(N.error)}</div>`:'')+notice+tools+hit+`<div class="rdcount">${searching?'照会の結果 ':''}${rows.length} 人${st?`（${esc(st)}）`:'（すべて）'}</div><div class="rdlist">${list||(searching?'':'<div class="plain"><div class="empty">まだ登録がありません</div></div>')}</div>`;
+  const list=rows.map(({r,m})=>`<div class="rditem${searching&&rdNgStrong(m)?' strong':''}" role="button" tabindex="0" data-act="rd-ng" data-id="${esc(r.id)}"><div class="top"><span class="nm">${esc(r.honmei)}${r.kana?`<span class="rdsubn">（${esc(r.kana)}）</span>`:''}</span>${m.map(t=>`<span class="rdmt">${t}が一致</span>`).join('')}${st?'':`<span class="bktag ${r.st==='NG'?'red':''}">${esc(r.st||'—')}</span>`}</div>
+    <div class="rdmeta"><span>源氏名 ${esc(r.genji||'—')}</span><span>生年月日 ${esc(r.dob||'—')}</span><span>電話 ${esc(rdTelShow(r.tel)||'—')}</span></div>${r.reason?`<div class="rdmeta">理由：${esc(r.reason)}</div>`:''}</div>`).join('');
+  return tools+notice+hit+`<div class="cpinfo">${searching?'探した結果 ':''}${rows.length}人${st?`（${esc(st==='NG'?'NG の人':'解除した人')}）`:''}${searching?' <button type="button" class="btn sm" data-act="rd-ngclear">探した内容を消す</button>':''}${rdAt(N)}</div>`+(N.error?`<div class="rderr">${esc(N.error)}</div>`:'')
+    +`<div class="rdlist">${list||(searching?'':'<div class="plain"><div class="empty">まだ登録がありません</div></div>')}</div>`;
 }
 function rdNgOpen(id){
   const r=(RD.ng.rows||[]).find(x=>x.id===id); if(!r) return;
-  const m={type:'rdng', id, step:'edit', loading:true, saving:false, error:'', notice:'', hist:null};
+  const m={type:'rdng', id, pane:'cast', step:'edit', loading:true, saving:false, error:'', notice:'', hist:null};
   rdFill(m, r, null); S.modal=m; render(); rdDetail(m);
 }
 // ＋ NGに追加：照会に入れた名前・生年月日・電話番号を入れた状態で開く
@@ -3885,10 +4043,15 @@ function rdAct(a, el){
     case 'rd-revert': rdRevert(el.dataset.log); break;
     case 'rd-an': S.modal={type:'rdan', id:el.dataset.id}; render(); break;
     case 'rd-guide': { const r=(RD.an.rows||[]).find(x=>x.ID===el.dataset.id); if(r) pwCopy(rdGuideText(r), '案内文'); break; }
-    case 'rd-edit': S.modal=null; rdOpen(el.dataset.id); break;
+    case 'rd-edit': S.modal=null; rdOpen(el.dataset.id, 'feat'); break;
     case 'rd-ng': rdNgOpen(el.dataset.id); break;
     case 'rd-ngnew': rdNgNew(); break;
     case 'rd-ngclear': Object.assign(RD.ng, {q:'', dob:'', tel:''}); render(); break;
+    case 'rd-qx': { const k=el.dataset.k; if(k==='q') RD.q=''; else if(k==='aq') RD.an.q=''; else if(k==='nq') RD.ng.q=''; else if(k==='ntel') RD.ng.tel=''; render(); document.querySelector(`[data-rdq="${k}"]`)?.focus(); break; }
+    case 'rd-pane': if(m){ m.pane=el.dataset.k; render(); const md=document.querySelector('.rdmodal'); if(md) md.scrollTop=0; } break;
+    case 'rd-syncx': RD.syncOpen=!RD.syncOpen; render(); break;
+    case 'rd-freset': Object.assign(RD, {q:'', fst:'', fpri:'', blank:false}); render(); break;
+    case 'rd-afreset': Object.assign(RD.an, {q:'', fst:''}); render(); break;
     case 'rd-forget': if(confirm('この端末から、セラピストDB の接続先と鍵を消しますか？')){ safeSet(LS.rdUrl,null); safeSet(LS.rdKey,null); rdReset(); S.modal=null; render(); toast('セラピストDB の接続先と鍵を消しました'); } break;
   }
 }
@@ -3904,6 +4067,7 @@ function rdSel(el){
   if(k==='fst') RD.fst=v; else if(k==='fpri') RD.fpri=v; else if(k==='afst') RD.an.fst=v; else if(k==='asort') RD.an.sort=v; else if(k==='nfst') RD.ng.fst=v;
   render();
 }
+document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches && e.target.matches('.rdtr[data-act],.rditem[data-act]')){ e.preventDefault(); e.target.click(); } });
 document.addEventListener('keydown', e=>{ if(e.target.matches && e.target.matches('[data-rdtag]') && e.key==='Enter' && !e.isComposing){ e.preventDefault(); const n=e.target.dataset.rdtag; if(rdAddTag(e.target)){ render(); document.querySelector(`[data-rdtag="${CSS.escape(n)}"]`)?.focus(); } } });
 document.addEventListener('focusout', e=>{ if(e.target.matches && e.target.matches('[data-rdtag]') && e.target.value.trim() && rdAddTag(e.target)) setTimeout(render,0); });
 function rdField(){
@@ -4817,7 +4981,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:ee1468007ea0';
+const BUILD = 'AOS_BUILD:04dd0b645cd8';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
