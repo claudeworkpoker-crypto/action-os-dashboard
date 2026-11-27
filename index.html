@@ -516,7 +516,6 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .sqrate.r{background:var(--red-soft);color:var(--red);font-weight:600}
 .sqtext{margin-top:8px;white-space:pre-wrap;word-break:break-word;line-height:1.6}
 .sqother{color:var(--sub);font-size:14px}
-.sqsel{width:auto;max-width:220px;flex:none}
 .keybox{margin-top:10px;padding:10px 12px;border:1px dashed var(--line);border-radius:10px;display:flex;flex-direction:column;gap:8px}
 .kbrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .kblab{font-size:12px;color:var(--sub)}
@@ -544,6 +543,17 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .cpnote{font-size:13px;margin-top:4px}
 .cpact{display:flex;justify-content:flex-end;margin-top:8px}
 .pwbar{display:flex;gap:6px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
+/* 検索の帯（パスワード・クーポン・アンケート・補充）：入力欄・選び欄・ボタンの高さを40pxにそろえる */
+.pwbar,.supsearch{gap:8px;align-items:stretch}
+.pwbar .inp,.supsearch .inp{height:40px;padding-top:0;padding-bottom:0}
+.pwbar>.btn,.supsearch>.btn{height:40px;padding:0 14px;font-size:14px;border-radius:10px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:none}
+.pwbar>.iconbtn{width:40px;height:40px;flex:none;border-radius:10px}
+.pwbar select.inp{width:auto;flex:none;max-width:240px;padding:0 34px 0 12px;-webkit-appearance:none;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239a9893' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;background-size:14px}
+.btn.tgl{color:var(--sub)}
+.btn.tgl svg{width:14px;height:14px}
+.btn.tgl.on{background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 45%,var(--line));color:var(--accent);font-weight:600}
+.cpq{flex:1 1 260px}
+@media (max-width:640px){ .pwbar .cpq{flex:1 1 100%} .pwbar select.inp{flex:1 1 0;min-width:0;max-width:none} }
 .pwbar .inp{flex:1;min-width:180px}
 .pwlist{display:flex;flex-direction:column;gap:6px}
 .pwlist .grouphd{padding:10px 2px 2px}
@@ -1932,7 +1942,7 @@ function viewCoupon(){
     <div style="margin-top:10px"><button class="btn sm pri" data-act="settings">設定画面を開く</button></div></div>`;
   // 初めて開いたら全件を読む。前に読んでから時間がたっていたら、出したまま裏で読み直す
   if(!CP.loading && !CP.error && (CP.all===null || Date.now()-CP.at>CP_STALE_MS)) setTimeout(()=>{ if(!CP.loading) cpLoad(); },0);
-  const search=`<form class="pwbar" data-act="cp-search" onsubmit="return false"><div class="cpq"><input class="inp" name="q" data-cpq value="${esc(CP.q)}" placeholder="当選コード・顧客番号・お客様名・セラピスト名" autocomplete="off" enterkeyhint="search">${CP.q?'<button type="button" class="cpx" data-act="cp-clear" title="入力を消す" aria-label="入力を消す">'+icon('x')+'</button>':''}</div><button type="button" class="btn sm" data-act="cp-reload" title="アンケートの窓口から読み直す" ${CP.loading?'disabled':''}>${icon('refresh').replace('<svg','<svg width="14" height="14"')} 読み直す</button></form>`;
+  const search=`<form class="pwbar" data-act="cp-search" onsubmit="return false"><div class="cpq"><input class="inp" name="q" data-cpq value="${esc(CP.q)}" placeholder="当選コード・顧客番号・お客様名・セラピスト名" autocomplete="off" enterkeyhint="search">${CP.q?'<button type="button" class="cpx" data-act="cp-clear" title="入力を消す" aria-label="入力を消す">'+icon('x')+'</button>':''}</div><button type="button" class="iconbtn ${CP.loading?'spin':''}" data-act="cp-reload" title="アンケートの窓口から読み直す" aria-label="読み直す" ${CP.loading?'disabled':''}>${icon('refresh')}</button></form>`;
   const sh=cpShown(), items=sh.list;
   const firstLoad = CP.all===null || (CP.loading && !(CP.all||[]).length);
   const info = firstLoad ? 'アンケートの窓口から読んでいます…（初回だけ数秒かかります）'
@@ -1968,8 +1978,9 @@ function cpField(){
 // ===== アンケート（お客様アンケートの回答を見る。正本はアンケートのスプレッドシートの「フォーム回答」） =====
 // クーポンと同じ窓口・同じ鍵（survey.list）。読むだけで書かない。新しい方から400件ずつ読み、探すのは手元で打つたびに行う
 // 回答（お客様の名前・番号・感想）は端末に保存しない（開いている間だけ持つ）
-const SQ = {items:null, total:0, more:false, next:0, at:0, loading:false, loadingMore:false, error:'', q:'', low:false, ther:'', seq:0};
-const SQ_PAGE = 400;
+const SQ = {items:null, total:0, more:false, next:0, at:0, loading:false, loadingMore:false, rest:0, error:'', q:'', low:false, ther:'', seq:0};
+const SQ_PAGE = 1000;               // 1回に読む件数（窓口の上限）。開いたときは、最初の1000件を出してから残りを並べて読み、全件にする
+const SQ_STALE_MS = 10*60*1000;     // 開き直したとき、これより古ければ裏で読み直す（全件なので、クーポンより長め）
 const SQ_RATE = [['aikyo','愛嬌'],['omotenashi','おもてなし'],['sejutsu','施術'],['sofa','ソファ'],['doki','ドキドキ'],['honshimei','本指名']];
 let sqDemo = null;
 function sqDemoRows(){
@@ -1992,10 +2003,24 @@ async function sqCall(payload){
   return cpCall('survey.list', payload);
 }
 async function sqLoad(){
-  const my=++SQ.seq; SQ.loading=true; SQ.error=''; render();
-  try{ const j=await sqCall({offset:0, limit:SQ_PAGE}); if(my!==SQ.seq) return; SQ.items=j.items||[]; SQ.total=j.total||0; SQ.more=!!j.more; SQ.next=j.next||0; SQ.at=Date.now(); }
+  const my=++SQ.seq; let had=sqFocused(); SQ.loading=true; SQ.error=''; render(); if(had) sqRefocus();
+  try{
+    const j=await sqCall({offset:0, limit:SQ_PAGE}); if(my!==SQ.seq) return;
+    SQ.items=j.items||[]; SQ.total=j.total||0; SQ.more=!!j.more; SQ.next=j.next||0; SQ.at=Date.now();
+    if(SQ.more){
+      // 最初の分を先に出し、残りは並べて読む（新しい順を保ってつなげる）
+      const offs=[]; for(let o=SQ.next; o<SQ.total; o+=SQ_PAGE) offs.push(o);
+      SQ.rest=Math.max(0, SQ.total-SQ.items.length); had=sqFocused(); render(); if(had) sqRefocus();
+      const pages=await Promise.all(offs.map(o=>sqCall({offset:o, limit:SQ_PAGE}).catch(e=>({err:e}))));
+      if(my!==SQ.seq) return;
+      let bad=null;
+      for(const pg of pages){ if(pg.err){ bad=pg.err; break; } SQ.items=SQ.items.concat(pg.items||[]); SQ.next=pg.next||SQ.next; }
+      SQ.more = !!bad || SQ.next<SQ.total;   // 読めなかった分は「もっと古い回答を読み込む」で続きから読める
+      if(bad) toast(bad.message,true);
+    }
+  }
   catch(e){ if(my===SQ.seq){ SQ.error=e.message; if(!SQ.items) SQ.items=[]; } }
-  if(my===SQ.seq){ SQ.loading=false; render(); }
+  if(my===SQ.seq){ SQ.rest=0; had=sqFocused(); SQ.loading=false; render(); if(had) sqRefocus(); }
 }
 async function sqLoadMore(){
   if(SQ.loadingMore || !SQ.more) return;
@@ -2020,19 +2045,19 @@ function sqRefocus(pos){ const i=document.querySelector('[data-sqq]'); if(!i) re
 const sqInput = el => { SQ.q=el.value; const pos=el.selectionStart; render(); sqRefocus(pos); };
 function viewSurvey(){
   if(!cpOn()) return `<div class="bkcard"><b>アンケートの窓口につながっていません</b><div class="hint" style="margin-top:6px">クーポンと同じ窓口を使います。設定画面の「クーポン（アンケートの当選）」に URL と鍵を入れると使えます。</div><div style="margin-top:10px"><button class="btn sm pri" data-act="settings">設定画面を開く</button></div></div>`;
-  if(!SQ.loading && !SQ.error && (SQ.items===null || Date.now()-SQ.at>CP_STALE_MS)) setTimeout(()=>{ if(!SQ.loading) sqLoad(); },0);
+  if(!SQ.loading && !SQ.error && (SQ.items===null || Date.now()-SQ.at>SQ_STALE_MS)) setTimeout(()=>{ if(!SQ.loading) sqLoad(); },0);
   const items=SQ.items||[];
   const thers=[...new Set(items.map(it=>it.therapist).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
   const bar=`<form class="pwbar" data-act="sq-search" onsubmit="return false"><div class="cpq"><input class="inp" name="q" data-sqq value="${esc(SQ.q)}" placeholder="セラピスト・お客様名・番号・感想の言葉" autocomplete="off" enterkeyhint="search">${SQ.q?'<button type="button" class="cpx" data-act="sq-clear" title="入力を消す" aria-label="入力を消す">'+icon('x')+'</button>':''}</div>
-    <select class="inp sqsel" data-sqther><option value="">セラピスト：すべて</option>${thers.map(t=>`<option value="${esc(t)}" ${SQ.ther===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
-    <button type="button" class="btn sm ${SQ.low?'pri':''}" data-act="sq-low" title="満足度が普通以下か、悪いがあるものだけ">評価の低いものだけ</button>
-    <button type="button" class="btn sm" data-act="sq-reload" ${SQ.loading?'disabled':''}>${icon('refresh').replace('<svg','<svg width="14" height="14"')} 読み直す</button></form>`;
+    <select class="inp" data-sqther><option value="">セラピスト：すべて</option>${thers.map(t=>`<option value="${esc(t)}" ${SQ.ther===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+    <button type="button" class="btn tgl ${SQ.low?'on':''}" data-act="sq-low" title="満足度が普通以下か、悪いがあるものだけ" aria-pressed="${SQ.low}">${SQ.low?icon('check'):''}評価の低いものだけ</button>
+    <button type="button" class="iconbtn ${SQ.loading?'spin':''}" data-act="sq-reload" title="アンケートの窓口から読み直す" aria-label="読み直す" ${SQ.loading?'disabled':''}>${icon('refresh')}</button></form>`;
   const first = SQ.items===null || (SQ.loading && !items.length);
   const shown = first ? [] : sqShown(), cap=200, list=shown.slice(0,cap);
   const filtered = SQ.q||SQ.ther||SQ.low;
   const info = first ? 'アンケートの窓口から読んでいます…（初回だけ数秒かかります）' : SQ.error ? '' :
-    `${filtered?`絞り込んで ${shown.length}件`:`新しい回答 ${items.length}件`}（全部で${SQ.total}件のうち、新しい方から${items.length}件を読み込み）${shown.length>cap?`。多いので${cap}件まで表示`:''}`;
-  const fresh = SQ.at && !first ? `<span class="cpat">${SQ.loading?'読み直しています…':`${new Date(SQ.at).toTimeString().slice(0,5)} に読み込み`}</span>` : '';
+    `${filtered?`絞り込んで ${shown.length}件`:`新しい回答 ${items.length}件`}（${items.length>=SQ.total?`全部で${SQ.total}件を読み込み`:`全部で${SQ.total}件のうち、新しい方から${items.length}件を読み込み${SQ.rest?'。残りを読み込んでいます…':''}`}）${shown.length>cap?`。多いので${cap}件まで表示`:''}`;
+  const fresh = SQ.at && !first ? `<span class="cpat">${SQ.loading&&!SQ.rest?'読み直しています…':SQ.loading?'':`${new Date(SQ.at).toTimeString().slice(0,5)} に読み込み`}</span>` : '';
   const cards=list.map(it=>{ const tone=sqTone(it.manzoku||'');
     return `<div class="sqcard ${sqLow(it)?'low':''}">
       <div class="cprow1"><b>${esc(it.therapist||'—')}</b><span class="sqmeta">${esc(cpMd(it.at))}${it.at&&it.at.length>10?' '+esc(it.at.slice(11)):''}</span><span class="sp"></span>${it.manzoku?`<span class="sqrate ${tone}">満足度 ${esc(it.manzoku)}</span>`:''}</div>
@@ -2045,7 +2070,7 @@ function viewSurvey(){
   const more = !first && SQ.more ? `<div style="text-align:center;margin-top:12px"><button class="btn sm" data-act="sq-more" ${SQ.loadingMore?'disabled':''}>${SQ.loadingMore?'読み込んでいます…':`もっと古い回答を読み込む（${SQ_PAGE}件）`}</button></div>` : '';
   return `${bar}<div class="cpinfo">${info}${fresh}</div>${SQ.error?`<div class="bkcard" style="color:var(--red)">${esc(SQ.error)}</div>`:''}
     <div class="cplist">${cards || (first||SQ.error?'':'<div class="empty">見つかりません</div>')}</div>${more}
-    <div class="hint" style="margin-top:12px">アンケートのスプレッドシートの「フォーム回答」を、新しい順に読むだけです（書き換えません）。探す欄・セラピスト・評価の低いものだけ は、読み込んだ分の中から絞り込みます。古い回答も探したいときは、いちばん下の「もっと古い回答を読み込む」を押してください。</div>`;
+    <div class="hint" style="margin-top:12px">アンケートのスプレッドシートの「フォーム回答」を、新しい順に読むだけです（書き換えません）。探す欄・セラピスト・評価の低いものだけ は、読み込んだ分の中から絞り込みます。開いたときに全部の回答を読み込みます（最初の1000件を先に出し、残りは裏で読みます）。</div>`;
 }
 
 // ===== 空室情報（BOK のルーム空室情報。正本は BOK のスプレッドシート） =====
@@ -3582,7 +3607,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:fa1a50302390';
+const BUILD = 'AOS_BUILD:27298051e862';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
