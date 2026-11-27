@@ -411,7 +411,6 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .nchk svg{width:12px;height:12px;opacity:0}
 .nchk.on{background:var(--accent);border-color:var(--accent)}
 .nchk.on svg{opacity:1}
-.nbul{flex:none;width:20px;text-align:center;color:var(--faint);margin-top:1px}
 .nt{flex:1;min-width:0;word-break:break-word;white-space:pre-wrap;cursor:pointer;line-height:1.6}
 .nrow.done .nt{color:var(--faint);text-decoration:line-through}
 .nt .em{color:var(--red);font-weight:600}
@@ -1430,7 +1429,7 @@ function viewNotes(){
     const plain=catPlain(c), doneN=c.items.filter(x=>x.check===true).length;
     const rows = c.items.length ? c.items.map((it,ii)=>`<div class="nrow ${it.check===true?'done':''}" data-cat="${esc(c.name)}" data-i="${ii}">
         <span class="ngrip" data-drag="note" title="つかんで並べ替え・ほかの区分へ移す">${icon('grip')}</span>
-        ${it.check===null?(/^\p{Extended_Pictographic}/u.test(it.text)?'':'<span class="nbul">•</span>'):`<button class="nchk ${it.check?'on':''}" data-act="note-toggle" data-ref='${ref(c,it)}' title="${it.check?'未対応に戻す':'対応済みにする'}">${icon('check')}</button>`}
+        ${it.check===null?'':`<button class="nchk ${it.check?'on':''}" data-act="note-toggle" data-ref='${ref(c,it)}' title="${it.check?'未対応に戻す':'対応済みにする'}">${icon('check')}</button>`}
         <div class="nt" data-act="note-edit" data-ref='${ref(c,it)}'>${fmtNote(it.text)}</div></div>`).join('')
       : '<div class="empty">まだありません</div>';
     return `<section class="ncat ${plain?'rule':''}" data-cat="${esc(c.name)}" style="--cc:var(${PALETTE[ci%PALETTE.length]})">
