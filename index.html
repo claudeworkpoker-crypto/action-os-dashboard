@@ -602,6 +602,14 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .suplv{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:0 6px;margin-right:2px;vertical-align:1px}
 .suplv.red{background:var(--red-soft);color:var(--red)} .suplv.amber{background:var(--amber-soft);color:var(--amber)}
 .supq{color:var(--accent);font-weight:700}
+.suplv.blue{background:var(--accent-soft);color:var(--accent)}
+.supord{flex:none;border:0;background:transparent;color:var(--faint);font-size:12px;line-height:1.5;padding:2px 7px;margin-top:1px;border-radius:6px;white-space:nowrap;cursor:pointer}
+.supord:hover{color:var(--accent);background:var(--accent-soft)}
+.supord.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.supact{display:inline-flex;gap:4px;flex-wrap:wrap;vertical-align:1px;margin-left:4px}
+.supact:empty{display:none}
+.supordn{color:var(--accent);font-weight:600}
+.suptot .prow .d{text-align:right}
 .room .rsup{font-size:12px;border-radius:999px;padding:1px 8px;background:var(--accent-soft);color:var(--accent);cursor:pointer}
 .inslist{display:flex;flex-direction:column;gap:8px}
 .insrow{display:flex;flex-direction:column;gap:4px;padding-bottom:8px;border-bottom:1px solid var(--line)}
@@ -643,6 +651,7 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .modal .actions{position:sticky;bottom:-18px;z-index:3;margin:18px -18px -18px;padding:12px 18px calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line)}
 /* 補充の絞り込みボタンも高さを40pxに */
 .supsearch .supfilter button{height:40px;padding:0 14px;border-radius:10px;font-size:14px}
+@media (max-width:640px){ .supsearch .supfilter{width:100%;flex-wrap:nowrap} .supsearch .supfilter button{flex:1 1 auto;padding:0 8px;font-size:13px;white-space:nowrap} }
 /* 空のときの表示：ボタンを横に */
 .empty .btn{margin-left:8px;vertical-align:middle}
 @media (max-width:640px){
@@ -3196,13 +3205,15 @@ function rvField(){
 // 「## チェック項目」の表に、品目ごとの目安（至急・補充必要・補充の必要無）を持つ。
 // 「## ルーム名」ごとに、点検した日（点検: YYYY-MM-DD）と、補充が要るものをチェック付きの箇条書きで持つ（例：- [ ] お茶【至急】）。
 // 足りているものは書かない。ファイルがあるときだけタブを出す。
+// 在庫切れで注文しているものは、未補充の行の後ろに【注文中】を付ける（例：- [ ] パイプユニッシュ【至急】【注文中】）。ルームの行ごとに付け外しする。補充したら外す
 const SUP_INIT = '# 備品の補充\n\n## チェック項目\n\n| 品目 | 至急 | 補充必要 | 補充の必要無 | ピン |\n|---|---|---|---|---|\n';
 const SUP_LV = {urgent:{tag:'至急', cls:'red'}, need:{tag:'補充', cls:'amber'}};
 function supItemOf(t){
-  let s=String(t), level='need', qty=1;
+  let s=String(t), level='need', qty=1, order=false;
+  const od=s.match(/【\s*注文中\s*】/); if(od){ order=true; s=s.replace(od[0],''); }
   const lv=s.match(/【\s*(至急|補充|補充必要)\s*】/); if(lv){ level = lv[1]==='至急'?'urgent':'need'; s=s.replace(lv[0],''); }
   const q=s.match(/\s*[×xX＊*]\s*(\d+)\s*$/); if(q){ qty=+q[1]; s=s.slice(0,q.index); }
-  return {name:s.trim(), level, qty};
+  return {name:s.trim(), level, qty, order};
 }
 function parseSupplies(text){
   const d={items:[], rooms:[]}; let cur=null, inItems=false;
@@ -3232,7 +3243,7 @@ function serializeSupplies(d){
     if(!r.items.length && !r.checked) continue;
     out+=`\n## ${r.room}\n\n`;
     if(r.checked) out+=`点検: ${r.checked}\n\n`;
-    for(const it of r.items) out+=`- [${it.done?'x':' '}] ${it.name}【${SUP_LV[it.level].tag}】${it.qty>1?` ×${it.qty}`:''}\n`;
+    for(const it of r.items) out+=`- [${it.done?'x':' '}] ${it.name}【${SUP_LV[it.level].tag}】${it.order&&!it.done?'【注文中】':''}${it.qty>1?` ×${it.qty}`:''}\n`;
   }
   return out;
 }
@@ -3256,7 +3267,7 @@ function saveInspection(room, picks){
       const open=r.items.find(x=>x.name===name && !x.done);
       if(lv==='ok'){ if(open) r.items.splice(r.items.indexOf(open),1); }
       else if(open) open.level=lv;
-      else r.items.push({name, level:lv, qty:1, done:false});
+      else r.items.push({name, level:lv, qty:1, done:false, order:false});
     }
     r.checked=day;
   }, `dashboard: ${room} の備品を点検`);
@@ -3265,31 +3276,39 @@ function addSupply(room, name, level){
   supOp('補充リストに足しました', d=>{
     let r=supRoom(d, room); if(!r){ r={room, checked:'', items:[]}; d.rooms.push(r); }
     const open=r.items.find(x=>x.name===name && !x.done);
-    if(open) open.level=level; else r.items.push({name, level, qty:1, done:false});
+    if(open) open.level=level; else r.items.push({name, level, qty:1, done:false, order:false});
   }, `dashboard: ${room} に「${name}」の補充を追加`);
 }
-function toggleSupply(ref){ supOp('', d=>{ const f=supFind(d,ref); if(!f) return false; f.it.done=!f.it.done; }, `dashboard: ${ref.room} の「${ref.name}」を${ref.done?'未補充に戻す':'補充済みにする'}`); }
+// 補充済みにしたら【注文中】も外す（届いて補充できたので）
+function toggleSupply(ref){ supOp('', d=>{ const f=supFind(d,ref); if(!f) return false; f.it.done=!f.it.done; if(f.it.done) f.it.order=false; }, `dashboard: ${ref.room} の「${ref.name}」を${ref.done?'未補充に戻す':'補充済みにする'}`); }
 function delSupply(ref){ supOp('消しました', d=>{ const f=supFind(d,ref); if(!f) return false; f.r.items.splice(f.i,1); }, `dashboard: ${ref.room} の「${ref.name}」を消す`); }
-function roomSupplyDone(room){ supOp('このルームの補充を済みにしました', d=>{ const r=supRoom(d,room); if(!r || !supOpen(r).length) return false; r.items.forEach(x=>x.done=true); }, `dashboard: ${room} の補充をすべて済みにする`); }
+// 「全部補充した」：注文中のものは届いていないので残す（注文中だけ残っているときはボタンを出さない）
+function roomSupplyDone(room){ supOp('このルームの補充を済みにしました', d=>{ const r=supRoom(d,room); if(!r || !supOpen(r).some(x=>!x.order)) return false; r.items.forEach(x=>{ if(!x.order) x.done=true; }); }, `dashboard: ${room} の補充をすべて済みにする${supOpen(supRoom(S.supplies,room)||{items:[]}).some(x=>x.order)?'（注文中のものは残す）':''}`); }
+// 注文中の付け外し：ルームの1行ごと
+function toggleSupOrder(ref){ supOp('', d=>{ const f=supFind(d,ref); if(!f || f.it.done) return false; f.it.order=!f.it.order; }, `dashboard: ${ref.room} の「${ref.name}」を${ref.order?'注文中から外す':'注文中にする'}`); }
+// 注文中の付け外し：品目ごとに、未補充の行をまとめて（在庫切れでまとめて注文したとき・届いたとき）
+function itemSupOrder(name, on){ supOp(on?'注文中にしました':'注文中を外しました', d=>{ let hit=false; d.rooms.forEach(r=>supOpen(r).forEach(x=>{ if(x.name===name && !!x.order!==on){ x.order=on; hit=true; } })); if(!hit) return false; }, `dashboard: 「${name}」の未補充の分を${on?'注文中にする':'注文中から外す'}`); }
 function clearDoneSupplies(){ supOp('済みを消しました', d=>{ let hit=false; d.rooms.forEach(r=>{ const n=r.items.length; r.items=r.items.filter(x=>!x.done); if(r.items.length!==n) hit=true; }); if(!hit) return false; }, 'dashboard: 補充済みを消す'); }
 function toggleSupPin(name){ supOp('', d=>{ const it=d.items.find(x=>x.name===name); if(!it) return false; it.pin=!it.pin; }, `dashboard: 点検項目「${name}」のピンを切り替え`); }
 function saveSupItems(items){ supOp('点検項目を保存しました', d=>{ d.items=items; }, 'dashboard: 備品の点検項目を更新'); }
 
-// 絞り込み：all＝すべて／open＝要対応だけ（補充済みは隠す）／urgent＝至急だけ
-const supF = () => ['all','open','urgent'].includes(safeGet(LS.supF)) ? safeGet(LS.supF) : 'all';
-const supShow = x => { const f=supF(); return f==='all' ? true : f==='open' ? !x.done : (!x.done && x.level==='urgent'); };
-// 送る用の文面（いまは貼り付けて使う。Telegram などに自動で送るかは別に決める）。至急だけに絞っているときは至急だけ
+// 絞り込み：all＝すべて／open＝要対応だけ（補充済みは隠す）／urgent＝至急だけ／order＝注文中だけ
+// 注文中のものも未補充なので、要対応・至急の数に入れ、行に「注文中」と出す
+const supF = () => ['all','open','urgent','order'].includes(safeGet(LS.supF)) ? safeGet(LS.supF) : 'all';
+const supShow = x => { const f=supF(); return f==='all' ? true : f==='open' ? !x.done : f==='order' ? (!x.done && !!x.order) : (!x.done && x.level==='urgent'); };
+const supOrderCount = () => S.supplies ? S.supplies.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.order).length,0) : 0;
+// 送る用の文面（いまは貼り付けて使う。Telegram などに自動で送るかは別に決める）。絞り込みに合わせる。注文中のものは「注文中」の行に分ける
 function supText(){
-  const lines=[];
-  for(const n of supRoomNames()){ const r=supRoom(S.supplies,n); if(!r) continue; const o=supOpen(r); if(!o.length) continue;
-    const u=o.filter(x=>x.level==='urgent').map(x=>x.name), nd=supF()==='urgent' ? [] : o.filter(x=>x.level!=='urgent').map(x=>x.name);
-    if(!u.length && !nd.length) continue;
-    lines.push(`■ ${n}${roomArea(n)?`（${roomArea(n)}）`:''}`); if(u.length) lines.push(`　至急：${u.join('、')}`); if(nd.length) lines.push(`　補充：${nd.join('、')}`); }
-  return lines.length ? `【備品の補充${supF()==='urgent'?'（至急）':''}】${mdw(todayStr())}\n${lines.join('\n')}` : '';
+  const lines=[], f=supF();
+  for(const n of supRoomNames()){ const r=supRoom(S.supplies,n); if(!r) continue; const o=supOpen(r).filter(supShow); if(!o.length) continue;
+    const u=o.filter(x=>!x.order && x.level==='urgent').map(x=>x.name), nd=o.filter(x=>!x.order && x.level!=='urgent').map(x=>x.name), od=o.filter(x=>x.order).map(x=>x.name);
+    if(!u.length && !nd.length && !od.length) continue;
+    lines.push(`■ ${n}${roomArea(n)?`（${roomArea(n)}）`:''}`); if(u.length) lines.push(`　至急：${u.join('、')}`); if(nd.length) lines.push(`　補充：${nd.join('、')}`); if(od.length) lines.push(`　注文中：${od.join('、')}`); }
+  return lines.length ? `【備品の補充${f==='urgent'?'（至急）':f==='order'?'（注文中）':''}】${mdw(todayStr())}\n${lines.join('\n')}` : '';
 }
 function supTotals(){
   const m=new Map();
-  for(const r of S.supplies.rooms) for(const x of supOpen(r).filter(supShow)){ const e=m.get(x.name)||{urgent:[], need:[]}; e[x.level==='urgent'?'urgent':'need'].push(r.room); m.set(x.name,e); }
+  for(const r of S.supplies.rooms) for(const x of supOpen(r).filter(supShow)){ const e=m.get(x.name)||{urgent:[], need:[], order:[]}; e[x.level==='urgent'?'urgent':'need'].push(r.room); if(x.order) e.order.push(r.room); m.set(x.name,e); }
   return [...m.entries()].sort((a,b)=>(b[1].urgent.length-a[1].urgent.length)||((b[1].urgent.length+b[1].need.length)-(a[1].urgent.length+a[1].need.length))||a[0].localeCompare(b[0],'ja'));
 }
 function viewSupplies(){
@@ -3298,12 +3317,12 @@ function viewSupplies(){
   // 点検：エリアごとにルームを並べ、押すと点検の画面を開く
   const areas=[...new Set(names.map(n=>roomArea(n)||'その他'))];
   const f=supF(), roomShow=n=>{ if(f==='all') return true; const r=supRoom(d,n); return !!r && supOpen(r).some(supShow); };
-  const insp=`<div class="supinsp">${areas.filter(a=>names.some(n=>(roomArea(n)||'その他')===a && roomShow(n))).map(a=>`<div class="supa"><div class="grouphd">${esc(a)}</div><div class="supchips">${names.filter(n=>(roomArea(n)||'その他')===a && roomShow(n)).map(n=>{ const r=supRoom(d,n), c=r?supOpen(r):[], u=c.filter(x=>x.level==='urgent').length;
-      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`:'—'}</span><small>${r&&r.checked?`点検 ${esc(mdw(r.checked))}`:'未点検'}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
+  const insp=`<div class="supinsp">${areas.filter(a=>names.some(n=>(roomArea(n)||'その他')===a && roomShow(n))).map(a=>`<div class="supa"><div class="grouphd">${esc(a)}</div><div class="supchips">${names.filter(n=>(roomArea(n)||'その他')===a && roomShow(n)).map(n=>{ const r=supRoom(d,n), c=r?supOpen(r):[], u=c.filter(x=>x.level==='urgent').length, o=c.filter(x=>x.order).length;
+      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`+(o?`・注文${o}`:''):'—'}</span><small>${r&&r.checked?`点検 ${esc(mdw(r.checked))}`:'未点検'}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
   const qq=(S.supQ||'').trim().toLowerCase(), hit=t=>!qq || String(t).toLowerCase().includes(qq);
-  const urgentN=d.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0);
+  const urgentN=d.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0), orderN=supOrderCount();
   const search=`<form class="supsearch" onsubmit="return false"><input class="inp" data-supq placeholder="さがす（品目・ルーム）" value="${esc(S.supQ||'')}" autocomplete="off">
-    <div class="seg supfilter">${[['all','すべて',''],['open','要対応だけ',open],['urgent','至急だけ',urgentN]].map(([k,l,n])=>`<button type="button" class="${f===k?'on':''}" data-act="sup-filter" data-k="${k}">${l}${n!==''?` ${n}`:''}</button>`).join('')}</div></form>`;
+    <div class="seg supfilter">${[['all','すべて',''],['open','要対応だけ',open],['urgent','至急だけ',urgentN], ...(orderN||f==='order'?[['order','注文中',orderN]]:[])].map(([k,l,n])=>`<button type="button" class="${f===k?'on':''}" data-act="sup-filter" data-k="${k}">${l}${n!==''?` ${n}`:''}</button>`).join('')}</div></form>`;
   const tools=`<div class="suptools">
     <button type="button" class="btn sm" data-act="sup-copy" ${open?'':'disabled'}>${icon('copy')} 文面をコピー</button>
     ${doneN?`<button type="button" class="btn sm" data-act="sup-clear">補充済みを消す（${doneN}）</button>`:''}
@@ -3311,30 +3330,35 @@ function viewSupplies(){
     <span class="sp"></span><span class="hint">補充が要るもの ${open}件</span></div>`;
   const tot=supTotals().filter(([n,e])=>hit(n) || [...e.urgent,...e.need].some(hit));
   const totals = tot.length ? `<details class="suptot" ${S.supTotOpen?'open':''} data-act="sup-tot"><summary>買い出し用のまとめ（${tot.length}品目）</summary>
-    <div class="plain">${tot.map(([n,e])=>`<div class="prow"><div class="t"><b>${esc(n)}</b> <span class="hint">${[...e.urgent.map(x=>x+'（至急）'), ...e.need].map(esc).join('・')}</span></div><div class="d">${e.urgent.length+e.need.length}室</div></div>`).join('')}</div></details>` : '';
+    <div class="plain">${tot.map(([n,e])=>{ const mk=(x,u)=>{ const t=[u?'至急':'', e.order.includes(x)?'注文中':''].filter(Boolean); return x+(t.length?`（${t.join('・')}）`:''); };
+      const all=d.rooms.flatMap(r=>supOpen(r).filter(x=>x.name===n)), notN=all.filter(x=>!x.order).length, ordN=all.length-notN;
+      return `<div class="prow"><div class="t"><b>${esc(n)}</b> <span class="hint">${[...e.urgent.map(x=>mk(x,true)), ...e.need.map(x=>mk(x,false))].map(esc).join('・')}</span>
+        <span class="supact">${notN?`<button type="button" class="supord" data-act="sup-item-order" data-name="${esc(n)}" data-on="1" data-n="${notN}" title="未補充の${notN}室をまとめて注文中にする">まとめて注文中に</button>`:''}${ordN?`<button type="button" class="supord on" data-act="sup-item-order" data-name="${esc(n)}" data-on="" data-n="${ordN}" title="届いたとき：注文中の${ordN}室を外す（補充はまだの扱いに戻る）">注文中を外す</button>`:''}</span></div>
+        <div class="d">${e.urgent.length+e.need.length}室${e.order.length?`<br><span class="supordn">注文中 ${e.order.length}</span>`:''}</div></div>`; }).join('')}</div></details>` : '';
   const rows = names.map(n=>{ const r=supRoom(d,n); if(!r || !r.items.length) return '';
     const items = (hit(n) ? r.items : r.items.filter(x=>hit(x.name))).filter(supShow); if(!items.length) return '';
-    const sorted=items.slice().sort((a,b)=>(a.done-b.done)||((a.level==='urgent'?0:1)-(b.level==='urgent'?0:1)));
-    const left=supOpen(r).length;
+    const sorted=items.slice().sort((a,b)=>(a.done-b.done)||(!!a.order-!!b.order)||((a.level==='urgent'?0:1)-(b.level==='urgent'?0:1)));
+    const left=supOpen(r).length, canDone=supOpen(r).filter(x=>!x.order).length;
     return `<section class="suproom">
       <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span><span class="sp"></span>
-        ${left?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">全部補充した</button>`:''}</div>
-      <div class="nlist">${sorted.map(x=>{ const ref=esc(JSON.stringify({room:n, name:x.name, done:!!x.done})), lv=SUP_LV[x.level];
+        ${canDone?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">${canDone<left?'注文中以外を補充した':'全部補充した'}</button>`:''}</div>
+      <div class="nlist">${sorted.map(x=>{ const ref=esc(JSON.stringify({room:n, name:x.name, done:!!x.done, order:!!x.order})), lv=SUP_LV[x.level];
         return `<div class="nrow ${x.done?'done':''}">
           <button class="nchk ${x.done?'on':''}" data-act="sup-toggle" data-ref='${ref}' title="${x.done?'未補充に戻す':'補充した'}">${icon('check')}</button>
           <div class="nt"><span class="suplv ${lv.cls}">${lv.tag}</span> ${esc(x.name)}${x.qty>1?` <b class="supq">×${x.qty}</b>`:''}</div>
+          ${x.done?'':`<button type="button" class="supord ${x.order?'on':''}" data-act="sup-order" data-ref='${ref}' title="${x.order?'注文中を外す（届いたとき）':'在庫切れで注文中にする'}">${x.order?'注文中':'注文中に'}</button>`}
           <button class="iconbtn sm" data-act="sup-del" data-ref='${ref}' title="消す">${icon('x')}</button></div>`; }).join('')}</div>
     </section>`; }).join('');
-  const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
+  const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':f==='order'?'注文中のものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
   return `${search}<div class="grouphd" style="padding-left:0">ルームを押して点検する</div>${inspBlock}${tools}${totals}<div class="notes">${rows||`<div class="plain"><div class="empty">${qq||f!=='all'?`${qq?`「${esc(S.supQ.trim())}」に合う`:'この条件の'}ものはありません <button type="button" class="btn sm" data-act="sup-reset">絞り込みを解く</button>`:'補充が要るものはありません'}</div></div>`}</div>
-    <div class="hint" style="margin-top:10px">ルームを押すと、点検項目ごとに「至急・補充必要・足りている」を選べます。「至急」「補充必要」にしたものがここに並びます。補充したらチェックを入れてください。「文面をコピー」で、まだの分をルームごとの文にしてコピーできます（LINE や Telegram に貼り付けて使えます）。</div>`;
+    <div class="hint" style="margin-top:10px">ルームを押すと、点検項目ごとに「至急・補充必要・足りている」を選べます。「至急」「補充必要」にしたものがここに並びます。補充したらチェックを入れてください。在庫切れで注文しているものは「注文中に」を押すと、届くまで「注文中」と出ます（品目ごとにまとめて付け外しするときは「買い出し用のまとめ」から）。「文面をコピー」で、まだの分をルームごとの文にしてコピーできます（LINE や Telegram に貼り付けて使えます）。</div>`;
 }
 function supInspectModal(m){
   const d=S.supplies, r=supRoom(d, m.room);
   const extra=r ? supOpen(r).filter(x=>!d.items.some(i=>i.name===x.name)) : [];
-  const row=(name, crit)=>{ const v=m.picks[name]||'ok';
+  const row=(name, crit)=>{ const v=m.picks[name]||'ok', od=r && supOpen(r).some(x=>x.name===name && x.order);
     const q=(m.q||'').trim().toLowerCase();
-    return `<div class="insrow" data-name="${esc(name)}" ${q && !name.toLowerCase().includes(q)?'style="display:none"':''}><div class="insname">${crit?`<button type="button" class="pinbtn ${crit.pin?'on':''}" data-act="sup-pin" data-name="${esc(name)}" title="${crit.pin?'ピンを外す':'よく使う品目としてピン留め'}">${crit.pin?'★':'☆'}</button>`:''}${esc(name)}</div>
+    return `<div class="insrow" data-name="${esc(name)}" ${q && !name.toLowerCase().includes(q)?'style="display:none"':''}><div class="insname">${crit?`<button type="button" class="pinbtn ${crit.pin?'on':''}" data-act="sup-pin" data-name="${esc(name)}" title="${crit.pin?'ピンを外す':'よく使う品目としてピン留め'}">${crit.pin?'★':'☆'}</button>`:''}${esc(name)}${od?' <span class="suplv blue">注文中</span>':''}</div>
       <div class="seg insseg">${[['urgent','至急',crit&&crit.urgent],['need','補充必要',crit&&crit.need],['ok','足りている',crit&&crit.ok]].map(([k,l,c])=>`<button type="button" class="${v===k?'on '+k:''}" data-act="ins-set" data-name="${esc(name)}" data-v="${k}">${l}${c?`<small>${esc(c)}</small>`:''}</button>`).join('')}</div></div>`; };
   return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-inspect">
     <h2>${esc(m.room)} の備品を点検</h2>
@@ -3764,6 +3788,8 @@ document.addEventListener('click', async e=>{
     case 'sup-toggle': toggleSupply(ref); break;
     case 'sup-del': if(confirm(`「${ref.name}」を補充リストから消しますか？`)) delSupply(ref); break;
     case 'sup-room-done': roomSupplyDone(el.dataset.room); break;
+    case 'sup-order': toggleSupOrder(ref); break;
+    case 'sup-item-order': { const n=el.dataset.name, on=!!el.dataset.on; if(confirm(on?`「${n}」の未補充の${el.dataset.n}室を、注文中にしますか？`:`「${n}」の注文中（${el.dataset.n}室）を外しますか？（届いたとき。補充はまだの扱いに戻ります）`)) itemSupOrder(n, on); break; }
     case 'sup-clear': if(confirm('補充済み（チェック済み）のものを消しますか？')) clearDoneSupplies(); break;
     case 'sup-inspect': { const n=el.dataset.room, r=supRoom(S.supplies,n), picks={}; S.supplies.items.forEach(i=>picks[i.name]='ok'); if(r) supOpen(r).forEach(x=>picks[x.name]=x.level); S.modal={type:'inspect', room:n, picks}; render(); break; }
     case 'ins-set': { S.modal.picks[el.dataset.name]=el.dataset.v; const row=el.closest('.insseg'); row.querySelectorAll('button').forEach(b=>b.className=b===el?'on '+el.dataset.v:''); break; }
@@ -3997,7 +4023,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:ca47dc65bcc4';
+const BUILD = 'AOS_BUILD:59fcbea3864c';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
