@@ -1036,8 +1036,8 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
   .setcard{padding:12px 13px}
   .setcard .actions{margin-bottom:0!important}
 }
-/* 特徴の詳細：中身が少ない人でも、後ろの一覧が透けて目移りしないように
-   窓の高さをそろえ（ボタンの帯は窓の下端）、後ろを暗くぼかす */
+/* セラピストDB の窓（特徴の詳細・名簿の詳細・受け入れNG・成績表の取り込み）：中身が少なくても、後ろの一覧が透けて目移りしないように
+   窓の高さをそろえ（ボタンの帯は窓の下端）、後ろを暗くぼかす。保存の確認は短いので、後ろを暗くぼかすだけ */
 .ov.ovdim{background:rgba(0,0,0,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .rdanm{display:flex;flex-direction:column;min-height:min(760px, calc(100vh - 32px))}
 .rdanm>*{flex-shrink:0}
@@ -3813,7 +3813,7 @@ function rdConfirmHtml(m){
     : Object.keys(p.ch).length ? '保存すると、受付・シフト収集・特徴DB・BOK にも反映されます。反映が終わるまで数十秒かかることがあります。その間は閉じずに待ってください。'
     : '特徴（特徴DB のスプレッドシート）だけを保存します。';
   const title = isNew ? (ng?'受け入れNG に登録しますか？':'この内容で登録しますか？') : `「${who}」をこの内容で保存しますか？`;
-  return `<div class="ov" data-act="close-ov"><form class="modal rdmodal" data-act="save-rd" autocomplete="off">
+  return `<div class="ov ovdim" data-act="close-ov"><form class="modal rdmodal" data-act="save-rd" autocomplete="off">
     <div class="mhd"><h2>${title}</h2></div>
     ${warn.map(w=>`<div class="rdalert">⚠ ${w}</div>`).join('')}
     <div class="rddiffs">${rows||'<div class="hint">（変える欄はありません）</div>'}</div>
@@ -3858,7 +3858,7 @@ BK_MODAL.rdp = m => {
   else body+=rdHistSec(m);
   if(isNew) body+='<div class="hint">在籍は「在籍」で登録されます。BOK のログインID・PIN は、空なら次の反映で自動で作られます。</div>';
   if(m.error) body+=`<div class="rderr">${esc(m.error)}</div>`;
-  return `<div class="ov" data-act="close-ov"><form class="modal rdmodal" data-act="save-rd" autocomplete="off">
+  return `<div class="ov ovdim" data-act="close-ov"><form class="modal rdmodal rdanm" data-act="save-rd" autocomplete="off">
     <div class="mhd"><h2>${isNew?'新しく入った人':esc(r.name||m.id)}</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
     ${body}
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><button class="btn pri" ${dis?'disabled':''}>${isNew?'登録の確認へ':'保存の確認へ'}</button></div>
@@ -3876,7 +3876,7 @@ BK_MODAL.rdng = m => {
   else body+=rdHistSec(m);
   if(isNew) body+='<div class="hint">登録の前に、同じ人がもう入っていないか、受け入れNGの画面の上の欄で探して確かめてください（電話番号も生年月日も無いと、二重の登録を止められません）。</div>';
   if(m.error) body+=`<div class="rderr">${esc(m.error)}</div>`;
-  return `<div class="ov" data-act="close-ov"><form class="modal rdmodal" data-act="save-rd" autocomplete="off">
+  return `<div class="ov ovdim" data-act="close-ov"><form class="modal rdmodal rdanm" data-act="save-rd" autocomplete="off">
     <div class="mhd"><h2>${isNew?'受け入れNG に追加':esc(r.honmei||m.id)}</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
     ${body}
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><button class="btn pri" ${dis?'disabled':''}>${isNew?'登録の確認へ':'保存の確認へ'}</button></div>
@@ -4157,7 +4157,7 @@ BK_MODAL.rdpdf = m => {
       ${p.skipped.length?`<dt>読めなかった行</dt><dd>${p.skipped.length}行：${esc(p.skipped.slice(0,5).join(' ／ '))}</dd>`:''}
     </dl></section>`;
   }
-  return `<div class="ov" data-act="close-ov"><div class="modal rdmodal rdpdfm">
+  return `<div class="ov ovdim" data-act="close-ov"><div class="modal rdmodal rdpdfm rdanm">
     <div class="mhd"><h2>成績表を取り込む</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
     <div class="hint" style="margin:0 0 12px">月ごとの成績表 PDF を選ぶと、出勤日数・本指名数・総数・本指名率・姫予約を読み取ります（報酬総額・本名は読みません）。保存すると、特徴の詳細の「直近3か月の成績」に出ます。</div>
     <div class="rdpdfrow">
@@ -5252,7 +5252,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:61aa61b4e541';
+const BUILD = 'AOS_BUILD:31bc6db834cb';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
