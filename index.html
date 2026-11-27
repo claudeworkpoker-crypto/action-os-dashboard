@@ -511,7 +511,13 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .kblab{font-size:12px;color:var(--sub)}
 .kbval{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;word-break:break-all;flex:1;min-width:0;user-select:all}
 .kbbtns{justify-content:flex-end}
-.cpinfo{font-size:13px;color:var(--sub);margin:0 0 10px}
+.cpinfo{font-size:13px;color:var(--sub);margin:0 0 10px;display:flex;gap:10px;flex-wrap:wrap;align-items:baseline}
+.cpat{font-size:12px;color:var(--faint);margin-left:auto}
+.cpq{position:relative;flex:1;min-width:180px;display:flex}
+.cpq .inp{flex:1;padding-right:38px}
+.cpx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:0;border-radius:50%;background:var(--panel2);color:var(--sub);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.cpx:hover{color:var(--text)}
+.cpx svg{width:14px;height:14px}
 .cplist{display:flex;flex-direction:column;gap:8px}
 .cpcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
 .cpcard.used{opacity:.75}
@@ -1824,7 +1830,10 @@ function pwField(){
 // 接続先の URL と鍵は、この端末のブラウザにだけ保存する。お客様の名前などは端末に残さない（開いている間だけ持つ）。
 const cpConf = () => ({url:safeGet(LS.cpUrl)||'', key:safeGet(LS.cpKey)||''});
 const cpOn = () => S.be && (S.be.kind==='demo' || !!cpConf().url);
-const CP = {items:null, q:'', shownQ:'', loading:false, error:'', busy:{}, more:false, seq:0};
+// all：開いたときに窓口から1回読んだ全件（新しい順）。探すのは手元で行い、打つたびにすぐ絞り込む（窓口へは聞きに行かない）
+// partial：窓口が古い版で全件を返さなかったとき（50件まで）。そのときだけ、文字を入れたら窓口に探しに行く
+const CP = {all:null, at:0, partial:false, q:'', loading:false, error:'', busy:{}, seq:0, sq:'', sItems:null, sTimer:0};
+const CP_STALE_MS = 3*60*1000;  // 開き直したとき、これより古ければ裏で読み直す
 let cpDemo = null;
 // 見本（?demo で接続先が未設定のとき）：画面の中だけで動かす
 function cpDemoRows(){
@@ -1863,21 +1872,39 @@ async function cpCall(action, payload={}){
   if(!j.ok) throw new Error(j.error||'アンケートの窓口でエラーが出ました');
   return j;
 }
-async function cpSearch(q){
-  const my=++CP.seq; CP.loading=true; CP.error=''; render();
-  try{ const j=await cpCall('coupon.search',{q}); if(my!==CP.seq) return; CP.items=j.items||[]; CP.more=!!j.more; CP.shownQ=q; }
-  catch(e){ if(my===CP.seq){ CP.error=e.message; if(!CP.items) CP.items=[]; } }
-  if(my===CP.seq){ CP.loading=false; render(); }
+async function cpLoad(){
+  const my=++CP.seq; const had=cpFocused(); CP.loading=true; CP.error=''; render(); if(had) cpRefocus();
+  try{ const j=await cpCall('coupon.search',{q:'', all:true}); if(my!==CP.seq) return; CP.all=j.items||[]; CP.partial=!!j.more; CP.at=Date.now(); CP.sItems=null; CP.sq=''; }
+  catch(e){ if(my===CP.seq){ CP.error=e.message; if(!CP.all) CP.all=[]; } }
+  if(my===CP.seq){ const had2=cpFocused(); CP.loading=false; render(); if(had2) cpRefocus(); }
 }
+// 窓口が全件を返さなかったときだけ使う：文字を入れて少し待ったら窓口で探す
+function cpRemoteSearch(q){
+  clearTimeout(CP.sTimer);
+  CP.sTimer=setTimeout(async ()=>{ CP.sq=q; try{ const j=await cpCall('coupon.search',{q}); if(CP.q.trim()===q){ const had=cpFocused(); CP.sItems=j.items||[]; render(); if(had) cpRefocus(); } }catch(e){ toast(e.message,true); } }, 400);
+}
+const cpMatch = (it, q) => [it.code, it.num, it.name, it.therapist].some(x=>cpNorm(x).includes(q));
+// 今の検索の文字で絞った一覧（文字が空なら新しい順に50件）
+function cpShown(){
+  const q=cpNorm(CP.q);
+  if(!q) return {list:(CP.all||[]).slice(0,50), total:(CP.all||[]).length, q:''};
+  if(CP.partial){ if(CP.sq!==CP.q.trim()) cpRemoteSearch(CP.q.trim()); return {list:CP.sItems||[], total:null, q, remote:true}; }
+  const hit=(CP.all||[]).filter(it=>cpMatch(it,q));
+  return {list:hit.slice(0,100), total:hit.length, q};
+}
+// 打つたびに描き直すので、検索欄の入力位置を保つ（描き直す前に検索欄で打っていたときだけ戻す）
+const cpFocused = () => !!(document.activeElement && document.activeElement.matches && document.activeElement.matches('[data-cpq]'));
+function cpRefocus(pos){ const i=document.querySelector('[data-cpq]'); if(!i) return; i.focus(); const p=pos==null?i.value.length:pos; try{ i.setSelectionRange(p,p); }catch{} }
+const cpInput = el => { CP.q=el.value; const pos=el.selectionStart; render(); cpRefocus(pos); };
 async function cpMark(row, on){
-  const it=(CP.items||[]).find(x=>x.row===row); if(!it || CP.busy[row]) return;
+  const it=[...(CP.all||[]), ...(CP.sItems||[])].find(x=>x.row===row); if(!it || CP.busy[row]) return;
   const who=`「${it.code}」（${it.prize}・${it.name||'名前なし'}さん）`;
   const msg = on
     ? `${it.status==='expired'?`期限が切れています（${cpMd(it.expires)}まで）。\n`:''}${who}を利用済みにしますか？\nスプレッドシートのこの行の色も変わります。`
     : `${who}の利用済みを取り消しますか？\nスプレッドシートのこの行の色も元に戻ります。`;
   if(!confirm(msg)) return;
   CP.busy[row]=true; render();
-  try{ const j=await cpCall(on?'coupon.use':'coupon.unuse',{row:it.row, code:it.code}); const i=CP.items.findIndex(x=>x.row===row); if(i>=0 && j.item) CP.items[i]=j.item; toast(on?'利用済みにしました（スプレッドシートの色も変えました）':'利用済みを取り消しました'); }
+  try{ const j=await cpCall(on?'coupon.use':'coupon.unuse',{row:it.row, code:it.code}); for(const arr of [CP.all, CP.sItems]){ const i=(arr||[]).findIndex(x=>x.row===row); if(i>=0 && j.item) arr[i]=j.item; } toast(on?'利用済みにしました（スプレッドシートの色も変えました）':'利用済みを取り消しました'); }
   catch(e){ toast(e.message,true); }
   delete CP.busy[row]; render();
 }
@@ -1891,10 +1918,16 @@ function viewCoupon(){
   if(!cpOn()) return `<div class="bkcard"><b>クーポン（アンケートの当選）につながっていません</b>
     <div class="hint" style="margin-top:6px">設定画面の「クーポン（アンケートの当選）」に、アンケートの窓口の URL と鍵を入れると使えます。鍵は、アンケートの Apps Script のエディタで resetActionOsKey を実行すると作られます（ログに出た「設定画面に貼る文字」を1回貼るだけで済みます）。</div>
     <div style="margin-top:10px"><button class="btn sm pri" data-act="settings">設定画面を開く</button></div></div>`;
-  if(CP.items===null && !CP.loading && !CP.error) setTimeout(()=>{ if(CP.items===null && !CP.loading) cpSearch(''); },0);  // 初めて開いたら新しい当選を出す
-  const search=`<form class="pwbar" data-act="cp-search" onsubmit="return false"><input class="inp" name="q" data-cpq value="${esc(CP.q)}" placeholder="当選コード・顧客番号・お客様名・セラピスト名" autocomplete="off" enterkeyhint="search"><button class="btn sm pri">探す</button>${CP.shownQ?'<button type="button" class="btn sm" data-act="cp-clear">新しい順に戻す</button>':''}</form>`;
-  const items=CP.items||[];
-  const info = CP.loading ? 'アンケートの窓口から読んでいます…' : CP.error ? '' : `${CP.shownQ?`「${esc(CP.shownQ)}」で見つかった当選 ${items.length}件`:`新しい当選 ${items.length}件`}${CP.more?'（多いので50件まで。コードや番号で絞ってください）':''}`;
+  // 初めて開いたら全件を読む。前に読んでから時間がたっていたら、出したまま裏で読み直す
+  if(!CP.loading && !CP.error && (CP.all===null || Date.now()-CP.at>CP_STALE_MS)) setTimeout(()=>{ if(!CP.loading) cpLoad(); },0);
+  const search=`<form class="pwbar" data-act="cp-search" onsubmit="return false"><div class="cpq"><input class="inp" name="q" data-cpq value="${esc(CP.q)}" placeholder="当選コード・顧客番号・お客様名・セラピスト名" autocomplete="off" enterkeyhint="search">${CP.q?'<button type="button" class="cpx" data-act="cp-clear" title="入力を消す" aria-label="入力を消す">'+icon('x')+'</button>':''}</div><button type="button" class="btn sm" data-act="cp-reload" title="アンケートの窓口から読み直す" ${CP.loading?'disabled':''}>${icon('refresh').replace('<svg','<svg width="14" height="14"')} 読み直す</button></form>`;
+  const sh=cpShown(), items=sh.list;
+  const firstLoad = CP.all===null || (CP.loading && !(CP.all||[]).length);
+  const info = firstLoad ? 'アンケートの窓口から読んでいます…（初回だけ数秒かかります）'
+    : CP.error ? ''
+    : sh.q ? (sh.remote ? (CP.sq===CP.q.trim()&&CP.sItems ? `「${esc(CP.q.trim())}」で見つかった当選 ${items.length}件` : '探しています…') : `「${esc(CP.q.trim())}」で見つかった当選 ${sh.total}件${sh.total>items.length?`（多いので${items.length}件まで）`:''}`)
+    : `新しい当選 ${items.length}件（全部で${sh.total}件。番号や名前を入れるとすぐ絞り込みます）`;
+  const fresh = CP.at && !firstLoad ? `<span class="cpat">${CP.loading?'読み直しています…':`${new Date(CP.at).toTimeString().slice(0,5)} に読み込み`}</span>` : '';
   const cards = items.map(it=>{ const busy=!!CP.busy[it.row];
     return `<div class="cpcard ${it.status}">
       <div class="cprow1"><span class="cpcode">${esc(it.code)}</span><span class="cpprize">${esc(it.prize)}</span><span class="sp"></span><span class="cpst ${it.status}">${esc(cpStatusLabel(it))}</span></div>
@@ -1905,8 +1938,8 @@ function viewCoupon(){
         ? `<button class="btn sm" data-act="cp-unuse" data-row="${it.row}" ${busy?'disabled':''}>${busy?'取り消し中…':'取り消す'}</button>`
         : `<button class="btn sm ${it.status==='valid'?'pri':''}" data-act="cp-use" data-row="${it.row}" ${busy?'disabled':''}>${busy?'記録中…':'利用済みにする'}</button>`}</div>
     </div>`; }).join('');
-  return `${search}<div class="cpinfo">${info}</div>${CP.error?`<div class="bkcard" style="color:var(--red)">${esc(CP.error)}</div>`:''}
-    <div class="cplist">${cards || (CP.loading||CP.error?'':'<div class="empty">見つかりません</div>')}</div>
+  return `${search}<div class="cpinfo">${info}${fresh}</div>${CP.error?`<div class="bkcard" style="color:var(--red)">${esc(CP.error)}</div>`:''}
+    <div class="cplist">${cards || (firstLoad||CP.error||(sh.remote&&CP.sq!==CP.q.trim())?'':'<div class="empty">見つかりません</div>')}</div>
     <div class="hint" style="margin-top:12px">期限は抽選日の1ヶ月後の同じ日まで。「利用済みにする」を押すと、アンケートのスプレッドシートの「当選者一覧」のその行を利用済みの色で塗り、「利用日」の列に今日の日付を書きます。スプレッドシートで手で塗った行も「利用済み（色）」と出ます。</div>`;
 }
 function cpField(){
@@ -3146,8 +3179,9 @@ document.addEventListener('click', async e=>{
     case 'kb-peek': { const v=document.querySelector(`[data-kb="${el.dataset.k}"]`); if(!v) break; const show=el.textContent==='表示'; v.textContent = show ? KB_CONF[el.dataset.k]().key : '•'.repeat(12); el.textContent = show ? '隠す' : '表示'; break; }
     case 'kb-copy': { const c=KB_CONF[el.dataset.k](); if(!c.key) break; pwCopy(el.dataset.what==='line' ? `${c.url}#${c.key}` : c.key, el.dataset.what==='line' ? '貼る文字' : '鍵'); break; }
     case 'cp-unuse': cpMark(+el.dataset.row, false); break;
-    case 'cp-clear': CP.q=''; cpSearch(''); break;
-    case 'cp-forget': if(confirm('この端末から、クーポンの接続先と鍵を消しますか？')){ safeSet(LS.cpUrl,null); safeSet(LS.cpKey,null); CP.items=null; CP.error=''; S.modal=null; render(); } break;
+    case 'cp-clear': { CP.q=''; CP.sItems=null; CP.sq=''; render(); cpRefocus(0); break; }
+    case 'cp-reload': cpLoad(); break;
+    case 'cp-forget': if(confirm('この端末から、クーポンの接続先と鍵を消しますか？')){ safeSet(LS.cpUrl,null); safeSet(LS.cpKey,null); CP.all=null; CP.at=0; CP.error=''; S.modal=null; render(); } break;
     case 'nav-pin': setNavPin(el.dataset.k, !navPins().includes(el.dataset.k)); break;
     case 'bok-open': { const k=el.dataset.k; S.bok=k; if(k!=='rv' && BK_LOAD[k] && rvOn()) BK_LOAD[k](); else render(); break; }  // 開くたびに BOK から読み直す（空室情報は10分の決まり）
     case 'bk-reload': { const f=BK_LOAD[el.dataset.k]; if(f) f(); break; }
@@ -3260,7 +3294,7 @@ document.addEventListener('click', async e=>{
 });
 // 検索欄：日本語の変換中は絞り込まない（変換が切れるため）。変換が終わったときと、英数字の入力のたびに絞り込む
 const pwSearch = el => { PWD.q=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-pwq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
-document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); });
+document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); if(e.target.matches('[data-cpq]')) cpInput(e.target); });
 const memoSearch = el => { S.memoQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-memoq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 const supSearch = el => { S.supQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-supq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 // 点検の画面の検索は、選んだ状態を保つため、画面を作り直さずに行を出し入れする
@@ -3270,7 +3304,7 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
   if(e.target.matches('[data-memoq]') && !e.isComposing) memoSearch(e.target);
   if(e.target.matches('[data-navq]')) navFilter(e.target);
-  if(e.target.matches('[data-cpq]')) CP.q=e.target.value;
+  if(e.target.matches('[data-cpq]') && !e.isComposing) cpInput(e.target);
   if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
   if(e.target.matches('[data-mtmsg]') && MT.draft) MT.draft.message=e.target.value;
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -3390,12 +3424,12 @@ document.addEventListener('submit', async e=>{
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='bok'; S.bok=null; safeSet(LS.tab,'bok'); } render(); toast(url?'BOK（ささやき）につなぎました':'BOK の接続先と鍵を消しました'); return; }
-  if(a==='cp-search'){ CP.q=f.q.value.trim(); f.q.blur(); cpSearch(CP.q); return; }
+  if(a==='cp-search'){ f.q.blur(); return; }  // Enter はキーボードを閉じるだけ（打つたびに絞り込んでいる）
   if(a==='save-cpconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url;  // 「設定画面に貼る文字」（URL#鍵）もそのまま受け付ける
     const key=sp.key||safeGet(LS.cpKey)||'';
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
-    safeSet(LS.cpUrl,url||null); safeSet(LS.cpKey,url?key:null); CP.items=null; CP.error=''; S.modal=null; if(url) navGo('coupon'); else render(); toast(url?'クーポンにつなぎました':'クーポンの設定を消しました'); return; }
+    safeSet(LS.cpUrl,url||null); safeSet(LS.cpKey,url?key:null); CP.all=null; CP.at=0; CP.error=''; S.modal=null; if(url) navGo('coupon'); else render(); toast(url?'クーポンにつなぎました':'クーポンの設定を消しました'); return; }
   if(a==='save-pwconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url, key=sp.key||safeGet(LS.pwKey);
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
@@ -3446,7 +3480,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:5cc515a3854a';
+const BUILD = 'AOS_BUILD:e0e3febb4e3e';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
