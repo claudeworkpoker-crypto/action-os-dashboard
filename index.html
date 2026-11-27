@@ -999,6 +999,43 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .rdfile input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .rdpdfm .rdqf .inp{height:40px}
 @media (max-width:640px){ .rdpdfrow{grid-template-columns:1fr} }
+/* ===== 設定画面：まとまり＋カード＋探す ===== */
+.setv2{max-width:980px}
+.setq{margin:0 0 12px;flex:none}
+.setq .inp{height:42px}
+.setq .cpx[hidden]{display:none}
+.setlay{display:grid;grid-template-columns:190px minmax(0,1fr);gap:16px;align-items:start}
+.setnav{display:flex;flex-direction:column;gap:2px;position:sticky;top:46px}
+.setnavb{display:flex;align-items:center;gap:10px;border:0;background:transparent;color:var(--text);font:inherit;font-size:14px;padding:9px 10px;border-radius:10px;cursor:pointer;text-align:left}
+.setnavb svg{width:16px;height:16px;color:var(--sub);flex:none}
+.setnavb .lb{flex:1}
+.setnavb .cnt{font-size:12px;color:var(--faint)}
+.setnavb:hover{background:var(--panel2)}
+.setnavb.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.setnavb.on svg,.setnavb.on .cnt{color:var(--accent)}
+.setmain{display:flex;flex-direction:column;gap:12px;min-width:0}
+.setcard{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:var(--panel)}
+.setcard[hidden]{display:none}
+.sethd{display:flex;align-items:flex-start;gap:10px;margin:0 0 10px}
+.setti{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.setti b{font-size:15px}
+.setdesc{font-size:12px;color:var(--sub);line-height:1.5}
+.sethd .bktag{flex:none;white-space:nowrap}
+.setbody>.field,.setbody>form.field{margin:0}
+.setbody>.field>label:first-child,.setbody>form.field>label:first-child{display:none}
+.setbody hr{display:none}
+.setcard .actions{position:static;margin:12px 0 0;padding:0;border:0;background:none}
+.setfound{margin:0}
+.setnone{padding:20px 4px}
+@media (max-width:640px){
+  .setlay{grid-template-columns:1fr;gap:10px}
+  .setnav{flex-direction:row;overflow-x:auto;position:static;gap:6px;scrollbar-width:none;margin:0 -2px;padding:0 2px}
+  .setnav::-webkit-scrollbar{display:none}
+  .setnavb{flex:none;border:1px solid var(--line);border-radius:999px;padding:7px 12px;background:var(--panel)}
+  .setnavb .lb{flex:none}
+  .setcard{padding:12px 13px}
+  .setcard .actions{margin-bottom:0!important}
+}
 </style>
 </head>
 <body>
@@ -1013,7 +1050,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', navLayout:'aos.navLayout', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey', sqView:'aos.sqView', sqPer:'aos.sqPer', rdUrl:'aos.rdUrl', rdKey:'aos.rdKey'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', navLayout:'aos.navLayout', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey', sqView:'aos.sqView', sqPer:'aos.sqPer', rdUrl:'aos.rdUrl', rdKey:'aos.rdKey', setSec:'aos.setSec'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -4685,11 +4722,7 @@ function viewModal(){
     <textarea class="inp" rows="12" readonly>${esc(m.text)}</textarea>
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><a class="btn pri" href="${esc(m.link)}">親スレッドを開く</a></div>
   </div></div>`;
-  if(m.type==='settings') return `<div class="ov" data-act="close-ov"><div class="modal settings"><div class="mhd"><h2>設定</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
-    <div class="sgrp">タスク</div>${catManager()}${memberManager()}
-    <div class="sgrp">画面</div>${extraTabsField()}
-    <div class="sgrp">つなぎ先（この端末だけに保存）</div>${pwField()}${cpField()}${rvField()}${rdField()}
-    <div class="sgrp">GitHub（この端末）</div>${settingsForm(true)}</div></div>`;
+  if(m.type==='settings') return settingsModal(m);
   if(m.type==='note') return noteModal(m);
   if(m.type==='pw') return pwModal(m);
   if(m.type==='rv') return rvModal(m);
@@ -4738,6 +4771,65 @@ function moveField(ref, d){
   walk(sec.items, []);
   if(opts.length<2) return '';
   return `<div class="field"><label>親タスク（どのタスクの下に置くか）</label><select class="inp" name="moveto">${opts.map(([v,l])=>`<option value="${esc(v)}" ${v===d.moveTo?'selected':''}>${esc(l)}</option>`).join('')}</select></div>`;
+}
+// ===== 設定画面：まとまり（左・スマホは上）で分け、上の欄で探せる =====
+// 各欄の中身（カテゴリ・担当者・つなぎ先など）は前のまま。カードに入れて、まとまりと探す言葉を付けただけ。
+// まとまりの切り替えと探すのは、画面を作り直さずに出し入れする（入れかけの URL などを消さないため）
+// 探す言葉の読み替え（ひらがな・カタカナ、全角・半角、大文字・小文字の違いは気にしない）
+const setFold = t => String(t||'').normalize('NFKC').toLowerCase().replace(/[\u30a1-\u30f6]/g, c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+const SET_SECS = [['task','タスク','list'],['screen','画面','menu'],['link','つなぎ先','key'],['device','この端末','gear']];
+function settingsCards(){
+  const st = on => on ? '<span class="bktag green">つながっています</span>' : '<span class="bktag">未設定</span>';
+  const tabsOn = [S.notes,S.memo,S.rooms,S.supplies].filter(Boolean).length;
+  return [
+    {sec:'task', t:'カテゴリ', d:'タスクの分け方（todo.md の見出し）。名前を変える・並べ替える・足す・消す', k:'カテゴリ 見出し 分類 インボックス 並べ替え 名前 削除 追加', body:catManager(), st:`<span class="bktag">${catNames().length}個</span>`},
+    {sec:'task', t:'担当者', d:'タスクの「担当」の候補と、担当者での絞り込み', k:'担当者 担当 メンバー スタッフ 人 名前', body:memberManager(), st:`<span class="bktag">${S.members.length}人</span>`},
+    {sec:'screen', t:'追加のタブ', d:'引き継ぎ・ノート・清掃・補充の画面を使うかどうか', k:'追加 タブ 引き継ぎ メモ ノート 清掃 ルーム 補充 備品 使う', body:extraTabsField(), st:`<span class="bktag">${tabsOn}/4 使用中</span>`},
+    {sec:'screen', t:'メニューの並び', d:'左のメニューの画面の並びと、上の帯に出す★', k:'メニュー 並び 並べ替え 順番 星 ★ 帯 ピン', body:`<div class="hint">メニューの上の鉛筆のボタンで、画面の並びを変えられます。★を付けた画面が上の帯に出ます（どちらもこの端末に覚えます）。</div><div style="margin-top:10px"><button type="button" class="btn sm" data-act="set-navedit">${icon('edit')}メニューを開いて並べ替える</button></div>`},
+    {sec:'link', t:'パスワード表', d:'Google スプレッドシートのパスワード表につなぐ', k:'パスワード 表 スプレッドシート 鍵 URL つなぐ 窓口', body:pwField(), st:st(!!pwConf().url)},
+    {sec:'link', t:'クーポン・アンケート・ご案内状況', d:'アンケートの窓口につなぐ（クーポン・アンケート・ご案内状況の3つの画面で使う）', k:'クーポン アンケート ご案内状況 当選 窓口 鍵 URL つなぐ', body:cpField(), st:st(!!cpConf().url)},
+    {sec:'link', t:'BOK（ささやき）', d:'BOK の管理画面の機能（お知らせ・空室情報・姫予約ログなど）につなぐ', k:'BOK ささやき 空室 姫予約 お知らせ アンケート管理 鍵 URL つなぐ 窓口', body:rvField(), st:st(!!rvConf().url)},
+    {sec:'link', t:'セラピストDB', d:'名簿・特徴・受け入れNG・成績表の取り込みにつなぐ', k:'セラピスト DB 名簿 特徴 受け入れNG 成績 鍵 URL つなぐ 窓口', body:rdField(), st:st(!!rdConf().url)},
+    {sec:'device', t:'GitHub の接続', d:'この端末で使うリポジトリとトークン', k:'GitHub リポジトリ トークン 鍵 接続 この端末 ログアウト 消す', body:settingsForm(true), st:st(!!(S.be && S.be.kind==='github'))},
+  ];
+}
+function settingsModal(m){
+  const sec = SET_SECS.some(x=>x[0]===m.sec) ? m.sec : (safeGet(LS.setSec)||'task');
+  m.sec = SET_SECS.some(x=>x[0]===sec) ? sec : 'task';
+  const cards=settingsCards();
+  const nav = SET_SECS.map(([k,l,ic])=>{ const n=cards.filter(c=>c.sec===k).length, linked = k==='link' ? cards.filter(c=>c.sec==='link' && /つながっています/.test(c.st||'')).length : null;
+    return `<button type="button" class="setnavb ${m.sec===k?'on':''}" data-act="set-sec" data-k="${k}">${icon(ic)}<span class="lb">${l}</span><span class="cnt">${linked!==null?`${linked}/${n}`:n}</span></button>`; }).join('');
+  setTimeout(()=>document.querySelector('.setnavb.on')?.scrollIntoView({inline:'nearest', block:'nearest'}), 0);
+  const body = cards.map((c,i)=>`<section class="setcard" data-sec="${c.sec}" data-k="${esc(setFold(c.t+' '+c.d+' '+c.k))}" ${c.sec===m.sec?'':'hidden'}>
+      <div class="sethd"><div class="setti"><b>${esc(c.t)}</b><span class="setdesc">${esc(c.d)}</span></div>${c.st||''}</div>
+      <div class="setbody">${c.body}</div></section>`).join('');
+  return `<div class="ov" data-act="close-ov"><div class="modal settings setv2">
+    <div class="mhd"><h2>設定</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
+    <div class="cpq setq"><input class="inp" data-setq placeholder="設定をさがす（例：鍵・カテゴリ・セラピスト）" autocomplete="off" enterkeyhint="search" aria-label="設定をさがす"><button type="button" class="cpx" data-act="set-qx" title="入力を消す" aria-label="入力を消す" hidden>${icon('x')}</button></div>
+    <div class="setlay"><nav class="setnav" aria-label="設定のまとまり">${nav}</nav>
+      <div class="setmain"><div class="setfound hint" hidden></div>${body}<div class="empty setnone" hidden>見つかりません。言葉を変えてみてください</div></div></div>
+  </div></div>`;
+}
+// まとまりの切り替え：画面を作り直さずに出し入れする
+function setShowSec(k){
+  const m=S.modal; if(!m || m.type!=='settings') return;
+  m.sec=k; safeSet(LS.setSec, k);
+  const q=document.querySelector('[data-setq]'); if(q && q.value){ q.value=''; setFilter(q); }
+  document.querySelectorAll('.setnavb').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
+  document.querySelector('.setnavb.on')?.scrollIntoView({inline:'nearest', block:'nearest'});   // スマホで横に流したとき、選んだまとまりが見えるように
+  document.querySelectorAll('.setcard').forEach(c=>{ c.hidden = c.dataset.sec!==k; });
+  const main=document.querySelector('.settings'); if(main) main.scrollTop=0;
+}
+// 探す：言葉が入っているあいだは、まとまりに関係なく当てはまるカードを出す（空にすると、選んでいたまとまりに戻る）
+function setFilter(el){
+  const m=S.modal; if(!m) return;
+  const q=setFold(el.value.trim()), words=q?q.split(/\s+/):[];
+  let n=0;
+  document.querySelectorAll('.setcard').forEach(c=>{ const hit = words.length ? words.every(w=>c.dataset.k.includes(w)) : c.dataset.sec===m.sec; c.hidden=!hit; if(hit) n++; });
+  document.querySelectorAll('.setnavb').forEach(b=>b.classList.toggle('on', !words.length && b.dataset.k===m.sec));
+  const f=document.querySelector('.setfound'); if(f){ f.hidden=!words.length || !n; f.textContent=`「${el.value.trim()}」に当てはまる設定 ${n}件`; }
+  const none=document.querySelector('.setnone'); if(none) none.hidden=!(words.length && !n);
+  const x=document.querySelector('[data-act="set-qx"]'); if(x) x.hidden=!el.value;
 }
 function catManager(){
   const names=catNames();
@@ -4810,6 +4902,9 @@ document.addEventListener('click', async e=>{
     case 'nav-toggle': if(navWide()){ S.navPin=!S.navPin; safeSet(LS.navPin, S.navPin?'1':'0'); document.body.classList.toggle('navpin', S.navPin); if(!S.navPin) navSet(false); } else navSet(!S.nav); break;
     case 'nav-close': navSet(false); break;
     case 'nav-edit': S.navEdit=!S.navEdit; render(); break;
+    case 'set-sec': setShowSec(el.dataset.k); break;
+    case 'set-qx': { const q=document.querySelector('[data-setq]'); if(q){ q.value=''; setFilter(q); q.focus(); } break; }
+    case 'set-navedit': S.modal=null; S.navEdit=true; navSet(true); render(); break;
     case 'nav-up': navMove(el.dataset.k, -1); break;
     case 'nav-down': navMove(el.dataset.k, 1); break;
     case 'nav-reset': if(confirm('メニューの並びを元に戻しますか？')){ safeSet(LS.navLayout,null); render(); } break;
@@ -4950,7 +5045,7 @@ document.addEventListener('click', async e=>{
 });
 // 検索欄：日本語の変換中は絞り込まない（変換が切れるため）。変換が終わったときと、英数字の入力のたびに絞り込む
 const pwSearch = el => { PWD.q=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-pwq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
-document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); if(e.target.matches('[data-cpq]')) cpInput(e.target); if(e.target.matches('[data-sqq]')) sqInput(e.target); if(e.target.matches('[data-sqtq]')) sqTherInput(e.target); if(e.target.matches('[data-rdq]')) rdQ(e.target); if(e.target.matches('[data-rdnum]')){ rdCleanNum(e.target); if(S.modal && S.modal.draft) S.modal.draft[e.target.dataset.bkf]=e.target.value; } });
+document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-setq]')) setFilter(e.target); if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); if(e.target.matches('[data-cpq]')) cpInput(e.target); if(e.target.matches('[data-sqq]')) sqInput(e.target); if(e.target.matches('[data-sqtq]')) sqTherInput(e.target); if(e.target.matches('[data-rdq]')) rdQ(e.target); if(e.target.matches('[data-rdnum]')){ rdCleanNum(e.target); if(S.modal && S.modal.draft) S.modal.draft[e.target.dataset.bkf]=e.target.value; } });
 const memoSearch = el => { S.memoQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-memoq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 const supSearch = el => { S.supQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-supq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 // 点検の画面の検索は、選んだ状態を保つため、画面を作り直さずに行を出し入れする
@@ -4958,6 +5053,7 @@ const insSearch = el => { if(S.modal) S.modal.q=el.value; const q=el.value.trim(
 document.addEventListener('input', e=>{
   if(e.target.matches('[data-rdnum]') && !e.isComposing) rdCleanNum(e.target);  // セラピストDB の数字の欄：半角にそろえる（下の data-bkf より先に）
   if(e.target.matches('[data-rdq]') && !e.isComposing) rdQ(e.target);
+  if(e.target.matches('[data-setq]') && !e.isComposing) setFilter(e.target);
   if(e.target.matches('[data-pwq]') && !e.isComposing) pwSearch(e.target);
   if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
   if(e.target.matches('[data-memoq]') && !e.isComposing) memoSearch(e.target);
@@ -5149,7 +5245,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:991c561f8466';
+const BUILD = 'AOS_BUILD:e429a44f54e0';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
