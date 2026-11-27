@@ -21,6 +21,7 @@
   --c-p2:#c2577a; --c-p1:#3f6fd1; --c-p3:#c7862b; --c-p4:#3a9a6a; --c-misc:#8a8780; --c-p5:#7a5cc7; --c-p6:#2a9aa8; --c-p7:#b5583a;
   --shadow:0 1px 2px rgba(0,0,0,.05),0 2px 8px rgba(0,0,0,.04);
   --radius:14px;
+  color-scheme:light dark;  /* スクロールバーや日付・選択の欄も、明るい／暗いに合わせて描かせる（Windows で暗い画面に白いバーが出ないように） */
 }
 @media (prefers-color-scheme: dark){
   :root{
@@ -35,8 +36,16 @@
 html,body{margin:0;touch-action:manipulation}
 /* iOS は16px未満の入力欄にフォーカスすると自動で拡大するため、入力欄は常に16px以上にする */
 input,select,textarea{font-size:16px !important}
-body{background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
+body{background:var(--bg);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Segoe UI","Yu Gothic UI","Meiryo UI","Noto Sans JP",sans-serif;-webkit-text-size-adjust:100%;padding-bottom:calc(90px + env(safe-area-inset-bottom))}
 button,input,select,textarea{font:inherit;color:inherit}
+/* スクロールバー：Windows でも細く目立たないものにする（Mac は元から重ねて出すので変わらない） */
+html,*{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--faint) 55%,transparent) transparent}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent}
+::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--faint) 50%,transparent);border-radius:999px;border:3px solid transparent;background-clip:content-box}
+::-webkit-scrollbar-thumb:hover{background-color:color-mix(in srgb,var(--faint) 75%,transparent)}
+.tabs{scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
 button{cursor:pointer}
 .wrap{max-width:1180px;margin:0 auto;padding:0 16px}
 
@@ -67,6 +76,7 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .tab .cnt{font-size:12px;color:var(--faint);margin-left:4px}
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .filterchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--accent-soft);color:var(--accent);border:0;border-radius:999px;padding:5px 10px}
+#updbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top));z-index:70;border:0;border-radius:999px;background:var(--accent);color:#fff;padding:9px 16px;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25);white-space:nowrap;max-width:calc(100vw - 32px);overflow:hidden;text-overflow:ellipsis}
 /* メニュー（左から出す。広い画面では左に出しっぱなしにできる） */
 :root{--navw:272px}
 .menubtn{position:relative;margin-left:-4px}
@@ -3036,7 +3046,7 @@ document.addEventListener('click', async e=>{
     case 'member-del': { const n=el.dataset.name; const cnt=allTasks().filter(r=>hasWho(r.t,n)).length;
       if(confirm(cnt?`「${n}」を担当者の一覧から外しますか？（担当になっているタスク ${cnt}件の印はそのまま残ります）`:`「${n}」を担当者の一覧から外しますか？`)) removeMember(n); break; }
     case 'filter': S.filter = S.filter===el.dataset.k?null:el.dataset.k; if(S.tab!=='board'&&S.tab!=='timeline') S.tab='timeline'; render(); break;
-    case 'reload': if(qRunning||Q.length){ toast('保存中です。少し待ってから更新してください'); break; } loadAll(); break;
+    case 'reload': if(qRunning||Q.length){ toast('保存中です。少し待ってから更新してください'); break; } checkUpdate(true); loadAll(); break;
     case 'settings': S.modal={type:'settings'}; render(); break;
     case 'logout': safeSet(LS.token,null); S.be=null; S.modal=null; render(); break;
     case 'add': S.modal={type:'add', draft:{text:'', notes:'', cat:INBOX, due:'', prio:false, who:(S.who&&S.who!=='__none')?S.who:'', subs:[]}}; render(); break;
@@ -3282,6 +3292,31 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState=
 document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
 // ダブルタップでの拡大は CSS の touch-action:manipulation で止めている（連続タップを妨げないため）
 
+// ===== 新しい版の自動読み込み =====
+// 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
+// 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
+const BUILD = 'AOS_BUILD:0e0bb6246deb';
+const UPD = {at:0, newer:null};
+const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
+async function checkUpdate(force){
+  if(BUILD.endsWith(':dev') || !/^https?:$/.test(location.protocol)) return;
+  if(!force && Date.now()-UPD.at < 5*60*1000) return;  // 画面は大きいので、読みに行くのは5分に1回まで（開き直したとき・戻ってきたときは毎回）
+  UPD.at=Date.now();
+  let txt=''; try{ const r=await fetch(location.pathname+'?v='+Date.now(), {cache:'no-store'}); if(!r.ok) return; txt=await r.text(); }catch{ return; }
+  const m=txt.match(UPD_RE); if(!m || 'AOS_BUILD:'+m[1]===BUILD) return;
+  UPD.newer=m[1]; applyUpdate();
+}
+// 入力中・保存中・画面を開いている間は読み込み直さない（入れかけの内容が消えるため）。そのときは上に知らせを出し、押したら読み込み直す
+const updSafe = () => { const a=document.activeElement; return !S.modal && !qRunning && !Q.length && !NDRAG && !S.nav && !(a && a.closest && a.closest('input,textarea,select')); };
+function applyUpdate(){
+  if(!UPD.newer) return;
+  let tried=null; try{ tried=sessionStorage.getItem('aos.updFor'); }catch{}
+  if(updSafe() && tried!==UPD.newer){ try{ sessionStorage.setItem('aos.updFor', UPD.newer); }catch{} location.reload(); return; }  // 同じ版で2回は読み直さない（行き来し続けないように）
+  if(!document.getElementById('updbar')){ const b=document.createElement('button'); b.id='updbar'; b.type='button'; b.textContent='新しい画面があります。押すと読み込み直します'; b.onclick=()=>location.reload(); document.body.appendChild(b); }
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible') checkUpdate(true); });
+addEventListener('pageshow', e=>{ if(e.persisted) checkUpdate(true); });  // 戻るで出し直した画面も確かめる
+
 // ===== 起動 =====
 (function boot(){
   const q=new URLSearchParams(location.search);
@@ -3291,6 +3326,8 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
   render();
   if(S.be) loadAll(true);
   setInterval(pollRuns, 12000);
+  checkUpdate(true);
+  setInterval(()=>{ if(document.visibilityState!=='visible') return; if(UPD.newer) applyUpdate(); else checkUpdate(false); }, 60000);
   setInterval(()=>{ if(S.be && document.visibilityState==='visible' && !qRunning && !Q.length && !S.modal && !document.activeElement?.closest?.('form')) loadAll(true); }, 60000);
 })();
 window.__aos = {S, parseTodo, serializeTodo, parseSomeday, serializeSomeday, parseDone};
