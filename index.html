@@ -739,10 +739,16 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .sqtc{font-size:12px;color:var(--sub);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .sqtrow.few .sqtn,.sqtrow.few .sqtv{color:var(--faint)}
 .sqtrow.few .sqbar{opacity:.55}
+.sqsugg{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:-4px 0 12px}
+.sqsgl{font-size:12px;color:var(--sub);flex:1 1 100%}
+.sqchip{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;padding:6px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;display:inline-flex;align-items:baseline;gap:6px}
+.sqchip small{font-size:11px;font-weight:500;color:var(--faint)}
+.sqchip:hover{border-color:var(--accent);color:var(--accent)}
 .vtip{position:fixed;z-index:300;pointer-events:none;background:var(--text);color:var(--bg);font-size:12px;line-height:1.5;padding:5px 10px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.2);display:none;max-width:260px}
 @media (max-width:640px){
   .sqvseg{display:flex} .sqvseg button{flex:1}
   .sqsbar .vseg{flex:1 1 100%} .sqsbar .vseg button{flex:1;padding:5px 4px}
+  .sqsbar .cpq{flex:1 1 0;min-width:0}
   .sqbox{padding:14px}
   .sqhero{gap:14px}
   .sqleg{min-width:0;flex:1 1 100%}
@@ -2126,7 +2132,7 @@ function cpField(){
 // ===== アンケート（お客様アンケートの回答を見る。正本はアンケートのスプレッドシートの「フォーム回答」） =====
 // クーポンと同じ窓口・同じ鍵（survey.list）。読むだけで書かない。新しい方から400件ずつ読み、探すのは手元で打つたびに行う
 // 回答（お客様の名前・番号・感想）は端末に保存しない（開いている間だけ持つ）
-const SQ = {items:null, total:0, more:false, next:0, at:0, loading:false, loadingMore:false, rest:0, error:'', q:'', low:false, ther:'', seq:0, view:'list', per:'90', tsort:'n'};
+const SQ = {items:null, total:0, more:false, next:0, at:0, loading:false, loadingMore:false, rest:0, error:'', q:'', low:false, ther:'', seq:0, view:'list', per:'90', tsort:'n', tq:''};
 // 「回答」と「集計」のどちらを出すかと、集計の期間は、端末ごとに覚える
 SQ.view = safeGet(LS.sqView)==='stats' ? 'stats' : 'list';
 SQ.per = ['30','90','365','all'].includes(safeGet(LS.sqPer)) ? safeGet(LS.sqPer) : '90';
@@ -2201,14 +2207,24 @@ function sqShown(){
   if(q) list=list.filter(it=>[it.therapist,it.name,it.num,it.comment,it.other,it.source,it.code].some(x=>cpNorm(x).includes(q)));
   return list;
 }
-const sqFocused = () => !!(document.activeElement && document.activeElement.matches && document.activeElement.matches('[data-sqq]'));
-function sqRefocus(pos){ const i=document.querySelector('[data-sqq]'); if(!i) return; i.focus(); const p=pos==null?i.value.length:pos; try{ i.setSelectionRange(p,p); }catch{} }
+const sqFocused = () => !!(document.activeElement && document.activeElement.matches && document.activeElement.matches('[data-sqq],[data-sqtq]'));
+function sqRefocus(pos){ const i=document.querySelector('[data-sqq],[data-sqtq]'); if(!i) return; i.focus(); const p=pos==null?i.value.length:pos; try{ i.setSelectionRange(p,p); }catch{} }
 const sqInput = el => { SQ.q=el.value; const pos=el.selectionStart; render(); sqRefocus(pos); };
+const sqThers = () => [...new Set((SQ.items||[]).map(it=>it.therapist).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+// 集計のセラピストを名前の一部で探す（ひらがな・カタカナ、全角・半角、大文字・小文字、空白の違いは気にしない）
+const sqKana = s => cpNorm(s).replace(/[\u30a1-\u30f6]/g, c=>String.fromCharCode(c.charCodeAt(0)-0x60));
+function sqTherMatch(q, thers){ const k=sqKana(q); return k ? thers.filter(t=>sqKana(t).includes(k)) : thers; }
+// 打つたびに：名前がぴったり合うか、合う人が1人だけなら、その人だけの集計にする。空にすると全員に戻る
+function sqTherInput(el){
+  SQ.tq=el.value; const k=sqKana(SQ.tq), m=sqTherMatch(SQ.tq, sqThers());
+  SQ.ther = !k ? '' : (m.find(t=>sqKana(t)===k) || (m.length===1 ? m[0] : ''));
+  const pos=el.selectionStart; render(); sqRefocus(pos);
+}
 function viewSurvey(){
   if(!cpOn()) return `<div class="bkcard"><b>アンケートの窓口につながっていません</b><div class="hint" style="margin-top:6px">クーポンと同じ窓口を使います。設定画面の「クーポン（アンケートの当選）」に URL と鍵を入れると使えます。</div><div style="margin-top:10px"><button class="btn sm pri" data-act="settings">設定画面を開く</button></div></div>`;
   if(!SQ.loading && !SQ.error && (SQ.items===null || Date.now()-SQ.at>SQ_STALE_MS)) setTimeout(()=>{ if(!SQ.loading) sqLoad(); },0);
   const items=SQ.items||[];
-  const thers=[...new Set(items.map(it=>it.therapist).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ja'));
+  const thers=sqThers();
   const head=`<div class="vseg sqvseg" role="tablist" aria-label="アンケートの見方">${[['list','回答','clip'],['stats','集計','chart']].map(([k,l,ic])=>`<button type="button" role="tab" class="${SQ.view===k?'on':''}" data-act="sq-view" data-v="${k}" aria-selected="${SQ.view===k}">${icon(ic)}${l}</button>`).join('')}</div>`;
   if(SQ.view==='stats') return viewSurveyStats(head, thers);
   const bar=`<form class="pwbar" data-act="sq-search" onsubmit="return false"><div class="cpq"><input class="inp" name="q" data-sqq value="${esc(SQ.q)}" placeholder="セラピスト・お客様名・番号・感想の言葉" autocomplete="off" enterkeyhint="search">${SQ.q?'<button type="button" class="cpx" data-act="sq-clear" title="入力を消す" aria-label="入力を消す">'+icon('x')+'</button>':''}</div>
@@ -2305,10 +2321,17 @@ function sqTherRows(list){
 function viewSurveyStats(head, thers){
   const items=SQ.items||[];
   const bar=`<div class="pwbar sqsbar"><div class="vseg sm" role="group" aria-label="期間">${SQ_PERS.map(([k,l])=>`<button type="button" class="${SQ.per===k?'on':''}" data-act="sq-per" data-v="${k}" aria-pressed="${SQ.per===k}">${l}</button>`).join('')}</div>
-    <select class="inp" data-sqther><option value="">セラピスト：全員</option>${thers.map(t=>`<option value="${esc(t)}" ${SQ.ther===t?'selected':''}>${esc(t)}</option>`).join('')}</select>
+    <div class="cpq"><input class="inp" data-sqtq value="${esc(SQ.tq)}" placeholder="セラピストを探す（名前の一部。空なら全員）" autocomplete="off" enterkeyhint="search" aria-label="セラピストを探す">${SQ.tq||SQ.ther?'<button type="button" class="cpx" data-act="sq-tclear" title="消して全員に戻す" aria-label="消して全員に戻す">'+icon('x')+'</button>':''}</div>
     <button type="button" class="iconbtn ${SQ.loading?'spin':''}" data-act="sq-reload" title="アンケートの窓口から読み直す" aria-label="読み直す" ${SQ.loading?'disabled':''}>${icon('refresh')}</button></div>`;
   if(SQ.items===null || (SQ.loading && !items.length)) return head+bar+'<div class="cpinfo">アンケートの窓口から読んでいます…（初回だけ数秒かかります）</div>';
   const base=sqBase(), cur=sqInPer(base), s=sqCount(cur), perL=(SQ_PERS.find(p=>p[0]===SQ.per)||SQ_PERS[1])[1];
+  const tm = SQ.tq && !SQ.ther ? sqTherMatch(SQ.tq, thers) : null;
+  let sugg='';
+  if(tm){
+    const cnt={}; for(const it of sqInPer(items)) if(it.therapist) cnt[it.therapist]=(cnt[it.therapist]||0)+1;
+    sugg = tm.length ? `<div class="sqsugg"><span class="sqsgl">${tm.length}人が合います。押すとその人だけの集計になります</span>${tm.slice(0,15).map(t=>`<button type="button" class="sqchip" data-act="sq-pick" data-v="${esc(t)}">${esc(t)}<small>${cnt[t]||0}件</small></button>`).join('')}${tm.length>15?`<span class="sqsgl">ほか${tm.length-15}人</span>`:''}</div>`
+      : `<div class="sqsugg"><span class="sqsgl" style="flex:0 1 auto">「${esc(SQ.tq)}」に合うセラピストはいません</span><button type="button" class="btn sm" data-act="sq-tclear">消して全員に戻す</button></div>`;
+  }
   const prev = SQ.per==='all' ? null : sqCount(sqInPer(base,1));
   const dp = prev && prev.n && s.n ? sqPct(s.good,s.n)-sqPct(prev.good,prev.n) : null;
   const delta = dp===null ? '' : `<div class="sqdelta ${dp>0?'up':dp<0?'down':''}">${dp>0?'▲':dp<0?'▼':'±'}${Math.abs(dp)}ポイント<span>その前の${perL.replace('直近','')}（良い ${sqPct(prev.good,prev.n)}%・${prev.n}件）とくらべて</span></div>`;
@@ -2326,12 +2349,12 @@ function viewSurveyStats(head, thers){
   const monthBox = `<section class="sqbox"><h3>月ごとの移り変わり<small>直近12か月・総合満足度</small></h3>${sqMonths(base)}
       <div class="sqlg" style="margin:10px 0 0"><span><i class="sv-g2"></i>良い</span><span><i class="sv-mid"></i>普通</span><span><i class="sv-r2"></i>悪い</span><span>上の数字は良いの割合</span></div></section>`;
   const therBox = SQ.ther
-    ? `<section class="sqbox wide"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="hint" style="margin:0">${who}だけの集計です。</span><button type="button" class="btn sm" data-act="sq-allther">全員の集計に戻す</button></div></section>`
-    : `<section class="sqbox wide"><h3>セラピストごと<small>${perL}・総合満足度</small><span class="sp"></span><span class="vseg sm">${[['n','件数順'],['good','良いが多い順'],['bad','悪いが多い順']].map(([k,l])=>`<button type="button" class="${SQ.tsort===k?'on':''}" data-act="sq-tsort" data-v="${k}">${l}</button>`).join('')}</span></h3>${sqTherRows(cur)}</section>`;
+    ? `<section class="sqbox wide"><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="hint" style="margin:0">${who}だけの集計です。</span><button type="button" class="btn sm" data-act="sq-tclear">全員の集計に戻す</button></div></section>`
+    : `<section class="sqbox wide"><h3>セラピストごと<small>${perL}・総合満足度${tm?`・「${esc(SQ.tq)}」に合う人だけ`:''}</small><span class="sp"></span><span class="vseg sm">${[['n','件数順'],['good','良いが多い順'],['bad','悪いが多い順']].map(([k,l])=>`<button type="button" class="${SQ.tsort===k?'on':''}" data-act="sq-tsort" data-v="${k}">${l}</button>`).join('')}</span></h3>${sqTherRows(tm ? cur.filter(it=>tm.includes(it.therapist)) : cur)}</section>`;
   const info = `<div class="cpinfo">${SQ.error?'':`読み込んだ回答 ${items.length}件から数えています${SQ.rest?'（残りを読み込んでいます。数はまだ増えます）':items.length<SQ.total?`（全部で${SQ.total}件のうち）`:''}`}<span class="cpat">${SQ.at?`${new Date(SQ.at).toTimeString().slice(0,5)} に読み込み`:''}</span></div>`;
-  return head+bar+info+(SQ.error?`<div class="bkcard" style="color:var(--red);margin-bottom:10px">${esc(SQ.error)}</div>`:'')
+  return head+bar+sugg+info+(SQ.error?`<div class="bkcard" style="color:var(--red);margin-bottom:10px">${esc(SQ.error)}</div>`:'')
     +`<div class="sqgrid">${hero}${itemsBox}${monthBox}${therBox}</div>
-    <div class="hint" style="margin-top:12px">読み込んだ回答を、この端末の中で数えているだけです（スプレッドシートは書き換えません）。良い＝とても良い・良い（総合満足度は とても満足・満足）、悪い＝悪い・とても悪い です。期間は来店日で数えます。月ごとのグラフは、期間に関係なく直近12か月です。グラフに指やマウスを乗せると、件数が出ます。セラピストの行を押すと、その人だけの集計になります（3件未満の人は、割合がぶれやすいので薄く出します）。</div>`;
+    <div class="hint" style="margin-top:12px">読み込んだ回答を、この端末の中で数えているだけです（スプレッドシートは書き換えません）。良い＝とても良い・良い（総合満足度は とても満足・満足）、悪い＝悪い・とても悪い です。期間は来店日で数えます。月ごとのグラフは、期間に関係なく直近12か月です。グラフに指やマウスを乗せると、件数が出ます。上の欄にセラピストの名前の一部を打つと、合う人が1人ならその人だけの集計になり、何人かいれば候補が出ます。セラピストの行を押しても、その人だけの集計になります（3件未満の人は、割合がぶれやすいので薄く出します）。</div>`;
 }
 // グラフの吹き出し：data-tip を付けた所にマウスを乗せる・指で触ると出る
 let tipEl=null, tipFor=null;
@@ -3656,7 +3679,7 @@ document.addEventListener('click', async e=>{
     case 'cp-clear': { CP.q=''; CP.sItems=null; CP.sq=''; render(); cpRefocus(0); break; }
     case 'cp-reload': cpLoad(); break;
     case 'gd-reload': gdLoad(); break;
-    case 'sq-reset': SQ.q=''; SQ.ther=''; SQ.low=false; render(); break;
+    case 'sq-reset': SQ.q=''; SQ.ther=''; SQ.tq=''; SQ.low=false; render(); break;
     case 'memo-clear': S.memoQ=''; render(); break;
     case 'pw-clearq': PWD.q=''; render(); break;
     case 'sup-reset': S.supQ=''; safeSet(LS.supF,'all'); render(); break;
@@ -3668,8 +3691,8 @@ document.addEventListener('click', async e=>{
     case 'sq-view': SQ.view = el.dataset.v==='stats' ? 'stats' : 'list'; safeSet(LS.sqView, SQ.view); render(); break;
     case 'sq-per': SQ.per=el.dataset.v; safeSet(LS.sqPer, SQ.per); render(); break;
     case 'sq-tsort': SQ.tsort=el.dataset.v; render(); break;
-    case 'sq-pick': SQ.ther=el.dataset.v; render(); window.scrollTo(0,0); break;
-    case 'sq-allther': SQ.ther=''; render(); break;
+    case 'sq-pick': SQ.ther=el.dataset.v; SQ.tq=el.dataset.v; render(); window.scrollTo(0,0); break;
+    case 'sq-tclear': { SQ.ther=''; SQ.tq=''; render(); const i=document.querySelector('[data-sqtq]'); if(i && matchMedia('(hover:hover)').matches) i.focus(); break; }
     case 'sq-lowlist': SQ.view='list'; SQ.low=true; SQ.q=''; safeSet(LS.sqView,'list'); render(); window.scrollTo(0,0); break;
     case 'cp-forget': if(confirm('この端末から、クーポンの接続先と鍵を消しますか？')){ safeSet(LS.cpUrl,null); safeSet(LS.cpKey,null); CP.all=null; CP.at=0; CP.error=''; S.modal=null; render(); } break;
     case 'nav-pin': setNavPin(el.dataset.k, !navPins().includes(el.dataset.k)); break;
@@ -3784,7 +3807,7 @@ document.addEventListener('click', async e=>{
 });
 // 検索欄：日本語の変換中は絞り込まない（変換が切れるため）。変換が終わったときと、英数字の入力のたびに絞り込む
 const pwSearch = el => { PWD.q=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-pwq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
-document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); if(e.target.matches('[data-cpq]')) cpInput(e.target); if(e.target.matches('[data-sqq]')) sqInput(e.target); });
+document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); if(e.target.matches('[data-cpq]')) cpInput(e.target); if(e.target.matches('[data-sqq]')) sqInput(e.target); if(e.target.matches('[data-sqtq]')) sqTherInput(e.target); });
 const memoSearch = el => { S.memoQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-memoq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 const supSearch = el => { S.supQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-supq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 // 点検の画面の検索は、選んだ状態を保つため、画面を作り直さずに行を出し入れする
@@ -3796,6 +3819,7 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-navq]')) navFilter(e.target);
   if(e.target.matches('[data-cpq]') && !e.isComposing) cpInput(e.target);
   if(e.target.matches('[data-sqq]') && !e.isComposing) sqInput(e.target);
+  if(e.target.matches('[data-sqtq]') && !e.isComposing) sqTherInput(e.target);
   if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
   if(e.target.matches('[data-mtmsg]') && MT.draft) MT.draft.message=e.target.value;
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -3876,7 +3900,7 @@ document.addEventListener('pointercancel', e=>{ if(NDRAG && e.pointerId===NDRAG.
 document.addEventListener('keydown', e=>{ if(NDRAG && e.key==='Escape') ndragEnd(false); });
 document.addEventListener('toggle', e=>{ if(e.target.matches && e.target.matches('details[data-act="sup-tot"]')) S.supTotOpen=e.target.open; if(e.target.matches && e.target.matches('details[data-inbox]')){ S.inboxOpen=e.target.open; const o=e.target.querySelector('.ibopen'); if(o) o.textContent=e.target.open?'閉じる':'取り込む'; } }, true);
 document.addEventListener('change', e=>{
-  if(e.target.matches('[data-sqther]')){ SQ.ther=e.target.value; render(); }
+  if(e.target.matches('[data-sqther]')){ SQ.ther=e.target.value; SQ.tq=SQ.ther; render(); }
   if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
   if(e.target.matches('[data-simark]')){ SI.mark=e.target.checked; render(); }
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -3894,6 +3918,7 @@ document.addEventListener('keydown', e=>{
   // メニューを開いて画面をさがす：「/」か Ctrl+K（Mac は ⌘K）
   const typing = e.target.closest && e.target.closest('input,textarea,select,[contenteditable]');
   if(S.be && !S.modal && ((e.key==='/' && !typing) || ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'))){ e.preventDefault(); if(!navWide() || !S.navPin) navSet(true); const q=document.querySelector('[data-navq]'); if(q){ q.focus(); q.select(); } }
+  if(e.key==='Enter' && e.target.matches('[data-sqtq]') && !e.isComposing){ e.preventDefault(); const m=sqTherMatch(SQ.tq, sqThers()); if(SQ.tq && m.length){ if(!SQ.ther){ SQ.ther=m[0]; SQ.tq=m[0]; render(); } if(document.activeElement) document.activeElement.blur(); } }
   if(e.key==='Enter' && e.target.matches('[data-navq]') && !e.isComposing){ e.preventDefault(); const f=[...document.querySelectorAll('.drawer .drow')].find(r=>r.style.display!=='none')?.querySelector('.navi:not([disabled])'); if(f) f.click(); }
   if(e.key==='Enter' && e.target.matches('[data-newsub]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="sub-add"]').click(); }
   if(e.key==='Enter' && e.target.matches('[data-stradd]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="st-radd"]').click(); }
@@ -3972,7 +3997,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:c28e2975e704';
+const BUILD = 'AOS_BUILD:ca47dc65bcc4';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
