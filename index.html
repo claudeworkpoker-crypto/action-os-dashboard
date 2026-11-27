@@ -506,6 +506,21 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 @media (max-width:640px){ .room{align-items:flex-start} .room .btn{margin-top:2px} }
 
 /* ===== パスワード表 ===== */
+.gdbar{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.gdat{font-size:13px;color:var(--sub)}
+.gdre{height:40px;padding:0 14px;display:inline-flex;align-items:center;gap:6px;font-weight:600;border-radius:10px}
+.gdre svg{width:16px;height:16px}
+.gdre.spin svg{animation:spin .8s linear infinite}
+.gdgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start}
+.gdblock{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.gdhd{display:flex;align-items:center;gap:8px;padding:10px 14px;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+.gdhd .cnt{font-size:12px;font-weight:500;color:var(--sub)}
+.gdrow{display:flex;align-items:center;gap:10px;padding:9px 14px}
+.gdrow+.gdrow{border-top:1px solid var(--line)}
+.gdname{flex:1;min-width:0;font-weight:600}
+.gdtime{font-variant-numeric:tabular-nums;font-weight:600;padding:2px 10px;border-radius:999px;background:var(--panel2);color:var(--text);white-space:nowrap}
+.gdtime.now{background:var(--green-soft);color:var(--green)}
+.gdtime.full{background:var(--red-soft);color:var(--red)}
 .sqcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
 .sqcard.low{border-color:color-mix(in srgb,var(--red) 40%,var(--line))}
 .sqmeta{font-size:13px;color:var(--sub);margin-top:2px}
@@ -692,6 +707,7 @@ const ICON = {
   star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
   gift:'<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
   clip:'<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="8" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="13" y2="15"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>',
   grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
@@ -2106,6 +2122,46 @@ function viewSurvey(){
     <div class="hint" style="margin-top:12px">アンケートのスプレッドシートの「フォーム回答」を、新しい順に読むだけです（書き換えません）。探す欄・セラピスト・評価の低いものだけ は、読み込んだ分の中から絞り込みます。開いたときに全部の回答を読み込みます（最初の1000件を先に出し、残りは裏で読みます）。</div>`;
 }
 
+// ===== ご案内状況（受付台帳の「最短」シートの A〜D 列。正本は受付台帳。受付システムが随時書き換える） =====
+// クーポンと同じ窓口・同じ鍵（guide.status）。読むだけ。開いている間は30秒ごとに読み直し、ほかのアプリから戻ったときもすぐ読み直す
+const GD = {blocks:null, at:0, srvAt:'', loading:false, error:'', seq:0, timer:0};
+const GD_EVERY_MS = 30*1000;
+let gdDemo = null;
+async function gdCall(){
+  if(S.be && S.be.kind==='demo' && !cpConf().url){
+    await new Promise(r=>setTimeout(r,200));
+    if(!gdDemo) gdDemo=[{area:'北千住', head:['セラピスト','時間'], rows:[['見本そら','最短'],['見本りあ','最短'],['見本ゆうな','13:30'],['見本てん','13:40'],['見本つむぎ','14:00'],['見本きく','14:20']]},{area:'柏', head:['セラピスト','時間'], rows:[['見本えみ','最短'],['見本りの','13:20'],['見本える','14:00'],['見本えな','完売🈵']]}];
+    return {ok:true, blocks:gdDemo, at:todayStr()+' '+new Date().toTimeString().slice(0,5)};
+  }
+  return cpCall('guide.status', {});
+}
+async function gdLoad(){
+  const my=++GD.seq; GD.loading=true; GD.error=''; if(S.tab==='guide') render();
+  try{ const j=await gdCall(); if(my!==GD.seq) return; GD.blocks=j.blocks||[]; GD.at=Date.now(); GD.srvAt=j.at||''; }
+  catch(e){ if(my===GD.seq) GD.error=e.message; }
+  if(my===GD.seq){ GD.loading=false; if(S.tab==='guide' && !S.modal) render(); }
+}
+// 開いている間だけ読み直す（ほかの画面・裏にいるときは読まない）
+function gdTick(){ if(S.tab==='guide' && document.visibilityState==='visible' && !GD.loading && Date.now()-GD.at>=GD_EVERY_MS-500) gdLoad(); }
+setInterval(gdTick, 5000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && S.tab==='guide' && !GD.loading) gdLoad(); });
+// 時間の書き方で色を分ける：最短（すぐ案内できる）は緑、完売・満は赤、それ以外（13:30 など）はふつう
+const gdTone = t => /最短/.test(t) ? 'now' : /完売|満|🈵|×|休/.test(t) ? 'full' : '';
+function viewGuide(){
+  if(!cpOn()) return `<div class="bkcard"><b>窓口につながっていません</b><div class="hint" style="margin-top:6px">クーポンと同じ窓口を使います。設定画面の「クーポン（アンケートの当選）」に URL と鍵を入れると使えます。</div><div style="margin-top:10px"><button class="btn sm pri" data-act="settings">設定画面を開く</button></div></div>`;
+  if(GD.blocks===null && !GD.loading && !GD.error) setTimeout(()=>{ if(GD.blocks===null && !GD.loading) gdLoad(); },0);
+  const bar = `<div class="gdbar"><span class="gdat">${GD.loading&&!GD.blocks?'受付台帳から読んでいます…':GD.at?`${new Date(GD.at).toTimeString().slice(0,5)} に読み込み（30秒ごとに自動で読み直し）`:''}</span><span class="sp"></span><button type="button" class="btn gdre ${GD.loading?'spin':''}" data-act="gd-reload" ${GD.loading?'disabled':''}>${icon('refresh')}今すぐ更新</button></div>`;
+  if(GD.error && !GD.blocks) return bar+`<div class="bkcard" style="color:var(--red)">${esc(GD.error)}</div>`;
+  if(!GD.blocks) return bar;
+  const blocks = GD.blocks.filter(b=>b.rows && b.rows.length).map(b=>`<section class="gdblock">
+      <div class="gdhd">${esc(b.area||'')}<span class="cnt">${b.rows.length}人</span></div>
+      <div class="gdlist">${b.rows.map(([n,t])=>`<div class="gdrow"><span class="gdname">${esc(n)}</span><span class="gdtime ${gdTone(t)}">${esc(t)}</span></div>`).join('')}</div>
+    </section>`).join('');
+  return bar+(GD.error?`<div class="bkcard" style="color:var(--red);margin-bottom:10px">読み直しに失敗しました（前に読んだ内容を出しています）：${esc(GD.error)}</div>`:'')
+    +`<div class="gdgrid">${blocks||'<div class="empty">今は案内できる人がいません</div>'}</div>
+    <div class="hint" style="margin-top:12px">受付台帳の「最短」シートの左の表（セラピストと、案内できるいちばん早い時間）を、そのまま見ているだけです（書き換えません）。受付システムが台帳を更新すると、30秒以内にここにも出ます。</div>`;
+}
+
 // ===== 空室情報（BOK のルーム空室情報。正本は BOK のスプレッドシート） =====
 // 読み書きは BOK のウェブアプリの窓口（room.list / room.update）を通して行う。GitHub には一切書かない。
 // 表の形：ルーム（北千住・柏などのエリア）× 曜日（月〜日）× 1日3マス＋曜日ごとの「見せない人」。週によらない定常の表。
@@ -3059,13 +3115,13 @@ function supItemsModal(m){
 // 画面はまとまりごとに並べる。上の帯には ★ を付けた画面（端末ごとに覚える）と、いま開いている画面だけを出す
 const NAV_DEF = {
   board:{l:'カテゴリ別', ic:'list'}, timeline:{l:'期限順', ic:'cal'}, someday:{l:'いつかやる', ic:'flag'}, runs:{l:'実行', ic:'play'}, done:{l:'完了', ic:'check'},
-  notes:{l:'引き継ぎ', ic:'msg'}, memo:{l:'ノート', ic:'book'}, rooms:{l:'清掃', ic:'home'}, supplies:{l:'補充', ic:'box'},
+  notes:{l:'引き継ぎ', ic:'msg'}, memo:{l:'ノート', ic:'book'}, guide:{l:'ご案内状況', ic:'clock'}, rooms:{l:'清掃', ic:'home'}, supplies:{l:'補充', ic:'box'},
   bok:{l:'BOK', ic:'bell'}, coupon:{l:'クーポン', ic:'gift'}, survey:{l:'アンケート', ic:'clip'}, pw:{l:'パスワード', ic:'key'},
 };
-const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['運用',['notes','memo','rooms','supplies']], ['システム',['bok','coupon','survey','pw']]];
+const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['運用',['notes','memo','guide','rooms','supplies']], ['システム',['bok','coupon','survey','pw']]];
 const PIN_DEFAULT = ['board','notes','supplies','rooms'];  // ★の数に上限は無い（2026-11-27 社長）
 const navWide = () => matchMedia('(min-width:1100px)').matches;
-function navAvail(k){ return k==='notes'?!!S.notes : k==='memo'?!!S.memo : k==='rooms'?!!S.rooms : k==='supplies'?!!S.supplies : k==='pw'?pwOn() : k==='coupon'||k==='survey'?cpOn() : !!NAV_DEF[k]; }
+function navAvail(k){ return k==='notes'?!!S.notes : k==='memo'?!!S.memo : k==='rooms'?!!S.rooms : k==='supplies'?!!S.supplies : k==='pw'?pwOn() : k==='coupon'||k==='survey'||k==='guide'?cpOn() : !!NAV_DEF[k]; }
 function navPins(){ let a=null; try{ a=JSON.parse(safeGet(LS.pins)||'null'); }catch{} return (Array.isArray(a)?a:PIN_DEFAULT).filter(k=>NAV_DEF[k]); }
 function setNavPin(k, on){ let a=navPins().filter(x=>x!==k); if(on) a.push(k); safeSet(LS.pins, JSON.stringify(a)); render(); }
 // 画面ごとの件数と、赤くする（すぐ見てほしい）かどうか
@@ -3084,6 +3140,7 @@ function navBadge(k, st){
     case 'pw': return {n:PWD.rows?PWD.rows.length:''};
     case 'coupon': return {n:''};
     case 'survey': return {n:''};
+    case 'guide': return {n:''};
   }
   return {n:''};
 }
@@ -3164,9 +3221,9 @@ function render(){
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
     ${S.tab==='board'||S.tab==='timeline'?whoBar():''}
-    ${waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='coupon'?viewCoupon():S.tab==='survey'?viewSurvey():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='coupon'?viewCoupon():S.tab==='survey'?viewSurvey():S.tab==='guide'?viewGuide():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
-  ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='coupon'||S.tab==='survey'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
+  ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='coupon'||S.tab==='survey'||S.tab==='guide'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
   document.body.classList.toggle('navopen', !!S.nav); document.body.classList.toggle('navpin', !!S.navPin);
@@ -3342,6 +3399,7 @@ document.addEventListener('click', async e=>{
     case 'cp-unuse': cpMark(+el.dataset.row, false); break;
     case 'cp-clear': { CP.q=''; CP.sItems=null; CP.sq=''; render(); cpRefocus(0); break; }
     case 'cp-reload': cpLoad(); break;
+    case 'gd-reload': gdLoad(); break;
     case 'sq-reset': SQ.q=''; SQ.ther=''; SQ.low=false; render(); break;
     case 'memo-clear': S.memoQ=''; render(); break;
     case 'pw-clearq': PWD.q=''; render(); break;
@@ -3394,7 +3452,7 @@ document.addEventListener('click', async e=>{
     case 'member-del': { const n=el.dataset.name; const cnt=allTasks().filter(r=>hasWho(r.t,n)).length;
       if(confirm(cnt?`「${n}」を担当者の一覧から外しますか？（担当になっているタスク ${cnt}件の印はそのまま残ります）`:`「${n}」を担当者の一覧から外しますか？`)) removeMember(n); break; }
     case 'filter': S.filter = S.filter===el.dataset.k?null:el.dataset.k; if(S.tab!=='board'&&S.tab!=='timeline') S.tab='timeline'; render(); break;
-    case 'reload': if(qRunning||Q.length){ toast('保存中です。少し待ってから更新してください'); break; } checkUpdate(true); loadAll(); break;
+    case 'reload': if(qRunning||Q.length){ toast('保存中です。少し待ってから更新してください'); break; } checkUpdate(true); loadAll(); if(S.tab==='guide') gdLoad(); break;
     case 'settings': S.modal={type:'settings'}; render(); break;
     case 'logout': safeSet(LS.token,null); S.be=null; S.modal=null; render(); break;
     case 'add': S.modal={type:'add', draft:{text:'', notes:'', cat:INBOX, due:'', prio:false, who:(S.who&&S.who!=='__none')?S.who:'', subs:[]}}; render(); break;
@@ -3652,7 +3710,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:a45cc33f78d0';
+const BUILD = 'AOS_BUILD:f35e00435c80';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
