@@ -416,6 +416,9 @@ a.btn{text-decoration:none;display:inline-flex;align-items:center}
 .nt .em{color:var(--red);font-weight:600}
 .nlist .empty{padding:8px 6px}
 .ncat .quick{padding:8px 0 0}
+.nfold{display:inline-flex;align-items:center;gap:4px;min-width:0;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.nfold svg{flex:none;width:14px;height:14px;color:var(--faint);transition:transform .15s}
+.nfold.on svg{transform:rotate(90deg)}
 .ngrip{flex:none;width:22px;height:24px;margin:0 -6px 0 -4px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--faint);cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
 .ngrip svg{width:16px;height:16px}
 .ngrip:hover{color:var(--sub);background:var(--panel2)}
@@ -517,7 +520,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -689,7 +692,7 @@ function demoBackend(){
 
 // ===== 状態 =====
 const S = {
-  be:null, sections:[], someday:[], done:{}, issues:[], runs:[], progress:{}, notes:null, rooms:null, supplies:null, supRoom:'', supTotOpen:false, loading:false,
+  be:null, sections:[], someday:[], done:{}, issues:[], runs:[], progress:{}, notes:null, memo:null, memoQ:'', rooms:null, supplies:null, supRoom:'', supTotOpen:false, loading:false,
   members:[],  // 担当者の一覧（members.md）
   tab: safeGet(LS.tab) || 'board', filter:null, who: safeGet(LS.who) || null, modal:null, toast:null, loadedAt:0,
   bok:null,  // BOK のタブで開いている機能（null＝機能の一覧）
@@ -705,7 +708,7 @@ async function loadAll(quiet){
   S.loading=true; render();
   try{
     const ym=monthOf(todayStr());
-    const [todo, some, d1, d2, iss, runs, prog, notes, rooms, sup, mem] = await Promise.all([
+    const [todo, some, d1, d2, iss, runs, prog, notes, rooms, sup, mem, memo] = await Promise.all([
       S.be.read('todo.md'), S.be.read('someday.md'), S.be.read(`done/${ym}.md`), S.be.read(`done/${prevMonth(ym)}.md`),
       S.be.issues().catch(e=>{ console.warn(e); return null; }),
       S.be.read('runs.json').catch(()=>null),
@@ -714,6 +717,7 @@ async function loadAll(quiet){
       S.be.read('rooms.md').catch(()=>null),
       S.be.read('supplies.md').catch(()=>null),
       S.be.read('members.md').catch(()=>null),
+      S.be.read('memo.md').catch(()=>null),
     ]);
     S.runs=parseRuns(runs&&runs.text);
     S.progress=parseProgress(prog&&prog.text);
@@ -722,6 +726,7 @@ async function loadAll(quiet){
     S.done={[ym]:d1?parseDone(d1.text):[], [prevMonth(ym)]:d2?parseDone(d2.text):[]};
     S.issues=iss;
     S.notes = notes ? parseNotes(notes.text) : null;   // ファイルがあるときだけタブを出す
+    S.memo = memo ? parseNotes(memo.text) : null;      // ノート（memo.md）も同じ
     S.rooms = rooms ? parseRooms(rooms.text) : null;
     S.supplies = sup ? parseSupplies(sup.text) : null;
     S.members = mem ? parseMembers(mem.text) : [];
@@ -1345,10 +1350,12 @@ function viewInbox(){
 // ===== 引き継ぎ・メモ（notes.md）と ルームの清掃（rooms.md） =====
 // どちらも、リポジトリにファイルがあるときだけタブを出す（設定画面から作れる）。Claude Code で話しかけて書き換えてもよい（CLAUDE.md の決まり）。
 const NOTES_INIT = '# 引き継ぎ・メモ\n\n## 重要\n\n## 引き継ぎ\n\n## メモ\n';
+const MEMO_INIT = '# ノート\n\n## メモ\n';
 const ROOMS_INIT = '# ルームの清掃\n\n| ルーム | エリア | 建物 | 次回清掃 | 前回清掃 | 間隔（日） | メモ |\n|---|---|---|---|---|---|---|\n';
 
-// --- 引き継ぎ・メモ ---
+// --- 引き継ぎ・メモ と ノート ---
 // notes.md: 「## 区分」ごとに、チェック付き（- [ ] / - [x]）か、チェック無し（- ）の箇条書き。**で囲んだところは赤く強調する
+// memo.md（ノート）も同じ形。引き継ぎとは別に、あとで探して見る参照用のメモ（ポスト番号・設備の使い方・連絡先など）を貯めておく
 function parseNotes(text){
   const cats=[]; let cur=null, title='引き継ぎ・メモ';
   for(const line of String(text||'').replace(/\r/g,'').split('\n')){
@@ -1368,20 +1375,27 @@ function serializeNotes(n){
   }
   return out;
 }
+// どちらのファイルを触るかは doc で選ぶ（'notes' が引き継ぎ、'memo' がノート）。保存の記録の頭には、ノートなら「ノート:」を付ける
+const NDOC = {
+  notes:{file:'notes.md', name:'引き継ぎ', title:'引き継ぎ・メモ', log:''},
+  memo:{file:'memo.md', name:'ノート', title:'ノート', log:'ノート: '},
+};
+const ndoc = k => k==='memo' ? 'memo' : 'notes';
+const ndocInit = k => ndoc(k)==='memo' ? MEMO_INIT : NOTES_INIT;
 const fmtNote = t => esc(t).replace(/\*\*(.+?)\*\*/g,'<span class="em">$1</span>');
-const notesFile = (fn,msg) => mutateFile('notes.md', t=>{ const n=parseNotes(t); if(fn(n)===false) return false; return serializeNotes(n); }, msg, NOTES_INIT);
-function noteOp(label, fn, msg){ enqueue(label, ()=>{ if(S.notes) fn(S.notes); }, ()=>notesFile(fn, msg)); }
+const notesFile = (fn,msg,k='notes') => mutateFile(NDOC[ndoc(k)].file, t=>{ const n=parseNotes(t); if(!/^#\s/m.test(String(t||''))) n.title=NDOC[ndoc(k)].title; if(fn(n)===false) return false; return serializeNotes(n); }, msg, ndocInit(k));
+function noteOp(label, fn, msg, k='notes'){ k=ndoc(k); enqueue(label, ()=>{ if(S[k]) fn(S[k]); }, ()=>notesFile(fn, `dashboard: ${NDOC[k].log}${msg}`, k)); }
 const findCat = (n, name) => n.cats.find(c=>c.name===name);
 const findNote = (n, ref) => { const c=findCat(n, ref.cat); if(!c) return null; const i=c.items.findIndex(x=>x.text===ref.text); return i<0?null:{c, i, it:c.items[i]}; };
 // 区分の既定：中身がすべてチェック無しなら、足すものもチェック無し（「重要」のような決まりごとの区分）
 const catPlain = c => c.items.length>0 && c.items.every(x=>x.check===null);
 function notesOpenCount(){ return S.notes ? S.notes.cats.reduce((a,c)=>a+c.items.filter(x=>x.check===false).length,0) : 0; }
 
-function addNote(cat, text, check){
-  noteOp('追加しました', n=>{ const c=findCat(n,cat); if(!c) return false; c.items.push({text, check: check?false:null}); }, `dashboard: 「${cat}」に「${text.slice(0,30)}」を追加`);
+function addNote(cat, text, check, k='notes'){
+  noteOp('追加しました', n=>{ const c=findCat(n,cat); if(!c) return false; c.items.push({text, check: check?false:null}); }, `「${cat}」に「${text.slice(0,30)}」を追加`, k);
 }
 function toggleNote(ref){
-  noteOp('', n=>{ const f=findNote(n,ref); if(!f || f.it.check===null) return false; f.it.check=!f.it.check; }, `dashboard: 「${ref.text.slice(0,30)}」のチェックを切り替え`);
+  noteOp('', n=>{ const f=findNote(n,ref); if(!f || f.it.check===null) return false; f.it.check=!f.it.check; }, `「${ref.text.slice(0,30)}」のチェックを切り替え`, ref.doc);
 }
 function updateNote(ref, patch){
   noteOp('更新しました', n=>{
@@ -1389,20 +1403,21 @@ function updateNote(ref, patch){
     f.it.text=patch.text;
     f.it.check = patch.kind==='plain' ? null : (f.it.check===null ? false : f.it.check);
     if(patch.cat && patch.cat!==ref.cat){ const to=findCat(n,patch.cat); if(!to) return false; f.c.items.splice(f.i,1); to.items.push(f.it); }
-  }, `dashboard: 「${patch.text.slice(0,30)}」を更新`);
+  }, `「${patch.text.slice(0,30)}」を更新`, ref.doc);
 }
-function deleteNote(ref){ noteOp('削除しました', n=>{ const f=findNote(n,ref); if(!f) return false; f.c.items.splice(f.i,1); }, `dashboard: 「${ref.text.slice(0,30)}」を削除`); }
-function clearChecked(cat){ noteOp('済みを消しました', n=>{ const c=findCat(n,cat); if(!c) return false; const before=c.items.length; c.items=c.items.filter(x=>x.check!==true); if(c.items.length===before) return false; }, `dashboard: 「${cat}」の済みを消す`); }
-function badNoteCat(name, except){
+function deleteNote(ref){ noteOp('削除しました', n=>{ const f=findNote(n,ref); if(!f) return false; f.c.items.splice(f.i,1); }, `「${ref.text.slice(0,30)}」を削除`, ref.doc); }
+function clearChecked(cat, k='notes'){ noteOp('済みを消しました', n=>{ const c=findCat(n,cat); if(!c) return false; const before=c.items.length; c.items=c.items.filter(x=>x.check!==true); if(c.items.length===before) return false; }, `「${cat}」の済みを消す`, k); }
+function badNoteCat(name, except, k='notes'){
   if(!name) return '区分の名前を入れてください';
   if(/[#\n]/.test(name)) return '区分の名前に # は使えません';
-  if(S.notes && S.notes.cats.some(c=>c.name===name && c.name!==except)) return '同じ名前の区分があります';
+  const n=S[ndoc(k)];
+  if(n && n.cats.some(c=>c.name===name && c.name!==except)) return '同じ名前の区分があります';
   return null;
 }
-function addNoteCat(name){ noteOp('区分を追加しました', n=>{ if(findCat(n,name)) return false; n.cats.push({name, items:[]}); }, `dashboard: 引き継ぎに区分「${name}」を追加`); }
-function renameNoteCat(from, to){ noteOp('区分の名前を変えました', n=>{ const c=findCat(n,from); if(!c || findCat(n,to)) return false; c.name=to; }, `dashboard: 区分「${from}」を「${to}」に変更`); }
-function deleteNoteCat(name){ noteOp('区分を削除しました', n=>{ const i=n.cats.findIndex(c=>c.name===name); if(i<0) return false; n.cats.splice(i,1); }, `dashboard: 区分「${name}」を削除`); }
-// ドラッグでの並べ替え。入れる場所は「その直前に来る行（区分）」で覚えておき、保存の直前に読み直した最新の notes.md でもその前に入れる
+function addNoteCat(name, k='notes'){ noteOp('区分を追加しました', n=>{ if(findCat(n,name)) return false; n.cats.push({name, items:[]}); }, `${ndoc(k)==='notes'?'引き継ぎに':''}区分「${name}」を追加`, k); }
+function renameNoteCat(from, to, k='notes'){ noteOp('区分の名前を変えました', n=>{ const c=findCat(n,from); if(!c || findCat(n,to)) return false; c.name=to; }, `区分「${from}」を「${to}」に変更`, k); }
+function deleteNoteCat(name, k='notes'){ noteOp('区分を削除しました', n=>{ const i=n.cats.findIndex(c=>c.name===name); if(i<0) return false; n.cats.splice(i,1); }, `区分「${name}」を削除`, k); }
+// ドラッグでの並べ替え。入れる場所は「その直前に来る行（区分）」で覚えておき、保存の直前に読み直した最新のファイルでもその前に入れる
 // （ほかの人が行を足していてもずれないように）。見つからなければ、画面で見ていたときの位置（index）に入れる
 function moveNoteTo(from, toCat, toIndex, beforeText){
   noteOp(from.cat===toCat?'':`「${toCat}」へ移しました`, n=>{
@@ -1412,16 +1427,16 @@ function moveNoteTo(from, toCat, toIndex, beforeText){
     let at = beforeText!=null ? to.items.findIndex(x=>x.text===beforeText) : to.items.length;
     if(at<0) at=Math.min(toIndex, to.items.length);
     to.items.splice(at,0,it);
-  }, `dashboard: 「${from.text.slice(0,30)}」を${from.cat===toCat?'並べ替え':`「${toCat}」へ移す`}`);
+  }, `「${from.text.slice(0,30)}」を${from.cat===toCat?'並べ替え':`「${toCat}」へ移す`}`, from.doc);
 }
-function moveNoteCatTo(name, toIndex, beforeName){
+function moveNoteCatTo(name, toIndex, beforeName, k='notes'){
   noteOp('', n=>{
     const i=n.cats.findIndex(c=>c.name===name); if(i<0) return false;
     const [c]=n.cats.splice(i,1);
     let at = beforeName!=null ? n.cats.findIndex(x=>x.name===beforeName) : n.cats.length;
     if(at<0) at=Math.min(toIndex, n.cats.length);
     n.cats.splice(at,0,c);
-  }, `dashboard: 区分「${name}」を並べ替え`);
+  }, `区分「${name}」を並べ替え`, k);
 }
 
 // 区分のメモを、貼り付け用の文にする（チェック付きは未対応だけ。** の強調は外す）
@@ -1429,42 +1444,59 @@ function noteCatText(c){
   const list=c.items.filter(x=>x.check!==true).map(x=>`・${x.text.replace(/\*\*(.+?)\*\*/g,'$1')}`);
   return list.length ? `【${c.name}】${mdw(todayStr())}\n${list.join('\n')}` : '';
 }
-function viewNotes(){
-  const cats=S.notes.cats;
-  const ref = (c,it) => esc(JSON.stringify({cat:c.name, text:it.text}));
+// ノートの区分の開け閉め（この端末に覚える。検索中はすべて開いて、当たった行だけ出す）
+function memoShut(){ try{ return JSON.parse(safeGet(LS.memoShut)||'[]'); }catch{ return []; } }
+function setMemoShut(name, shut){ const a=memoShut().filter(x=>x!==name); if(shut) a.push(name); safeSet(LS.memoShut, JSON.stringify(a.slice(-200))); }
+function viewNotes(k='notes'){
+  k=ndoc(k); const memo=k==='memo', N=S[k], cats=N.cats;
+  const qq=memo?(S.memoQ||'').trim().toLowerCase():'', hit=t=>!qq || String(t).toLowerCase().includes(qq);
+  const shut=memo?memoShut():[];
+  const ref = (c,it) => esc(JSON.stringify({doc:k, cat:c.name, text:it.text}));
+  const grip = (kind,title,cls='') => qq ? '' : `<span class="ngrip${cls}" data-drag="${kind}" title="${title}">${icon('grip')}</span>`;  // 検索中は並べ替えない
   const body = cats.map((c,ci)=>{
     const plain=catPlain(c), doneN=c.items.filter(x=>x.check===true).length;
-    const rows = c.items.length ? c.items.map((it,ii)=>`<div class="nrow ${it.check===true?'done':''}" data-cat="${esc(c.name)}" data-i="${ii}">
-        <span class="ngrip" data-drag="note" title="つかんで並べ替え・ほかの区分へ移す">${icon('grip')}</span>
+    const shown=c.items.map((it,ii)=>({it,ii})).filter(x=>hit(x.it.text) || hit(c.name));
+    if(qq && !shown.length) return '';
+    const closed = memo && !qq && shut.includes(c.name);
+    const rows = shown.length ? shown.map(({it,ii})=>`<div class="nrow ${it.check===true?'done':''}" data-cat="${esc(c.name)}" data-i="${ii}">
+        ${grip('note','つかんで並べ替え・ほかの区分へ移す')}
         ${it.check===null?'':`<button class="nchk ${it.check?'on':''}" data-act="note-toggle" data-ref='${ref(c,it)}' title="${it.check?'未対応に戻す':'対応済みにする'}">${icon('check')}</button>`}
         <div class="nt" data-act="note-edit" data-ref='${ref(c,it)}'>${fmtNote(it.text)}</div></div>`).join('')
       : '<div class="empty">まだありません</div>';
-    return `<section class="ncat ${plain?'rule':''}" data-cat="${esc(c.name)}" style="--cc:var(${PALETTE[ci%PALETTE.length]})">
-      <div class="colhd"><span class="ngrip cgrip" data-drag="ncat" title="つかんで区分ごと並べ替え">${icon('grip')}</span><span class="name">${esc(c.name)}</span><span class="count">${c.items.length}</span><span class="sp"></span>
-        ${c.items.some(x=>x.check!==true)?`<button class="btn sm" data-act="note-copy" data-cat="${esc(c.name)}" title="${plain?'この区分を全部':'まだ対応していないものを'}コピー">${icon('copy')} コピー</button>`:''}
-        ${doneN?`<button class="btn sm" data-act="note-clear" data-cat="${esc(c.name)}">済みを消す（${doneN}）</button>`:''}
+    const name = memo
+      ? `<button type="button" class="nfold ${closed?'':'on'}" data-act="mcat-fold" data-cat="${esc(c.name)}" title="${closed?'開く':'閉じる'}">${icon('chev')}<span class="name">${esc(c.name)}</span></button>`
+      : `<span class="name">${esc(c.name)}</span>`;
+    return `<section class="ncat ${plain&&!memo?'rule':''}" data-cat="${esc(c.name)}" style="--cc:var(${PALETTE[ci%PALETTE.length]})">
+      <div class="colhd">${grip('ncat','つかんで区分ごと並べ替え',' cgrip')}${name}<span class="count">${c.items.length}</span><span class="sp"></span>
+        ${c.items.some(x=>x.check!==true)?`<button class="btn sm" data-act="note-copy" data-doc="${k}" data-cat="${esc(c.name)}" title="${plain?'この区分を全部':'まだ対応していないものを'}コピー">${icon('copy')} コピー</button>`:''}
+        ${doneN?`<button class="btn sm" data-act="note-clear" data-doc="${k}" data-cat="${esc(c.name)}">済みを消す（${doneN}）</button>`:''}
         <span class="tools">
-          <button class="iconbtn sm" data-act="ncat-rename" data-cat="${esc(c.name)}" title="名前を変える">${icon('edit')}</button>
-          <button class="iconbtn sm del" data-act="ncat-del" data-cat="${esc(c.name)}" title="区分を削除">${icon('x')}</button>
+          <button class="iconbtn sm" data-act="ncat-rename" data-doc="${k}" data-cat="${esc(c.name)}" title="名前を変える">${icon('edit')}</button>
+          <button class="iconbtn sm del" data-act="ncat-del" data-doc="${k}" data-cat="${esc(c.name)}" title="区分を削除">${icon('x')}</button>
         </span></div>
-      <div class="nlist">${rows}</div>
-      <form class="quick" data-act="note-add" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加${plain?'':'（チェック付き）'}" autocomplete="off" enterkeyhint="done"></form>
+      ${closed?'':`<div class="nlist">${rows}</div>
+      ${qq?'':`<form class="quick" data-act="note-add" data-doc="${k}" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加${plain||memo?'':'（チェック付き）'}" autocomplete="off" enterkeyhint="done"></form>`}`}
     </section>`;
   }).join('');
-  return `<div class="notes">${body||'<div class="empty">区分がありません。下から追加してください</div>'}
-    <div class="nfoot"><form class="quick" data-act="ncat-add"><input name="q" placeholder="＋ 区分を追加（例：セラピスト情報）" autocomplete="off" enterkeyhint="done"></form>
-    <div class="hint" style="margin-top:8px">行や区分の左の ⋮⋮ を押したまま動かすと、並べ替えたり、ほかの区分へ移したりできます。チェックを押すと「対応済み」になります。済んだものは区分の「済みを消す」でまとめて片付けられます。文字を押すと編集できます。**で囲んだところは赤く強調されます。</div></div></div>`;
+  const search = memo ? `<form class="supsearch" onsubmit="return false"><input class="inp" data-memoq placeholder="さがす（メモ・区分）" value="${esc(S.memoQ||'')}" autocomplete="off"></form>` : '';
+  const empty = qq ? '<div class="empty">見つかりません</div>' : '<div class="empty">区分がありません。下から追加してください</div>';
+  const hint = memo
+    ? 'あとで探して見るメモ（ポスト番号・設備の使い方・連絡先など）を、区分ごとに貯めておく場所です。対応したら片付けるものは「引き継ぎ」へ。区分の名前を押すと開け閉めできます（この端末に覚えます）。行や区分の左の ⋮⋮ を押したまま動かすと、並べ替えたり、ほかの区分へ移したりできます（検索中はできません）。文字を押すと編集できます。**で囲んだところは赤く強調されます。'
+    : '行や区分の左の ⋮⋮ を押したまま動かすと、並べ替えたり、ほかの区分へ移したりできます。チェックを押すと「対応済み」になります。済んだものは区分の「済みを消す」でまとめて片付けられます。文字を押すと編集できます。**で囲んだところは赤く強調されます。';
+  return `${search}<div class="notes" data-doc="${k}">${body||empty}
+    <div class="nfoot">${qq?'':`<form class="quick" data-act="ncat-add" data-doc="${k}"><input name="q" placeholder="＋ 区分を追加（例：${memo?'設備の使い方':'セラピスト情報'}）" autocomplete="off" enterkeyhint="done"></form>`}
+    <div class="hint" style="margin-top:8px">${hint}</div></div></div>`;
 }
 function noteModal(m){
-  const d=m.draft;
+  const d=m.draft, k=ndoc(m.ref&&m.ref.doc), memo=k==='memo';
   return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-note">
     <h2>メモを編集</h2>
     <div class="field"><label>内容</label><textarea class="inp" name="text" rows="4" required>${esc(d.text)}</textarea>
       <div class="hint" style="margin-top:6px">**で囲んだところは赤く強調されます（例：**絶対に開封しない**）</div></div>
-    <div class="field"><label>種類</label><div class="seg">
+    ${memo?'':`<div class="field"><label>種類</label><div class="seg">
       <button type="button" class="${d.kind==='check'?'on':''}" data-act="nset" data-f="kind" data-v="check">チェック付き（対応したら消す）</button>
-      <button type="button" class="${d.kind==='plain'?'on':''}" data-act="nset" data-f="kind" data-v="plain">チェック無し（ずっと残す決まりごと）</button></div></div>
-    <div class="field"><label>区分</label><div class="seg">${S.notes.cats.map(c=>`<button type="button" class="${d.cat===c.name?'on':''}" data-act="nset" data-f="cat" data-v="${esc(c.name)}">${esc(c.name)}</button>`).join('')}</div></div>
+      <button type="button" class="${d.kind==='plain'?'on':''}" data-act="nset" data-f="kind" data-v="plain">チェック無し（ずっと残す決まりごと）</button></div></div>`}
+    <div class="field"><label>区分</label><div class="seg">${S[k].cats.map(c=>`<button type="button" class="${d.cat===c.name?'on':''}" data-act="nset" data-f="cat" data-v="${esc(c.name)}">${esc(c.name)}</button>`).join('')}</div></div>
     <div class="actions"><button type="button" class="btn danger left" data-act="note-del">削除</button>
       <button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri">保存</button></div>
   </form></div>`;
@@ -1571,9 +1603,10 @@ function extraTabsField(){
   const btn=(on,act,label)=>on?`<span class="hint">使用中</span>`:`<button type="button" class="btn sm" data-act="${act}">${label}</button>`;
   return `<div class="field"><label>追加のタブ</label><div class="subl">
     <div class="row"><span class="cname" style="flex:1">引き継ぎ・メモ</span>${btn(S.notes,'enable-notes','使う')}</div>
+    <div class="row"><span class="cname" style="flex:1">ノート（参照用のメモ）</span>${btn(S.memo,'enable-memo','使う')}</div>
     <div class="row"><span class="cname" style="flex:1">ルームの清掃</span>${btn(S.rooms,'enable-rooms','使う')}</div>
     <div class="row"><span class="cname" style="flex:1">備品の補充</span>${btn(S.supplies,'enable-supplies','使う')}</div>
-  </div><div class="hint" style="margin-top:6px">「使う」を押すと、リポジトリに notes.md・rooms.md・supplies.md を作ってタブを出します。</div></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
+  </div><div class="hint" style="margin-top:6px">「使う」を押すと、リポジトリに notes.md・memo.md・rooms.md・supplies.md を作ってタブを出します。</div></div><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
 }
 function enableFile(path, init, key, parse, label){
   enqueue(label, ()=>{ if(!S[key]) S[key]=parse(init); }, ()=>mutateFile(path, t=>t&&t.trim()?t:init, `dashboard: ${path} を作る`, ''));
@@ -2645,10 +2678,11 @@ function render(){
   if(S.rooms) tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0),0,['rooms','清掃',roomsDueCount()]);
   tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0)+(S.rooms?1:0),0,['bok','BOK'+himePill(),'']);  // BOK の機能の入口（すべての端末に出す）
   if(pwOn()) tabs.splice(2+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
+  if(S.memo){ const i=tabs.findIndex(t=>t[0]==='notes'); tabs.splice(i>=0?i+1:1,0,['memo','ノート','']); }  // ノートは引き継ぎのすぐ後ろ（件数は出さない）
   if(S.tab==='supplies'&&!S.supplies) S.tab='board';
   if(S.tab==='pw'&&!pwOn()) S.tab='board';
   if(S.tab==='rv'){ S.tab='bok'; S.bok='rv'; }  // 前の「空室情報」タブを覚えていた端末は、BOK の中の空室情報へ
-  if((S.tab==='notes'&&!S.notes)||(S.tab==='rooms'&&!S.rooms)) S.tab='board';
+  if((S.tab==='notes'&&!S.notes)||(S.tab==='memo'&&!S.memo)||(S.tab==='rooms'&&!S.rooms)) S.tab='board';
   const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
   const showStats = S.tab==='board'||S.tab==='timeline';
   // 入力中の内容とフォーカスを保つ
@@ -2672,9 +2706,9 @@ function render(){
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
     ${S.tab==='board'||S.tab==='timeline'?whoBar():''}
-    ${S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
-  ${S.tab==='notes'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
+  ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
   renderToast();
@@ -2928,14 +2962,16 @@ document.addEventListener('click', async e=>{
     case 'pw-forget': if(confirm('この端末から、パスワード表の接続先と鍵を消しますか？')){ safeSet(LS.pwUrl,null); safeSet(LS.pwKey,null); PWD.rows=null; PWD.error=''; S.modal=null; render(); } break;
     // 引き継ぎ・メモ
     case 'note-toggle': toggleNote(ref); break;
-    case 'note-edit': { const f=findNote(S.notes, ref); if(!f) break; S.modal={type:'note', ref, draft:{text:f.it.text, kind:f.it.check===null?'plain':'check', cat:ref.cat}}; render(); break; }
+    case 'note-edit': { const f=findNote(S[ndoc(ref.doc)], ref); if(!f) break; S.modal={type:'note', ref, draft:{text:f.it.text, kind:f.it.check===null?'plain':'check', cat:ref.cat}}; render(); break; }
     case 'nset': { const fm=document.querySelector('form[data-act="save-note"]'); if(fm) S.modal.draft.text=fm.text.value; S.modal.draft[el.dataset.f]=el.dataset.v; render(); break; }
     case 'note-del': { const r=S.modal.ref; if(!confirm('このメモを削除しますか？')) return; S.modal=null; deleteNote(r); break; }
-    case 'note-copy': { const c=findCat(S.notes, el.dataset.cat); const t=c&&noteCatText(c); if(t) pwCopy(t, `「${c.name}」`); break; }
-    case 'note-clear': { const c=el.dataset.cat; if(!confirm(`「${c}」の対応済み（チェック済み）のメモを消しますか？`)) return; clearChecked(c); break; }
-    case 'ncat-rename': { const from=el.dataset.cat; const to=(prompt('区分の新しい名前', from)||'').trim(); if(!to||to===from) break; const err=badNoteCat(to, from); if(err) return toast(err,true); renameNoteCat(from,to); break; }
-    case 'ncat-del': { const c=el.dataset.cat; const cnt=(findCat(S.notes,c)?.items.length)||0; if(!confirm(`区分「${c}」を削除しますか？`+(cnt?`\n中のメモ${cnt}件も消えます。`:''))) return; deleteNoteCat(c); break; }
+    case 'note-copy': { const c=findCat(S[ndoc(el.dataset.doc)], el.dataset.cat); const t=c&&noteCatText(c); if(t) pwCopy(t, `「${c.name}」`); break; }
+    case 'note-clear': { const c=el.dataset.cat; if(!confirm(`「${c}」の対応済み（チェック済み）のメモを消しますか？`)) return; clearChecked(c, el.dataset.doc); break; }
+    case 'ncat-rename': { const from=el.dataset.cat; const to=(prompt('区分の新しい名前', from)||'').trim(); if(!to||to===from) break; const err=badNoteCat(to, from, el.dataset.doc); if(err) return toast(err,true); renameNoteCat(from,to,el.dataset.doc); break; }
+    case 'ncat-del': { const c=el.dataset.cat, k=ndoc(el.dataset.doc); const cnt=(findCat(S[k],c)?.items.length)||0; if(!confirm(`区分「${c}」を削除しますか？`+(cnt?`\n中のメモ${cnt}件も消えます。`:''))) return; deleteNoteCat(c, k); break; }
     case 'enable-notes': enableFile('notes.md', NOTES_INIT, 'notes', parseNotes, '引き継ぎのタブを作りました'); break;
+    case 'enable-memo': enableFile('memo.md', MEMO_INIT, 'memo', parseNotes, 'ノートのタブを作りました'); break;
+    case 'mcat-fold': { const c=el.dataset.cat; setMemoShut(c, !memoShut().includes(c)); render(); break; }
     // ルームの清掃
     case 'room-edit': { const r=findRoom(S.rooms, el.dataset.name); if(!r) break; S.modal={type:'room', orig:r.name, draft:{...r, every:r.every||''}}; render(); break; }
     case 'room-clean': { const r=findRoom(S.rooms, el.dataset.name); if(!r) break; if(r.every){ cleanedRoom(r.name); break; } S.modal={type:'room-clean', name:r.name, draft:{next:addDays(todayStr(),7), keep:true}}; render(); break; }
@@ -2946,13 +2982,15 @@ document.addEventListener('click', async e=>{
 });
 // 検索欄：日本語の変換中は絞り込まない（変換が切れるため）。変換が終わったときと、英数字の入力のたびに絞り込む
 const pwSearch = el => { PWD.q=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-pwq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
-document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); });
+document.addEventListener('compositionend', e=>{ if(e.target.matches('[data-pwq]')) pwSearch(e.target); if(e.target.matches('[data-supq]')) supSearch(e.target); if(e.target.matches('[data-insq]')) insSearch(e.target); if(e.target.matches('[data-memoq]')) memoSearch(e.target); });
+const memoSearch = el => { S.memoQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-memoq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 const supSearch = el => { S.supQ=el.value; const pos=el.selectionStart; render(); const i=document.querySelector('[data-supq]'); if(i){ i.focus(); try{ i.setSelectionRange(pos,pos); }catch{} } };
 // 点検の画面の検索は、選んだ状態を保つため、画面を作り直さずに行を出し入れする
 const insSearch = el => { if(S.modal) S.modal.q=el.value; const q=el.value.trim().toLowerCase(); document.querySelectorAll('.insrow').forEach(r=>{ r.style.display = !q || r.dataset.name.toLowerCase().includes(q) ? '' : 'none'; }); };
 document.addEventListener('input', e=>{
   if(e.target.matches('[data-pwq]') && !e.isComposing) pwSearch(e.target);
   if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
+  if(e.target.matches('[data-memoq]') && !e.isComposing) memoSearch(e.target);
   if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
   if(e.target.matches('[data-mtmsg]') && MT.draft) MT.draft.message=e.target.value;
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -2966,11 +3004,12 @@ document.addEventListener('input', e=>{
     else { const di=+e.target.dataset.rvh; if(d[di]) d[di].hidden=e.target.value; }
   }
 });
-// ===== 引き継ぎのドラッグ並べ替え（行・区分の左のつかむ所 .ngrip を押したまま動かす。指でもマウスでも） =====
+// ===== 引き継ぎ・ノートのドラッグ並べ替え（行・区分の左のつかむ所 .ngrip を押したまま動かす。指でもマウスでも） =====
 let NDRAG=null;
-const noteTextAt = row => { const c=S.notes && findCat(S.notes,row.dataset.cat); const it=c && c.items[+row.dataset.i]; return it ? it.text : null; };
+const ndragDoc = () => S.tab==='memo' ? 'memo' : 'notes';
+const noteTextAt = row => { const n=S[ndragDoc()], c=n && findCat(n,row.dataset.cat); const it=c && c.items[+row.dataset.i]; return it ? it.text : null; };
 document.addEventListener('pointerdown', e=>{
-  const g=e.target.closest && e.target.closest('.ngrip'); if(!g || NDRAG || S.tab!=='notes' || S.modal || !S.notes) return;
+  const g=e.target.closest && e.target.closest('.ngrip'); if(!g || NDRAG || (S.tab!=='notes' && S.tab!=='memo') || S.modal || !S[ndragDoc()]) return;
   if(e.pointerType==='mouse' && e.button!==0) return;
   const kind=g.dataset.drag, src = kind==='note' ? g.closest('.nrow') : g.closest('.ncat'); if(!src) return;
   e.preventDefault();
@@ -2980,7 +3019,7 @@ document.addEventListener('pointerdown', e=>{
   document.body.appendChild(ghost);
   const line=document.createElement('div'); line.className='ndrop';
   src.classList.add('ndrag-src'); document.body.classList.add('ndragging');
-  NDRAG={kind, src, ghost, line, dy:e.clientY-r.top, y:e.clientY, id:e.pointerId, cat:src.dataset.cat, i:+src.dataset.i, target:null};
+  NDRAG={kind, doc:ndragDoc(), src, ghost, line, dy:e.clientY-r.top, y:e.clientY, id:e.pointerId, cat:src.dataset.cat, i:+src.dataset.i, target:null};
   try{ g.setPointerCapture(e.pointerId); }catch{}
   ndragMove(e.clientY); requestAnimationFrame(ndragLoop);
 });
@@ -3015,14 +3054,15 @@ function ndragLoop(){
 function ndragEnd(ok){
   const d=NDRAG; if(!d) return; NDRAG=null;
   d.ghost.remove(); d.line.remove(); d.src.classList.remove('ndrag-src'); document.body.classList.remove('ndragging');
-  if(!ok || !d.target || !document.body.contains(d.src) || !S.notes) return;  // 途中で画面が描き直されたときは何もしない
+  const N=S[d.doc];
+  if(!ok || !d.target || !document.body.contains(d.src) || !N) return;  // 途中で画面が描き直されたときは何もしない
   if(d.kind==='note'){
-    const c=findCat(S.notes,d.cat), it=c && c.items[d.i]; if(!it) return;
+    const c=findCat(N,d.cat), it=c && c.items[d.i]; if(!it) return;
     if(d.target.cat===d.cat && d.target.index===d.i) return;  // 元の場所に戻しただけ
-    moveNoteTo({cat:d.cat, text:it.text}, d.target.cat, d.target.index, d.target.beforeText);
+    moveNoteTo({doc:d.doc, cat:d.cat, text:it.text}, d.target.cat, d.target.index, d.target.beforeText);
   } else {
-    const i=S.notes.cats.findIndex(c=>c.name===d.cat); if(i<0 || i===d.target.index) return;
-    moveNoteCatTo(d.cat, d.target.index, d.target.beforeName);
+    const i=N.cats.findIndex(c=>c.name===d.cat); if(i<0 || i===d.target.index) return;
+    moveNoteCatTo(d.cat, d.target.index, d.target.beforeName, d.doc);
   }
 }
 document.addEventListener('pointermove', e=>{ if(NDRAG && e.pointerId===NDRAG.id){ e.preventDefault(); ndragMove(e.clientY); } }, {passive:false});
@@ -3069,9 +3109,9 @@ document.addEventListener('submit', async e=>{
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.pwUrl,url||null); safeSet(LS.pwKey,url?key:null); PWD.rows=null; PWD.error=''; S.modal=null; if(url){ S.tab='pw'; safeSet(LS.tab,'pw'); } render(); toast(url?'パスワード表につなぎました':'パスワード表の設定を消しました'); return; }
-  if(a==='note-add'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; const c=findCat(S.notes, f.dataset.cat); addNote(f.dataset.cat, v, !(c&&catPlain(c))); return; }
-  if(a==='ncat-add'){ const v=f.q.value.trim(); if(!v) return; const err=badNoteCat(v); if(err) return toast(err,true); f.q.value=''; addNoteCat(v); return; }
-  if(a==='save-note'){ const m=S.modal, text=f.text.value.trim(); if(!text) return; S.modal=null; updateNote(m.ref, {text, kind:m.draft.kind, cat:m.draft.cat}); return; }
+  if(a==='note-add'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; const k=ndoc(f.dataset.doc), c=findCat(S[k], f.dataset.cat); addNote(f.dataset.cat, v, k==='memo'?false:!(c&&catPlain(c)), k); return; }
+  if(a==='ncat-add'){ const v=f.q.value.trim(); if(!v) return; const err=badNoteCat(v, undefined, f.dataset.doc); if(err) return toast(err,true); f.q.value=''; addNoteCat(v, f.dataset.doc); return; }
+  if(a==='save-note'){ const m=S.modal, text=f.text.value.trim(); if(!text) return; S.modal=null; updateNote(m.ref, {text, kind:ndoc(m.ref.doc)==='memo'?'plain':m.draft.kind, cat:m.draft.cat}); return; }
   if(a==='room-add'){ const v=f.q.value.trim(); if(!v) return; const [name,...rest]=v.split(/\s+/); if(findRoom(S.rooms,name)) return toast('同じ名前のルームがあります',true); f.q.value=''; saveRoom(null, {name, area:'', bldg:rest.join(' '), next:'', last:'', every:null, memo:''}); return; }
   if(a==='save-room'){
     const m=S.modal; const v={name:f.name.value.trim(), area:f.area.value.trim(), bldg:f.bldg.value.trim(), next:f.next.value, last:f.last.value, every:parseInt(f.every.value,10)||null, memo:f.memo.value.trim()};
