@@ -657,6 +657,12 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
   .whobar>*{flex:none}
 }
 @media (min-width:1100px){ body.navpin .toolbar .tabs{display:none} }
+.navmv{display:flex;flex:none}
+.navmv .pinbtn{color:var(--sub);width:30px}
+.navmv .pinbtn.dn svg{transform:rotate(180deg)}
+.dedit{padding:10px 12px 6px;font-size:12px;color:var(--sub);display:flex;flex-direction:column;gap:8px;flex:none}
+.dedbtn{display:flex;gap:6px;justify-content:flex-end}
+.dempty{font-size:12px;color:var(--faint);padding:6px 10px 8px}
 </style>
 </head>
 <body>
@@ -671,7 +677,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', navLayout:'aos.navLayout', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -3118,7 +3124,7 @@ const NAV_DEF = {
   notes:{l:'引き継ぎ', ic:'msg'}, memo:{l:'ノート', ic:'book'}, guide:{l:'ご案内状況', ic:'clock'}, rooms:{l:'清掃', ic:'home'}, supplies:{l:'補充', ic:'box'},
   bok:{l:'BOK', ic:'bell'}, coupon:{l:'クーポン', ic:'gift'}, survey:{l:'アンケート', ic:'clip'}, pw:{l:'パスワード', ic:'key'},
 };
-const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['運用',['notes','memo','guide','rooms','supplies']], ['システム',['bok','coupon','survey','pw']]];
+const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['運用',['notes','memo','rooms','supplies']], ['システム',['bok','guide','coupon','survey','pw']]];
 const PIN_DEFAULT = ['board','notes','supplies','rooms'];  // ★の数に上限は無い（2026-11-27 社長）
 const navWide = () => matchMedia('(min-width:1100px)').matches;
 function navAvail(k){ return k==='notes'?!!S.notes : k==='memo'?!!S.memo : k==='rooms'?!!S.rooms : k==='supplies'?!!S.supplies : k==='pw'?pwOn() : k==='coupon'||k==='survey'||k==='guide'?cpOn() : !!NAV_DEF[k]; }
@@ -3144,18 +3150,49 @@ function navBadge(k, st){
   }
   return {n:''};
 }
+
+// メニューの並び（端末ごとに覚える）。[['まとまりの名前',[画面…]], …]。覚えていなければ NAV_GROUPS のまま
+// 覚えたあとで画面が増えたときは、既定のまとまりの最後に足す
+function navLayout(){
+  const def=NAV_GROUPS.map(([g,ks])=>[g,[...ks]]);
+  let a=null; try{ a=JSON.parse(safeGet(LS.navLayout)||'null'); }catch{}
+  if(!Array.isArray(a)) return def;
+  const out=a.filter(x=>Array.isArray(x)&&typeof x[0]==='string'&&Array.isArray(x[1])).map(([g,ks])=>[g, ks.filter(k=>NAV_DEF[k])]);
+  for(const [g] of def) if(!out.find(x=>x[0]===g)) out.push([g,[]]);
+  const seen=new Set(); for(const x of out) x[1]=x[1].filter(k=>!seen.has(k) && seen.add(k));
+  for(const [g,ks] of def) for(const k of ks) if(!seen.has(k)){ out.find(x=>x[0]===g)[1].push(k); seen.add(k); }
+  return out;
+}
+// ▲▼で1つずつ動かす。まとまりの端を越えると、隣のまとまりへ移る（出ていない画面は飛ばす）
+function navMove(k, dir){
+  const L=navLayout(); const gi=L.findIndex(x=>x[1].includes(k)); if(gi<0) return;
+  const ks=L[gi][1], i=ks.indexOf(k), vis=ks.filter(navAvail), vi=vis.indexOf(k);
+  ks.splice(i,1);
+  if(dir<0){
+    if(vi>0){ ks.splice(ks.indexOf(vis[vi-1]),0,k); }
+    else if(gi>0){ L[gi-1][1].push(k); }
+    else { ks.unshift(k); }
+  } else {
+    if(vi>=0 && vi<vis.length-1){ ks.splice(ks.indexOf(vis[vi+1])+1,0,k); }
+    else if(gi<L.length-1){ L[gi+1][1].unshift(k); }
+    else { ks.push(k); }
+  }
+  safeSet(LS.navLayout, JSON.stringify(L)); render();
+}
 function viewNav(st){
   const pins=navPins();
   const row = k => { const d=NAV_DEF[k], b=navBadge(k,st), on=S.tab===k, pin=pins.includes(k);
     return `<div class="drow" data-label="${esc(d.l)}"><button class="navi ${on?'on':''}" data-act="tab" data-k="${k}"><span class="ic">${icon(d.ic)}</span><span class="lb">${esc(d.l)}</span>${b.n!==''&&b.n!==undefined?`<span class="nb ${b.red?'red':''}">${esc(b.n)}</span>`:''}</button>
-      <button class="pinbtn ${pin?'on':''}" data-act="nav-pin" data-k="${k}" title="${pin?'上の帯から外す':'上の帯に出す'}">${icon('star')}</button></div>`; };
+      ${S.navEdit ? `<span class="navmv"><button class="pinbtn" data-act="nav-up" data-k="${k}" title="上へ" aria-label="上へ">${icon('up')}</button><button class="pinbtn dn" data-act="nav-down" data-k="${k}" title="下へ" aria-label="下へ">${icon('up')}</button></span>`
+        : `<button class="pinbtn ${pin?'on':''}" data-act="nav-pin" data-k="${k}" title="${pin?'上の帯から外す':'上の帯に出す'}">${icon('star')}</button>`}</div>`; };
   // 見本の画面（?demo）でだけ、これから入るアプリの置き場所を見せる
   const soon = S.be && S.be.kind==='demo' ? `<div class="drow" data-label="セラピストDB"><button class="navi soon" type="button" disabled><span class="ic">${icon('users')}</span><span class="lb">セラピストDB</span><span class="ext">準備中</span></button><span class="pinbtn"></span></div>` : '';
-  const groups = NAV_GROUPS.map(([g,ks])=>{ const rows=ks.filter(navAvail).map(row).join('') + (g==='システム'?soon:''); return rows ? `<div class="dgrp" data-grp>${esc(g)}</div>${rows}` : ''; }).join('');
+  const groups = navLayout().map(([g,ks],gi,L)=>{ const rows=ks.filter(navAvail).map(row).join('') + (!S.navEdit&&gi===L.length-1?soon:''); return rows||S.navEdit ? `<div class="dgrp" data-grp>${esc(g)}</div>${rows||'<div class="dempty">（ここへ移せます）</div>'}` : ''; }).join('');
   return `<div class="scrim" data-act="nav-close"></div>
   <aside class="drawer" aria-label="メニュー">
-    <div class="dhd"><span class="brand">Action OS</span><span class="sp"></span><button class="iconbtn" data-act="nav-toggle" title="メニューを閉じる">${icon('x')}</button></div>
-    <form class="dsearch" onsubmit="return false"><input class="inp" data-navq placeholder="画面をさがす（例：清掃）" autocomplete="off" enterkeyhint="go"></form>
+    <div class="dhd"><span class="brand">Action OS</span><span class="sp"></span>${S.navEdit?'':`<button class="iconbtn" data-act="nav-edit" title="メニューを並べ替える" aria-label="並べ替える">${icon('edit')}</button>`}<button class="iconbtn" data-act="nav-toggle" title="メニューを閉じる">${icon('x')}</button></div>
+    ${S.navEdit ? `<div class="dedit"><span>▲▼で並べ替え。まとまりの端を越えると隣のまとまりへ移ります（この端末に覚えます）</span><div class="dedbtn"><button type="button" class="btn sm" data-act="nav-reset">元に戻す</button><button type="button" class="btn sm pri" data-act="nav-edit">完了</button></div></div>`
+      : `<form class="dsearch" onsubmit="return false"><input class="inp" data-navq placeholder="画面をさがす（例：清掃）" autocomplete="off" enterkeyhint="go"></form>`}
     <div class="dbody">${groups}<div class="empty dnone" style="display:none;padding:10px">見つかりません</div></div>
     <div class="dfoot"><span class="hint">★ を付けた画面が上の帯に出ます（この端末に覚えます）</span><button class="iconbtn" data-act="settings" title="設定">${icon('gear')}</button></div>
   </aside>`;
@@ -3393,6 +3430,10 @@ document.addEventListener('click', async e=>{
     case 'tab': navGo(el.dataset.k); break;
     case 'nav-toggle': if(navWide()){ S.navPin=!S.navPin; safeSet(LS.navPin, S.navPin?'1':'0'); document.body.classList.toggle('navpin', S.navPin); if(!S.navPin) navSet(false); } else navSet(!S.nav); break;
     case 'nav-close': navSet(false); break;
+    case 'nav-edit': S.navEdit=!S.navEdit; render(); break;
+    case 'nav-up': navMove(el.dataset.k, -1); break;
+    case 'nav-down': navMove(el.dataset.k, 1); break;
+    case 'nav-reset': if(confirm('メニューの並びを元に戻しますか？')){ safeSet(LS.navLayout,null); render(); } break;
     case 'cp-use': cpMark(+el.dataset.row, true); break;
     case 'kb-peek': { const v=document.querySelector(`[data-kb="${el.dataset.k}"]`); if(!v) break; const show=el.textContent==='表示'; v.textContent = show ? KB_CONF[el.dataset.k]().key : '•'.repeat(12); el.textContent = show ? '隠す' : '表示'; break; }
     case 'kb-copy': { const c=KB_CONF[el.dataset.k](); if(!c.key) break; pwCopy(el.dataset.what==='line' ? `${c.url}#${c.key}` : c.key, el.dataset.what==='line' ? '貼る文字' : '鍵'); break; }
@@ -3710,7 +3751,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:f35e00435c80';
+const BUILD = 'AOS_BUILD:d0cffa8ed89f';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
