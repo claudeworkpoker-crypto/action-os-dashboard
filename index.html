@@ -67,6 +67,52 @@ header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 8
 .tab .cnt{font-size:12px;color:var(--faint);margin-left:4px}
 .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
 .filterchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--accent-soft);color:var(--accent);border:0;border-radius:999px;padding:5px 10px}
+/* メニュー（左から出す。広い画面では左に出しっぱなしにできる） */
+:root{--navw:272px}
+.menubtn{position:relative;margin-left:-4px}
+.navdot{position:absolute;top:5px;right:5px;width:8px;height:8px;border-radius:50%;background:var(--red);box-shadow:0 0 0 2px var(--panel)}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:min(var(--navw),86vw);z-index:40;background:var(--panel);border-right:1px solid var(--line);transform:translateX(-102%);transition:transform .22s ease;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top);box-shadow:0 0 40px rgba(0,0,0,.18)}
+body.navopen .drawer{transform:none}
+.scrim{position:fixed;inset:0;z-index:39;background:rgba(0,0,0,.32);opacity:0;pointer-events:none;transition:opacity .22s}
+body.navopen .scrim{opacity:1;pointer-events:auto}
+body.navopen .fab{display:none}
+.dhd{display:flex;align-items:center;gap:8px;height:56px;padding:0 12px 0 16px;border-bottom:1px solid var(--line);flex:none}
+.dsearch{padding:10px 12px 2px;flex:none}
+.dsearch .inp{width:100%}
+.dbody{flex:1;overflow-y:auto;padding:2px 8px 16px;overscroll-behavior:contain}
+.dgrp{font-size:11.5px;font-weight:700;color:var(--faint);letter-spacing:.06em;padding:14px 10px 4px}
+.drow{display:flex;align-items:center;gap:2px}
+.navi{flex:1;min-width:0;display:flex;align-items:center;gap:10px;border:0;background:none;padding:9px 10px;border-radius:10px;color:var(--text);text-align:left;font-size:15px}
+.navi:hover{background:var(--panel2)}
+.navi.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.navi .ic{width:20px;height:20px;flex:none;color:var(--sub);display:flex;align-items:center;justify-content:center}
+.navi.on .ic{color:var(--accent)}
+.navi .ic svg{width:18px;height:18px}
+.navi .lb{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.navi .nb{font-size:12px;color:var(--faint);font-weight:500}
+.navi .nb.red{color:#fff;background:var(--red);border-radius:999px;padding:0 7px;font-weight:600}
+.navi .ext{font-size:11px;color:var(--faint);border:1px solid var(--line);border-radius:999px;padding:0 7px}
+.navi.soon{opacity:.6;cursor:default}
+.navi.soon:hover{background:none}
+.pinbtn{flex:none;width:34px;height:34px;border:0;background:none;border-radius:8px;color:var(--line);display:flex;align-items:center;justify-content:center;padding:0}
+.pinbtn svg{width:16px;height:16px}
+.pinbtn.on{color:var(--amber)}
+.pinbtn.on svg{fill:currentColor}
+button.pinbtn:hover{background:var(--panel2);color:var(--amber)}
+.dfoot{border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:10px;align-items:center;flex:none}
+.dfoot .hint{flex:1;font-size:12px}
+.tab .cnt.red{color:var(--red);font-weight:600}
+.tab.more{display:inline-flex;align-items:center;gap:5px;color:var(--sub)}
+.tab.more svg{width:15px;height:15px}
+.hd .brand{white-space:nowrap}
+.hd .today{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:640px){ .toolbar .tabs{flex-wrap:wrap;width:100%} }
+@media (min-width:1100px){
+  body.navpin{padding-left:var(--navw)}
+  body.navpin .drawer{transform:none;box-shadow:none;z-index:15;width:var(--navw)}
+  body.navpin .scrim{display:none}
+  body.navpin .tab.more{display:none}
+}
 
 /* Inbox */
 .inbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow)}
@@ -520,7 +566,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -546,6 +592,14 @@ const ICON = {
   phone:'<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
   send:'<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
   tool:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+  menu:'<line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>',
+  list:'<line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>',
+  book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+  home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  box:'<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>',
+  key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="M11.4 11.6 21 2"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/>',
+  users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
   grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
@@ -696,6 +750,7 @@ const S = {
   members:[],  // 担当者の一覧（members.md）
   tab: safeGet(LS.tab) || 'board', filter:null, who: safeGet(LS.who) || null, modal:null, toast:null, loadedAt:0,
   bok:null,  // BOK のタブで開いている機能（null＝機能の一覧）
+  nav:false, navPin: safeGet(LS.navPin)!=='0',  // メニューを開いているか／広い画面で左に出しっぱなしにするか
 };
 function safeGet(k){ try{ return localStorage.getItem(k); }catch{ return null; } }
 function safeSet(k,v){ try{ v===null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch{} }
@@ -732,7 +787,7 @@ async function loadAll(quiet){
     S.members = mem ? parseMembers(mem.text) : [];
     S.loadedAt=Date.now();
   }catch(e){ handleErr(e); }
-  S.loading=false; render();
+  S.loading=false; S.loadDone=true; render();
   rvPrefetch();  // BOK につないだ端末では、空室情報も裏で読み始めておく
   himeRefresh(); // 姫予約ログの未確認の件数も（5分より短い間隔では読まない）
 }
@@ -2667,28 +2722,94 @@ function supItemsModal(m){
   </form></div>`;
 }
 
+// ===== メニュー（左から出す。広い画面では左に出しっぱなしにできる） =====
+// 画面はまとまりごとに並べる。上の帯には ★ を付けた画面（端末ごとに覚える）と、いま開いている画面だけを出す
+const NAV_DEF = {
+  board:{l:'カテゴリ別', ic:'list'}, timeline:{l:'期限順', ic:'cal'}, someday:{l:'いつかやる', ic:'flag'}, runs:{l:'実行', ic:'play'}, done:{l:'完了', ic:'check'},
+  notes:{l:'引き継ぎ', ic:'msg'}, memo:{l:'ノート', ic:'book'}, rooms:{l:'清掃', ic:'home'}, supplies:{l:'補充', ic:'box'},
+  bok:{l:'BOK', ic:'bell'}, pw:{l:'パスワード', ic:'key'},
+};
+const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['店の運用',['notes','memo','rooms','supplies']], ['店のシステム',['bok','pw']]];
+const PIN_DEFAULT = ['board','notes','supplies','rooms'], PIN_MAX = 5;
+const navWide = () => matchMedia('(min-width:1100px)').matches;
+function navAvail(k){ return k==='notes'?!!S.notes : k==='memo'?!!S.memo : k==='rooms'?!!S.rooms : k==='supplies'?!!S.supplies : k==='pw'?pwOn() : !!NAV_DEF[k]; }
+function navPins(){ let a=null; try{ a=JSON.parse(safeGet(LS.pins)||'null'); }catch{} return (Array.isArray(a)?a:PIN_DEFAULT).filter(k=>NAV_DEF[k]); }
+function setNavPin(k, on){ let a=navPins().filter(x=>x!==k); if(on){ if(a.length>=PIN_MAX) return toast(`★は${PIN_MAX}つまでです`,true); a.push(k); } safeSet(LS.pins, JSON.stringify(a)); render(); }
+// 画面ごとの件数と、赤くする（すぐ見てほしい）かどうか
+function navBadge(k, st){
+  const t=todayStr();
+  switch(k){
+    case 'board': case 'timeline': return {n:st.total, red:st.over>0};
+    case 'someday': return {n:S.someday.length};
+    case 'runs': { const n=S.runs.filter(r=>RUN_ST[r.status]?.attn).length; return {n, red:n>0}; }
+    case 'done': return {n:(S.done[monthOf(t)]||[]).length};
+    case 'notes': return {n:notesOpenCount()};
+    case 'memo': return {n:''};
+    case 'rooms': return {n:roomsDueCount(), red:!!(S.rooms && S.rooms.some(r=>r.next && r.next<t))};
+    case 'supplies': { const u=S.supplies ? S.supplies.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0) : 0; return {n:supOpenCount(), red:u>0}; }
+    case 'bok': return {n:HIME.count>0?`姫 ${HIME.count}`:'', red:HIME.count>0};
+    case 'pw': return {n:PWD.rows?PWD.rows.length:''};
+  }
+  return {n:''};
+}
+function viewNav(st){
+  const pins=navPins();
+  const row = k => { const d=NAV_DEF[k], b=navBadge(k,st), on=S.tab===k, pin=pins.includes(k);
+    return `<div class="drow" data-label="${esc(d.l)}"><button class="navi ${on?'on':''}" data-act="tab" data-k="${k}"><span class="ic">${icon(d.ic)}</span><span class="lb">${esc(d.l)}</span>${b.n!==''&&b.n!==undefined?`<span class="nb ${b.red?'red':''}">${esc(b.n)}</span>`:''}</button>
+      <button class="pinbtn ${pin?'on':''}" data-act="nav-pin" data-k="${k}" title="${pin?'上の帯から外す':'上の帯に出す'}">${icon('star')}</button></div>`; };
+  // 見本の画面（?demo）でだけ、これから入るアプリの置き場所を見せる
+  const soon = S.be && S.be.kind==='demo' ? `<div class="drow" data-label="セラピストDB"><button class="navi soon" type="button" disabled><span class="ic">${icon('users')}</span><span class="lb">セラピストDB</span><span class="ext">準備中</span></button><span class="pinbtn"></span></div>` : '';
+  const groups = NAV_GROUPS.map(([g,ks])=>{ const rows=ks.filter(navAvail).map(row).join('') + (g==='店のシステム'?soon:''); return rows ? `<div class="dgrp" data-grp>${esc(g)}</div>${rows}` : ''; }).join('');
+  return `<div class="scrim" data-act="nav-close"></div>
+  <aside class="drawer" aria-label="メニュー">
+    <div class="dhd"><span class="brand">Action OS</span><span class="sp"></span><button class="iconbtn" data-act="nav-toggle" title="メニューを閉じる">${icon('x')}</button></div>
+    <form class="dsearch" onsubmit="return false"><input class="inp" data-navq placeholder="画面をさがす（例：清掃）" autocomplete="off" enterkeyhint="go"></form>
+    <div class="dbody">${groups}<div class="empty dnone" style="display:none;padding:10px">見つかりません</div></div>
+    <div class="dfoot"><span class="hint">★ を付けた画面が上の帯に出ます（${PIN_MAX}つまで・この端末に覚えます）</span><button class="iconbtn" data-act="settings" title="設定">${icon('gear')}</button></div>
+  </aside>`;
+}
+// 上の帯：★の画面と、いま開いている画面。最後に「すべて」でメニューを開く
+function viewPinBar(st){
+  const ks=navPins().filter(navAvail); if(!ks.includes(S.tab) && NAV_DEF[S.tab]) ks.push(S.tab);
+  return `<div class="tabs">${ks.map(k=>{ const b=navBadge(k,st); return `<button class="tab ${S.tab===k?'on':''}" data-act="tab" data-k="${k}">${esc(NAV_DEF[k].l)}${k==='bok'?himePill():`<span class="cnt ${b.red?'red':''}">${b.n??''}</span>`}</button>`; }).join('')}<button class="tab more" data-act="nav-toggle">${icon('menu')}すべて</button></div>`;
+}
+// すぐ見てほしいものがあるか（メニューのボタンに赤い点）
+function navAttn(st){ return Object.keys(NAV_DEF).some(k=>navAvail(k) && navBadge(k,st).red); }
+function navSet(open){ S.nav=open; document.body.classList.toggle('navopen', open); }
+// メニューの検索：画面を作り直さずに行を出し入れする（入力中の文字を保つため）
+function navFilter(el){
+  const q=el.value.trim().toLowerCase(); let any=false;
+  document.querySelectorAll('.drawer .drow').forEach(r=>{ const hit=!q || r.dataset.label.toLowerCase().includes(q); r.style.display=hit?'':'none'; if(hit) any=true; });
+  document.querySelectorAll('.drawer [data-grp]').forEach(g=>{ let n=g.nextElementSibling, show=false; while(n && n.classList.contains('drow')){ if(n.style.display!=='none') show=true; n=n.nextElementSibling; } g.style.display=show?'':'none'; });
+  const e=document.querySelector('.drawer .dnone'); if(e) e.style.display=any?'none':'';
+}
+// 画面ごとに住所（#notes など）を分ける。戻るで前の画面に戻れて、ホーム画面に画面を直接置ける
+function navGo(k){
+  if(k==='bok' && S.tab==='bok') S.bok=null;  // BOK を開いているときにもう一度押すと、機能の一覧へ戻る
+  S.tab=k; safeSet(LS.tab,S.tab);
+  if(location.hash!=='#'+k) history.pushState(null,'','#'+k);
+  if(!navWide() || !S.navPin) navSet(false);
+  render(); window.scrollTo(0,0);
+}
+window.addEventListener('popstate', ()=>{ const k=decodeURIComponent(location.hash.slice(1)); if(k && NAV_DEF[k] && k!==S.tab){ S.tab=k; safeSet(LS.tab,k); navSet(false); render(); } });
 function render(){
   const app=document.getElementById('app');
   if(!S.be){ app.innerHTML=viewSetup(); return; }
   const st=stats(); const t=todayStr();
   const doneCnt=(S.done[monthOf(t)]||[]).length;
-  const tabs=[['board','カテゴリ別',st.total],['timeline','期限順',st.total],['someday','いつかやる',S.someday.length],['runs','実行',S.runs.filter(r=>RUN_ST[r.status]?.attn).length],['done','完了',doneCnt]];
-  if(S.notes) tabs.splice(1,0,['notes','引き継ぎ',notesOpenCount()]);
-  if(S.supplies) tabs.splice(S.notes?2:1,0,['supplies','補充',supOpenCount()]);
-  if(S.rooms) tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0),0,['rooms','清掃',roomsDueCount()]);
-  tabs.splice(1+(S.notes?1:0)+(S.supplies?1:0)+(S.rooms?1:0),0,['bok','BOK'+himePill(),'']);  // BOK の機能の入口（すべての端末に出す）
-  if(pwOn()) tabs.splice(2+(S.notes?1:0)+(S.rooms?1:0)+(S.supplies?1:0),0,['pw','パスワード',PWD.rows?PWD.rows.length:'']);
-  if(S.memo){ const i=tabs.findIndex(t=>t[0]==='notes'); tabs.splice(i>=0?i+1:1,0,['memo','ノート','']); }  // ノートは引き継ぎのすぐ後ろ（件数は出さない）
-  if(S.tab==='supplies'&&!S.supplies) S.tab='board';
-  if(S.tab==='pw'&&!pwOn()) S.tab='board';
   if(S.tab==='rv'){ S.tab='bok'; S.bok='rv'; }  // 前の「空室情報」タブを覚えていた端末は、BOK の中の空室情報へ
-  if((S.tab==='notes'&&!S.notes)||(S.tab==='memo'&&!S.memo)||(S.tab==='rooms'&&!S.rooms)) S.tab='board';
+  if(!NAV_DEF[S.tab]) S.tab='board';
+  // 引き継ぎ・ノートなどはファイルを読み終えるまで有るか分からないので、読み込み前は開いていた画面のまま待つ（住所 #notes で開いたときも）
+  const waiting = !navAvail(S.tab) && !S.loadDone;
+  if(!navAvail(S.tab) && S.loadDone){ S.tab='board'; history.replaceState(null,'',location.pathname+location.search+'#board'); }
   const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
   const showStats = S.tab==='board'||S.tab==='timeline';
   // 入力中の内容とフォーカスを保つ
   const active=document.activeElement; const keep = active && active.closest && active.closest('form.quick') ? {cat:active.closest('form').dataset.cat, act:active.closest('form').dataset.act, v:active.value} : null;
   app.innerHTML=`
+  ${viewNav(st)}
   <header><div class="wrap hd">
+    <button class="iconbtn menubtn" data-act="nav-toggle" title="メニュー">${icon('menu')}${navAttn(st)?'<span class="navdot"></span>':''}</button>
     <span class="brand">Action OS</span><span class="today">${esc(mdw(t))}<span id="upd">${updLabel()}</span>${S.be.kind==='demo'?' · デモ':''}</span><span class="sp"></span>
     <button class="iconbtn ${S.loading||qRunning?'spin':''}" data-act="reload" title="最新に更新">${icon('refresh')}</button>
     <button class="iconbtn" data-act="settings" title="設定">${icon('gear')}</button>
@@ -2702,15 +2823,16 @@ function render(){
     </div>`:'<div style="height:16px"></div>'}
     ${viewInbox()}
     <div class="toolbar">
-      <div class="tabs">${tabs.map(([k,l,n])=>`<button class="tab ${S.tab===k?'on':''}" data-act="tab" data-k="${k}">${l}<span class="cnt">${n}</span></button>`).join('')}</div>
+      ${viewPinBar(st)}
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
     ${S.tab==='board'||S.tab==='timeline'?whoBar():''}
-    ${S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
   ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
+  document.body.classList.toggle('navopen', !!S.nav); document.body.classList.toggle('navpin', !!S.navPin);
   renderToast();
   if(S.modal && S.modal.snap0===undefined){ if(S.modal.draft) syncDraftSafe(); S.modal.snap0 = modalSnap(); }
 }
@@ -2869,8 +2991,10 @@ document.addEventListener('click', async e=>{
   if(el.tagName==='FORM' || el.tagName==='SELECT') return;
   const ref = el.dataset.ref ? JSON.parse(el.dataset.ref) : null;
   switch(a){
-    case 'tab': if(el.dataset.k==='bok' && S.tab==='bok') S.bok=null;  // BOK を開いているときにもう一度押すと、機能の一覧へ戻る
-      S.tab=el.dataset.k; safeSet(LS.tab,S.tab); render(); break;
+    case 'tab': navGo(el.dataset.k); break;
+    case 'nav-toggle': if(navWide()){ S.navPin=!S.navPin; safeSet(LS.navPin, S.navPin?'1':'0'); document.body.classList.toggle('navpin', S.navPin); if(!S.navPin) navSet(false); } else navSet(!S.nav); break;
+    case 'nav-close': navSet(false); break;
+    case 'nav-pin': setNavPin(el.dataset.k, !navPins().includes(el.dataset.k)); break;
     case 'bok-open': { const k=el.dataset.k; S.bok=k; if(k!=='rv' && BK_LOAD[k] && rvOn()) BK_LOAD[k](); else render(); break; }  // 開くたびに BOK から読み直す（空室情報は10分の決まり）
     case 'bk-reload': { const f=BK_LOAD[el.dataset.k]; if(f) f(); break; }
     case 'mt-set': { const dr=MT.draft; if(!dr) break; const k=el.dataset.key; dr.keys=dr.keys.filter(x=>x!==k); if(el.dataset.v==='1') dr.keys.push(k); render(); break; }
@@ -2991,6 +3115,7 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-pwq]') && !e.isComposing) pwSearch(e.target);
   if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
   if(e.target.matches('[data-memoq]') && !e.isComposing) memoSearch(e.target);
+  if(e.target.matches('[data-navq]')) navFilter(e.target);
   if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
   if(e.target.matches('[data-mtmsg]') && MT.draft) MT.draft.message=e.target.value;
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -3084,6 +3209,11 @@ document.addEventListener('change', e=>{
 document.addEventListener('keydown', e=>{
   if(e.key==='Escape' && document.getElementById('guard')){ closeGuard(); return; }
   if(e.key==='Escape' && S.modal){ tryCloseModal(); }
+  else if(e.key==='Escape' && S.nav){ navSet(false); }
+  // メニューを開いて画面をさがす：「/」か Ctrl+K（Mac は ⌘K）
+  const typing = e.target.closest && e.target.closest('input,textarea,select,[contenteditable]');
+  if(S.be && !S.modal && ((e.key==='/' && !typing) || ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'))){ e.preventDefault(); if(!navWide() || !S.navPin) navSet(true); const q=document.querySelector('[data-navq]'); if(q){ q.focus(); q.select(); } }
+  if(e.key==='Enter' && e.target.matches('[data-navq]') && !e.isComposing){ e.preventDefault(); const f=[...document.querySelectorAll('.drawer .drow')].find(r=>r.style.display!=='none')?.querySelector('.navi:not([disabled])'); if(f) f.click(); }
   if(e.key==='Enter' && e.target.matches('[data-newsub]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="sub-add"]').click(); }
   if(e.key==='Enter' && e.target.matches('[data-stradd]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="st-radd"]').click(); }
 });
@@ -3157,6 +3287,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
   const q=new URLSearchParams(location.search);
   if(q.has('demo')) S.be=demoBackend();
   else { const tk=safeGet(LS.token); if(tk) S.be=githubBackend(tk, safeGet(LS.repo)||DEFAULT_REPO); }
+  const hk=decodeURIComponent(location.hash.slice(1)); if(hk && NAV_DEF[hk]){ S.tab=hk; safeSet(LS.tab,hk); } else if(S.be) history.replaceState(null,'',location.pathname+location.search+'#'+S.tab);
   render();
   if(S.be) loadAll(true);
   setInterval(pollRuns, 12000);
