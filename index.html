@@ -983,6 +983,22 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .rdkv dt{padding-top:10px}
 .rdkv dt:first-of-type{padding-top:3px}
 .rdkv dd a{word-break:break-all}
+/* 条件未入力の色：薄い赤（ピンク寄り）。黄色はほかの「注意」と紛れるため（2026-11-27 ユーザー指定） */
+:root{--pink:#d6456b;--pink-soft:#fde8ee}
+@media (prefers-color-scheme: dark){ :root{--pink:#ff8fab;--pink-soft:#3d2230} }
+.rdtr.blank{box-shadow:inset 3px 0 0 var(--pink);background:color-mix(in srgb,var(--pink-soft) 70%,transparent)}
+.rdtr.blank:hover{background:var(--pink-soft)}
+.bktag.pink{background:var(--pink-soft);color:var(--pink)}
+.rdalert.pink{background:var(--pink-soft);color:var(--pink)}
+.pwbar .btn.tgl.rdalarm{border-color:color-mix(in srgb,var(--pink) 55%,var(--line));color:var(--pink)}
+/* 成績表の取り込み */
+.rdpdfrow{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:10px;margin:0 0 12px}
+.rdfile{position:relative;display:flex;align-items:center;gap:8px;height:40px;overflow:hidden;cursor:pointer;min-width:0}
+.rdfile span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.rdfile svg{width:16px;height:16px;flex:none}
+.rdfile input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.rdpdfm .rdqf .inp{height:40px}
+@media (max-width:640px){ .rdpdfrow{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -3610,7 +3626,7 @@ function rdCastInput(f, m, dis){
 }
 function rdCastHtml(m, dis){
   const c=m.castInfo;
-  if(!c) return m.loading ? '<div class="hint">読み込んでいます…</div>' : '';
+  if(!c) return m.loading||m.moreLoading ? '<div class="rdnotice">特徴を読み込んでいます…</div>' : '';
   if(c.error) return `<div class="rderr">特徴DBを読めませんでした（${esc(c.error)}）。名簿の欄はこのまま保存できます</div>`;
   if(c.none) return '<div class="hint">特徴DBにつながっていません。在籍か休み中にすると、次の反映で特徴DBに行が作られます</div>';
   if(c.missing) return `<div class="hint">特徴DBに ${esc(c.castId)} の行が見つかりません</div>`;
@@ -3636,7 +3652,12 @@ function rdFill(m, r, cast){
   const groups = m.type==='rdng' ? RD_NG_GROUPS : RD_GROUPS;
   groups.forEach(g=>g.f.forEach(([k,,type])=>{ let v=m.row[k]; if(k==='st' && !v) v=RD.ng.st[0]; m.draft[k]=rdInVal(type, k, v, m); }));
   groups.forEach(g=>g.f.forEach(([k,,type])=>{ m.init[k]=rdOutVal(type, k, m.draft[k], m); }));
+  rdFillCast(m, cast);
+}
+// 特徴の欄だけを入れ直す（名簿の欄に入れかけた内容は消さない）
+function rdFillCast(m, cast){
   m.castInfo=cast||null; m.cast = cast && cast.fields ? cast : null; m.cextra={}; m.cinit={};
+  Object.keys(m.draft).filter(k=>k.startsWith('c:')).forEach(k=>delete m.draft[k]);
   if(m.cast) m.cast.fields.forEach(f=>{
     const raw=m.cast.row[f.name];
     if(f.type==='multi') m.cextra[f.name]=rdSplit(raw).filter(x=>!f.options.includes(x));
@@ -3650,10 +3671,39 @@ function rdOpen(id, pane){
   rdFill(m, r, null); S.modal=m; render(); rdDetail(m);
 }
 function rdNew(){ const m={type:'rdp', id:'', step:'edit', loading:false, saving:false, error:'', notice:'', showPin:true, hist:null}; rdFill(m, {}, null); S.modal=m; render(); }
+// 名簿の詳細：名簿の1行（detailRow）と、特徴・変更履歴（detailMore）を同時に頼み、名簿の1行が届いたらすぐ入力できるようにする。
+// 特徴と変更履歴は届きしだい出す（それまでは「読み込んでいます」）。窓口が古い版（この2つを知らない）なら、前のやり方（detail をまとめて）に戻す
+let rdSplitOk = true;
+async function rdDetailSplit(m, gen){
+  const r0=m.row||{}, ask=r=>rdCall('detailMore', {id:m.id, castId:String(r.castId||'').trim(), name:String(r.name||'').trim()}).catch(e=>({err:e}));
+  m.moreLoading=true; m.hist=null; rdFillCast(m, null);
+  let more=ask(r0), d;
+  try{ d=await rdCall('detailRow', {id:m.id}); }
+  catch(e){
+    if(/知らない操作/.test(e.message||'')){ rdSplitOk=false; m.moreLoading=false; return false; }
+    if(S.modal===m){ m.loading=false; m.moreLoading=false; m.loadErr=`最新の内容を読めませんでした。閉じて開き直してください（${e.message}）`; render(); }
+    return true;
+  }
+  if(S.modal!==m || gen!==RD.gen) return true;
+  if(RD.rows) RD.rows=RD.rows.map(x=>x.id===m.id?d.row:x);
+  rdFill(m, d.row, null); m.moreLoading=true; m.loading=false; m.showPin=false; m.snap0=undefined; render();
+  // 一覧の特徴DB の ID・名前が古かったときは、最新の値で読み直す（読むだけ）
+  if(String(d.row.castId||'').trim()!==String(r0.castId||'').trim() || String(d.row.name||'').trim()!==String(r0.name||'').trim()) more=ask(d.row);
+  const x=await more;
+  if(S.modal!==m || gen!==RD.gen) return true;
+  // 特徴が届く前に名簿の欄を直していたら、閉じるときの「入れかけの内容があります」の確認が効くように、直した印を残す
+  const dirty=modalDirty();
+  m.moreLoading=false;
+  if(x.err){ rdFillCast(m, {error:x.err.message}); m.hist=[]; m.histErr=x.err.message; }
+  else { rdFillCast(m, x.cast); m.hist=x.hist||[]; m.histErr=''; }
+  m.snap0 = dirty ? '直しかけ' : undefined; render();
+  return true;
+}
 async function rdDetail(m, notice){
   m.loading=true; m.loadErr=''; if(notice!==undefined) m.notice=notice;
   if(S.modal===m) render();
   const gen=RD.gen;
+  if(m.type==='rdp' && rdSplitOk && m.id && await rdDetailSplit(m, gen)) return;
   try{
     const d=await rdCall(m.type==='rdng'?'ngDetail':'detail', {id:m.id});
     if(S.modal!==m || gen!==RD.gen) return;
@@ -3667,13 +3717,14 @@ async function rdDetail(m, notice){
   m.snap0=undefined; render();
 }
 function rdHistHtml(m){
-  if(!m.hist) return m.loading ? '<div class="hint">読み込んでいます…</div>' : '';
+  if(!m.hist) return m.loading||m.moreLoading ? '<div class="hint">読み込んでいます…</div>' : '';
+  if(m.histErr) return `<div class="rderr">変更履歴を読めませんでした（${esc(m.histErr)}）。閉じて開き直してください</div>`;
   if(!m.hist.length) return '<div class="hint">まだありません</div>';
   const ng=m.type==='rdng';
   return m.hist.map(x=>{
     const ch = ng ? x.op==='NG変更' : x.op==='変更', pin=rdPinLabel(x.field||'');
     const body = ch ? `${esc(x.field)}：${pin?'••••':esc(x.before||'空')} → ${pin?'••••':esc(x.after||'空')}` : esc(x.op)+(x.after?'：'+esc(x.after):'');
-    return `<div class="rdh"><span class="t">${esc(x.at)}</span><span class="b">${body}</span>${!ng&&x.op==='変更'?`<button type="button" class="btn sm" data-act="rd-revert" data-log="${esc(x.logRow)}" ${m.saving||m.loading?'disabled':''}>元に戻す</button>`:''}</div>`;
+    return `<div class="rdh"><span class="t">${esc(x.at)}</span><span class="b">${body}</span>${!ng&&x.op==='変更'?`<button type="button" class="btn sm" data-act="rd-revert" data-log="${esc(x.logRow)}" ${m.saving||m.loading||m.moreLoading?'disabled':''}>元に戻す</button>`:''}</div>`;
   }).join('');
 }
 // 確かめる画面での見せ方（送る値 → 人が読む形。例：3000 → 3,000 円、1 → ★★★ 高）
@@ -3740,7 +3791,7 @@ function rdProfHtml(m){
   const r=m.row, photo=m.cast?rdCastPhoto(m.cast):'';
   const meta=[['ID',r.id],['店舗',r.shop],['在籍の変更日',r.changed],['特徴DB',r.castId]].filter(([,v])=>String(v||'').trim());
   return `<div class="rdprof"><span class="rdpho big">${photo?`<img src="${esc(photo)}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<span>${esc(String(r.name||'？').slice(0,1))}</span></span>
-    <div class="rdprofb"><div class="rdnmline">${rdStTag(r.status)}${rdIsBlank(r)?'<span class="bktag amber">条件未入力</span>':''}${r.pri?`<span class="rdsubn">シフト優先度 ${rdStars(r.pri)}</span>`:''}</div>
+    <div class="rdprofb"><div class="rdnmline">${rdStTag(r.status)}${rdIsBlank(r)?'<span class="bktag pink">条件未入力</span>':''}${r.pri?`<span class="rdsubn">シフト優先度 ${rdStars(r.pri)}</span>`:''}</div>
     <dl class="rdprofm">${meta.map(([l,v])=>`<dt>${l}</dt><dd>${esc(v)}</dd>`).join('')}</dl></div></div>`;
 }
 // 詳細の中の切り替え（名簿｜特徴｜変更履歴）
@@ -3755,7 +3806,7 @@ BK_MODAL.rdp = m => {
   else if(m.loading && !isNew) body+='<div class="rdnotice">最新の内容を読み込んでいます…</div>';
   if(!isNew){
     body+=rdProfHtml(m);
-    if(rdIsBlank(r)) body+='<div class="rdalert">⚠ 条件が未入力です。BK本指名・BKフリー・指名料を入れて保存してください。入れるまで受付で担当として選べません。</div>';
+    if(rdIsBlank(r)) body+='<div class="rdalert pink">⚠ 条件が未入力です。BK本指名・BKフリー・指名料を入れて保存してください。入れるまで受付で担当として選べません。</div>';
     body+=rdPaneTabs(m, [['cast','名簿'],['feat','特徴（ご案内用）'],['hist',`変更履歴${m.hist&&m.hist.length?` ${m.hist.length}`:''}`]]);
   }
   if(pane==='cast') RD_LAYOUT.forEach(g=>{ const ks=g.k.filter(k=>!(isNew && k==='status')); body+=`<section class="rdsec"><h3>${esc(g.t)}${g.s?`<small>${esc(g.s)}</small>`:''}</h3><div class="rdgrid">${ks.map(k=>rdFieldHtml(rdFdef(k), m, dis)).join('')}</div></section>`; });
@@ -3860,7 +3911,8 @@ function viewDb(){
   if(!rdOn()) return '<div class="plain"><div class="empty">この端末は、まだセラピストDB につながっていません。設定（右上の歯車）の「セラピストDB につなぐ」に、URL と鍵を入れてください。</div></div>';
   const subs=[['cast','名簿','list'],['annai','特徴','star'],['ng','受け入れNG','flag']];
   const add = RD.sub==='cast' ? `<button type="button" class="btn pri rdadd" data-act="rd-new">${icon('plus')}新しく入った人</button>`
-    : RD.sub==='ng' ? `<button type="button" class="btn pri rdadd" data-act="rd-ngnew">${icon('plus')}NGに追加</button>` : '';
+    : RD.sub==='ng' ? `<button type="button" class="btn pri rdadd" data-act="rd-ngnew">${icon('plus')}NGに追加</button>`
+    : `<button type="button" class="btn rdadd" data-act="rd-pdf">${icon('clip')}成績表を取り込む</button>`;
   const head=`<div class="rdhead"><div class="vseg" role="tablist" aria-label="セラピストDB の画面">${subs.map(([k,l,ic])=>`<button type="button" role="tab" class="${RD.sub===k?'on':''}" data-act="rd-sub" data-k="${k}" aria-selected="${RD.sub===k}">${icon(ic)}${l}</button>`).join('')}</div>${add}</div>`;
   return head + (RD.sub==='annai' ? rdViewAn() : RD.sub==='ng' ? rdViewNg() : rdViewCast());
 }
@@ -3895,7 +3947,7 @@ function rdViewCast(){
   const notice = RD.notice ? `<div class="rdnotice">${RD.notice} <button type="button" class="btn sm" data-act="rd-notice-x">閉じる</button></div>` : '';
   const showSt=!RD.fst;   // 在籍などで絞っているときは、どの行にも同じ札が付くので出さない
   const list = rows.map(r=>{ const bl=rdIsBlank(r);
-    const tags=(bl?'<span class="bktag amber">条件未入力・受付に未反映</span>':'')+(r.noShift?'<span class="bktag">シフト送らない</span>':'')+(showSt?rdStTag(r.status):'');
+    const tags=(bl?'<span class="bktag pink">条件未入力・受付に未反映</span>':'')+(r.noShift?'<span class="bktag">シフト送らない</span>':'')+(showSt?rdStTag(r.status):'');
     const bk = !String(r.bkHon||'').trim() && !String(r.bkFree||'').trim() ? '—' : `${rdPct(r.bkHon)} / ${rdPct(r.bkFree)}`;
     return `<div class="rdtr${bl?' blank':''}" role="button" tabindex="0" data-act="rd-open" data-id="${esc(r.id)}">
       <span class="c-nm"><b>${esc(r.name)}</b>${tags}</span>
@@ -3954,14 +4006,12 @@ function rdAnFmt(f, v){
   return esc(v);
 }
 const rdNameKey = n => String(n||'').trim().replace(/[（(]\s*[F北柏FfｆＦ]\s*[）)]/g,'').replace(/[12１２]+$/,'').trim().replace(/[\s　]/g,'');
-// 元のセラピストDB の画面（成績表の取り込みだけは、まだそちらで行う）
-const rdAppUrl = () => rdSafeUrl(RD.url || rdConf().url);
 function rdStatsHtml(r){
   const st=RD.an.stats||{}, months=st.months||[]; if(!months.length) return '';
   const key=rdNameKey(r['名前']), mine=(st.rows||[]).filter(x=>rdNameKey(x['名前'])===key);
   const rate = v => { const t=String(v??'').trim(); if(!t||/%$/.test(t)) return t; const n=parseFloat(t); return isNaN(n)?t:`${Math.round((n<=1?n*100:n)*10)/10}%`; };
   const cell = (x,k,u='') => x && x[k]!=='' && x[k]!=null ? `<td>${esc(x[k])}${u}</td>` : '<td class="none">—</td>';
-  return `<section class="rdsec"><h3>直近${months.length}か月の成績</h3><table class="rdstats"><thead><tr><th>月</th><th>出勤日数</th><th>総本数</th><th>本指名率</th><th>姫予約</th></tr></thead><tbody>${months.map(mo=>{ const x=mine.find(y=>y['月']===mo); return `<tr><td>${+String(mo).split('-')[1]}月</td>${cell(x,'出勤日数','日')}${cell(x,'総数','本')}${cell(x&&{本指名率:rate(x['本指名率'])},'本指名率')}${cell(x,'姫予約','本')}</tr>`; }).join('')}</tbody></table>${mine.length?'':'<div class="hint">成績表にこの名前がありません</div>'}${rdAppUrl()?`<div class="rdstlink">成績表（PDF）の取り込みは、元のセラピストDB の画面で行います（<a href="${esc(rdAppUrl())}" target="_blank" rel="noopener">元の画面を開く</a>）</div>`:''}</section>`;
+  return `<section class="rdsec"><h3>直近${months.length}か月の成績</h3><table class="rdstats"><thead><tr><th>月</th><th>出勤日数</th><th>総本数</th><th>本指名率</th><th>姫予約</th></tr></thead><tbody>${months.map(mo=>{ const x=mine.find(y=>y['月']===mo); return `<tr><td>${+String(mo).split('-')[1]}月</td>${cell(x,'出勤日数','日')}${cell(x,'総数','本')}${cell(x&&{本指名率:rate(x['本指名率'])},'本指名率')}${cell(x,'姫予約','本')}</tr>`; }).join('')}</tbody></table>${mine.length?'':'<div class="hint">成績表にこの名前がありません</div>'}<div class="rdstlink">成績は、特徴の画面の上の「成績表を取り込む」で、月ごとの成績表 PDF から入れます。</div></section>`;
 }
 function rdGuideText(r){
   const lines=[`【${r['名前']}】`], spec=rdAnSpec(r); if(spec) lines.push(spec);
@@ -3988,6 +4038,95 @@ BK_MODAL.rdan = m => {
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button></div>
   </div></div>`;
 };
+// ----- 成績表 PDF の取り込み（元のセラピストDB の「成績の取り込み」と同じ読み方。PDF は画面の中で読み、読み取った7項目だけを窓口に送る） -----
+// 報酬総額・本名などは読まない・送らない。PDF も端末に残さない
+const RD_PDFJS = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+let rdPdfjsReady = null;
+function rdLoadPdfjs(){
+  if(rdPdfjsReady) return rdPdfjsReady;
+  rdPdfjsReady = new Promise((resolve, reject)=>{
+    const sc=document.createElement('script'); sc.src=RD_PDFJS+'pdf.min.js';
+    sc.onload = async ()=>{ try{ const src=await (await fetch(RD_PDFJS+'pdf.worker.min.js')).text(); window.pdfjsLib.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([src],{type:'text/javascript'})); resolve(window.pdfjsLib); }catch(e){ rdPdfjsReady=null; reject(new Error('PDF の読み取り部品を読み込めませんでした（通信を確かめてください）')); } };
+    sc.onerror = ()=>{ rdPdfjsReady=null; reject(new Error('PDF の読み取り部品を読み込めませんでした（通信を確かめてください）')); };
+    document.head.appendChild(sc);
+  });
+  return rdPdfjsReady;
+}
+// 成績表の1行：名前 出勤日数 本指名数 フリー本数 総数 本指名率% 姫予約 報酬総額 …（担当内勤・本名は読まない）
+const RD_STATS_ROW = /^(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+(?:\.\d+)?%)\s+(\d+)\s+[\d,]+/;
+// NFKC で普通の漢字に戻らない部首用の文字（PDF に「⻘空」「⺒山」などで出てくる）と、NFKC だと旧い字体になるもの
+const RD_RADICALS = {'⺒':'巳','⻘':'青','⻄':'西','⻑':'長','⺟':'母','⻆':'角','⻝':'食','⻤':'鬼','⻩':'黄','⻨':'麦','⻭':'歯','⻯':'竜','⻲':'亀','⻁':'虎','⻌':'辶'};
+const RD_KANGXI = {'⿊':'黒','⾭':'青','⿈':'黄','⿆':'麦','⿒':'歯','⿔':'亀','⼾':'戸','⿑':'斉'};
+const rdFixChars = t => t.replace(/[⼀-⿟]/g, c=>RD_KANGXI[c]||c).normalize('NFKC').replace(/[⺀-⻿]/g, c=>RD_RADICALS[c]||c);
+async function rdReadStatsPdf(buf){
+  const pdfjs=await rdLoadPdfjs(), doc=await pdfjs.getDocument({data:buf}).promise, lines=[];
+  for(let i=1;i<=doc.numPages;i++){
+    const items=(await (await doc.getPage(i)).getTextContent()).items.filter(it=>it.str && it.str.trim()), rows=[];
+    items.forEach(it=>{ const y=it.transform[5], x=it.transform[4]; let row=rows.find(r0=>Math.abs(r0.y-y)<=2); if(!row) rows.push(row={y, parts:[]}); row.parts.push({x, w:it.width||0, h:it.height||8, s:it.str}); });
+    rows.sort((a,b)=>b.y-a.y).forEach(r0=>{ let line='', end=null; r0.parts.sort((a,b)=>a.x-b.x).forEach(p=>{ if(end!==null && p.x-end>Math.max(2, p.h*0.3)) line+=' '; line+=p.s; end=p.x+p.w; }); lines.push(line); });
+  }
+  const text=lines.map(l=>rdFixChars(l).replace(/\s+/g,' ').trim()), out=[], skipped=[];
+  text.forEach(l=>{ if(!l || /^セラピスト\s*名/.test(l) || /月\s*度/.test(l)) return; const m=RD_STATS_ROW.exec(l); if(!m){ skipped.push(l); return; } out.push({名前:m[1].trim(), 出勤日数:+m[2], 本指名数:+m[3], フリー本数:+m[4], 総数:+m[5], 本指名率:m[6], 姫予約:+m[7]}); });
+  const mm=/(\d{4})\s*年\s*(\d{1,2})\s*月\s*度/.exec(text.join(' '));
+  return {rows:out, skipped, month: mm ? `${mm[1]}-${mm[2].padStart(2,'0')}` : ''};
+}
+// 先月（日本時間）。成績表はふつう先月分を取り込む
+function rdLastMonth(){ const [y,m]=todayStr().split('-').map(Number); return m===1 ? `${y-1}-12` : `${y}-${String(m-1).padStart(2,'0')}`; }
+const rdMonthFromName = name => { const m=/(\d{4})\s*年\s*(\d{1,2})\s*月/.exec(name) || /(\d{4})[.\-_](\d{1,2})/.exec(name); return m ? `${m[1]}-${m[2].padStart(2,'0')}` : ''; };
+const rdMonthLabel = mo => { const m=/^(\d{4})-(\d{2})$/.exec(mo||''); return m ? `${m[1]}年${+m[2]}月` : mo; };
+function rdPdfOpen(){ S.modal={type:'rdpdf', month:rdLastMonth(), reading:false, saving:false, pdf:null, error:'', done:''}; render(); }
+async function rdPdfRead(file){
+  const m=S.modal; if(!m || m.type!=='rdpdf' || !file) return;
+  m.reading=true; m.error=''; m.done=''; m.pdf=null; render();
+  try{ const p=await rdReadStatsPdf(await file.arrayBuffer()); if(S.modal!==m) return; m.pdf={...p, file:file.name}; m.month=p.month||rdMonthFromName(file.name)||m.month; if(!p.rows.length) m.error='成績の行を読み取れませんでした（成績表の PDF か確かめてください）'; }
+  catch(e){ if(S.modal===m) m.error='PDF を読めませんでした：'+(e.message||e); }
+  if(S.modal===m){ m.reading=false; render(); }
+}
+async function rdPdfSave(){
+  const m=S.modal; if(!m || m.type!=='rdpdf' || !m.pdf || !m.pdf.rows.length || m.saving) return;
+  if(!/^\d{4}-\d{2}$/.test(m.month||'')){ m.error='何月分かを選んでください'; render(); return; }
+  if(!confirm(`${rdMonthLabel(m.month)}分の成績として ${m.pdf.rows.length}名分を保存します。\n同じ月の成績がすでにあれば、入れ替わります。`)) return;
+  m.saving=true; m.error=''; render();
+  try{
+    const j=await rdCall('annaiSaveStats', {month:m.month, rows:m.pdf.rows, source:m.pdf.file}, 60000);
+    if(j.stats) RD.an.stats=j.stats;
+    m.done=`${rdMonthLabel(j.month||m.month)}分の成績を ${j.count}名分 保存しました。特徴の詳細の「直近3か月の成績」に出ます。`; m.pdf=null;
+    rdToast('成績を保存しました');
+  }catch(e){
+    m.error = /知らない操作/.test(e.message||'') ? 'セラピストDB の窓口が、まだ成績の取り込みに対応した版になっていません（窓口の公開を待ってください）'
+      : e.unknown ? `保存できたかどうか分かりません（${e.message}）。特徴を読み直して「直近3か月の成績」を確かめ、入っていなければもう一度保存してください`
+      : '保存できませんでした：'+e.message;
+    if(e.unknown) RD.an.stale=true;
+  }
+  m.saving=false; render();
+}
+BK_MODAL.rdpdf = m => {
+  const p=m.pdf, sum=k=>p.rows.reduce((a,r)=>a+(Number(r[k])||0),0);
+  let info='';
+  if(m.reading) info='<div class="rdnotice">PDF を読み取っています…</div>';
+  else if(p && p.rows.length){
+    const known = RD.an.rows ? new Set(RD.an.rows.map(r=>rdNameKey(r['名前']))) : null, miss = known ? p.rows.filter(r=>!known.has(rdNameKey(r['名前']))).map(r=>r['名前']) : [];
+    info=`<section class="rdsec"><h3>読み取った内容<small>${esc(p.file)}</small></h3><dl class="rdkv">
+      <dt>人数</dt><dd><b>${p.rows.length}名</b></dd>
+      <dt>合計</dt><dd>総本数 ${sum('総数')}・出勤日数 ${sum('出勤日数')}・姫予約 ${sum('姫予約')}</dd>
+      ${known?`<dt>名簿にいない人</dt><dd>${miss.length?`${miss.length}名：${esc(miss.slice(0,30).join('、'))}${miss.length>30?' ほか':''}<div class="hint" style="margin-top:4px">この人たちの分も保存しておき、あとで登録したときに出ます。</div>`:'いません'}</dd>`:''}
+      ${p.skipped.length?`<dt>読めなかった行</dt><dd>${p.skipped.length}行：${esc(p.skipped.slice(0,5).join(' ／ '))}</dd>`:''}
+    </dl></section>`;
+  }
+  return `<div class="ov" data-act="close-ov"><div class="modal rdmodal rdpdfm">
+    <div class="mhd"><h2>成績表を取り込む</h2><span class="sp"></span><button type="button" class="iconbtn" data-act="close" title="閉じる" aria-label="閉じる">${icon('x')}</button></div>
+    <div class="hint" style="margin:0 0 12px">月ごとの成績表 PDF を選ぶと、出勤日数・本指名数・総数・本指名率・姫予約を読み取ります（報酬総額・本名は読みません）。保存すると、特徴の詳細の「直近3か月の成績」に出ます。</div>
+    <div class="rdpdfrow">
+      <div class="rdqf"><span class="lb">成績表 PDF</span><label class="btn rdfile">${icon('clip')}<span>${p?esc(p.file):'PDF を選ぶ'}</span><input type="file" accept="application/pdf,.pdf" data-rdpdf ${m.reading||m.saving?'disabled':''}></label></div>
+      <div class="rdqf"><span class="lb">何月分</span><input class="inp" type="month" data-rdpdfmonth value="${esc(m.month||'')}" ${m.saving?'disabled':''}></div>
+    </div>
+    ${info}
+    ${m.error?`<div class="rderr">${esc(m.error)}</div>`:''}
+    ${m.done?`<div class="rdhit no">✓ ${esc(m.done)}</div>`:''}
+    <div class="actions"><button type="button" class="btn" data-act="close">${m.done?'閉じる':'やめる'}</button><button type="button" class="btn pri" data-act="rd-pdfsave" ${p&&p.rows.length&&!m.saving&&!m.reading?'':'disabled'}>${m.saving?'保存しています…':'この内容で保存'}</button></div>
+  </div></div>`;
+};
+
 // ----- 受け入れNG（照会・追加・編集。ほかへは写さない） -----
 function rdNgMatch(r, c){
   const m=[];
@@ -4064,6 +4203,8 @@ function rdAct(a, el){
     case 'rd-qx': { const k=el.dataset.k; if(k==='q') RD.q=''; else if(k==='aq') RD.an.q=''; else if(k==='nq') RD.ng.q=''; else if(k==='ntel') RD.ng.tel=''; render(); document.querySelector(`[data-rdq="${k}"]`)?.focus(); break; }
     case 'rd-pane': if(m){ m.pane=el.dataset.k; render(); const md=document.querySelector('.rdmodal'); if(md) md.scrollTop=0; } break;
     case 'rd-syncx': RD.syncOpen=!RD.syncOpen; render(); break;
+    case 'rd-pdf': rdPdfOpen(); break;
+    case 'rd-pdfsave': rdPdfSave(); break;
     case 'rd-freset': Object.assign(RD, {q:'', fst:'', fpri:'', blank:false}); render(); break;
     case 'rd-afreset': Object.assign(RD.an, {q:'', fst:''}); render(); break;
     case 'rd-forget': if(confirm('この端末から、セラピストDB の接続先と鍵を消しますか？')){ safeSet(LS.rdUrl,null); safeSet(LS.rdKey,null); rdReset(); S.modal=null; render(); toast('セラピストDB の接続先と鍵を消しました'); } break;
@@ -4144,6 +4285,10 @@ RD_DEMO.detail = p => {
   const cast = !r.castId ? {none:true} : !c ? {missing:true, castId:r.castId} : {castId:r.castId, fields:clone(d.fields), row:clone(c), upd:c['更新日時'], other:{debut:'', tanto:''}};
   return {ok:true, row:clone(r), hist:rdDemoHist(p.id), cast};
 };
+RD_DEMO.detailRow = p => { const j=RD_DEMO.detail(p); return j.ok ? {ok:true, row:j.row} : j; };
+RD_DEMO.detailMore = p => { const d=rdDemoData(), c=p.castId ? d.cast[p.castId] : null;
+  const cast = !p.castId ? {none:true} : !c ? {missing:true, castId:p.castId} : {castId:p.castId, fields:clone(d.fields), row:clone(c), upd:c['更新日時'], other:{debut:'', tanto:''}};
+  return {ok:true, hist:rdDemoHist(p.id), cast}; };
 RD_DEMO.save = p => {
   const d=rdDemoData(), r=d.rows.find(x=>x.id===p.id); if(!r) return {ok:false, error:'見つかりません'};
   if(r.upd!==String(p.upd||'')) return {ok:false, conflict:true, error:`先に誰かが「${r.name}」を保存しています。再読み込みしてから入力し直してください`};
@@ -4155,7 +4300,14 @@ RD_DEMO.create = p => { const d=rdDemoData(), id='S'+String(d.rows.length+1).pad
 RD_DEMO.revert = p => { const d=rdDemoData(), x=d.log.find(y=>y.logRow===p.logRow); if(!x || x.op!=='変更') return {ok:false, error:'この記録は元に戻せません'}; const r=d.rows.find(y=>y.id===x.id); if(String(r[x.k]??'')!==x.after) return {ok:false, error:`そのあと別の変更が入っているため戻せません（今の値：${r[x.k]||'空'}）`}; return RD_DEMO.save({id:r.id, changes:{[x.k]:x.before}, upd:r.upd}); };
 RD_DEMO.sync = () => rdDemoSync();
 RD_DEMO.annaiLoad = () => { const d=rdDemoData(); const rows=Object.values(d.cast).map(c=>{ const r=d.rows.find(x=>x.castId===c.ID); return {...clone(c), 名前:r?r.name:'', _sid:r?r.id:'', _st:r?r.status:'', デビュー日:r?(rdToDate(r.debut)||''):''}; });
-  const st=['2026-10','2026-09','2026-08']; return {ok:true, ver:'デモ', fields:clone(d.fields), rows, stats:{months:st, rows:[{月:'2026-10', 名前:'見本あおい', 出勤日数:'18', 総数:'52', 本指名率:'0.46', 姫予約:'9'},{月:'2026-09', 名前:'見本あおい', 出勤日数:'16', 総数:'47', 本指名率:'0.41', 姫予約:'7'}]}, st:['在籍','休み中','退店']}; };
+  return {ok:true, ver:'デモ', fields:clone(d.fields), rows, stats:rdDemoStats(), st:['在籍','休み中','退店']}; };
+let rdDemoStatRows = null;
+function rdDemoStats(){
+  if(!rdDemoStatRows) rdDemoStatRows=[{月:'2026-10', 名前:'見本あおい', 出勤日数:'18', 総数:'52', 本指名率:'0.46', 姫予約:'9'},{月:'2026-09', 名前:'見本あおい', 出勤日数:'16', 総数:'47', 本指名率:'0.41', 姫予約:'7'}];
+  const months=[...new Set(rdDemoStatRows.map(r=>r['月']).concat(['2026-10','2026-09','2026-08']))].sort().reverse().slice(0,3);
+  return {months, rows:clone(rdDemoStatRows.filter(r=>months.includes(r['月'])))};
+}
+RD_DEMO.annaiSaveStats = p => { if(!/^\d{4}-\d{2}$/.test(p.month||'')) return {ok:false, error:'月が読めません: '+p.month}; rdDemoStats(); rdDemoStatRows=rdDemoStatRows.filter(r=>r['月']!==p.month).concat((p.rows||[]).map(r=>({月:p.month, 名前:r['名前'], 出勤日数:String(r['出勤日数']), 総数:String(r['総数']), 本指名率:String(parseFloat(r['本指名率'])/100), 姫予約:String(r['姫予約'])}))); return {ok:true, month:p.month, count:(p.rows||[]).length, stats:rdDemoStats()}; };
 RD_DEMO.castSave = p => { const d=rdDemoData(), c=d.cast[p.castId]; if(!c) return {ok:false, error:'特徴DBに '+p.castId+' が見つかりません'}; if(String(p.upd||'')!==String(c['更新日時']||'')) return {ok:false, conflict:true, error:'先に誰かが特徴を保存しています'}; Object.assign(c, p.changes); c['更新日時']=new Date().toISOString().slice(0,19).replace('T',' '); return {ok:true, changed:Object.keys(p.changes).length}; };
 RD_DEMO.ngLoad = () => ({ok:true, rows:clone(rdDemoData().ng), st:['NG','解除']});
 RD_DEMO.ngDetail = p => { const r=rdDemoData().ng.find(x=>x.id===p.id); return r ? {ok:true, row:clone(r), hist:rdDemoHist(p.id)} : {ok:false, error:'見つかりません'}; };
@@ -4894,6 +5046,8 @@ document.addEventListener('keydown', e=>{ if(NDRAG && e.key==='Escape') ndragEnd
 document.addEventListener('toggle', e=>{ if(e.target.matches && e.target.matches('details[data-act="sup-tot"]')) S.supTotOpen=e.target.open; if(e.target.matches && e.target.matches('details[data-inbox]')){ S.inboxOpen=e.target.open; const o=e.target.querySelector('.ibopen'); if(o) o.textContent=e.target.open?'閉じる':'取り込む'; } }, true);
 document.addEventListener('change', e=>{
   if(e.target.matches('[data-rds]')) rdSel(e.target);
+  if(e.target.matches('[data-rdpdf]')){ const f=e.target.files&&e.target.files[0]; if(f) rdPdfRead(f); }
+  if(e.target.matches('[data-rdpdfmonth]') && S.modal && S.modal.type==='rdpdf'){ S.modal.month=e.target.value; }
   if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
   if(e.target.matches('[data-simark]')){ SI.mark=e.target.checked; render(); }
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -4995,7 +5149,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:494953da2a39';
+const BUILD = 'AOS_BUILD:991c561f8466';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
