@@ -506,6 +506,21 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 @media (max-width:640px){ .room{align-items:flex-start} .room .btn{margin-top:2px} }
 
 /* ===== パスワード表 ===== */
+.cpinfo{font-size:13px;color:var(--sub);margin:0 0 10px}
+.cplist{display:flex;flex-direction:column;gap:8px}
+.cpcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:12px 14px}
+.cpcard.used{opacity:.75}
+.cpcard.expired{border-color:color-mix(in srgb,var(--red) 40%,var(--line))}
+.cprow1{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cpcode{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:18px;font-weight:700;letter-spacing:.08em}
+.cpprize{font-weight:600;color:var(--accent)}
+.cpst{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.cpst.valid{background:var(--green-soft);color:var(--green)}
+.cpst.expired{background:var(--red-soft);color:var(--red)}
+.cpst.used{background:var(--panel2);color:var(--sub)}
+.cpmeta{font-size:13px;color:var(--sub);margin-top:4px}
+.cpnote{font-size:13px;margin-top:4px}
+.cpact{display:flex;justify-content:flex-end;margin-top:8px}
 .pwbar{display:flex;gap:6px;align-items:center;margin:0 0 12px;flex-wrap:wrap}
 .pwbar .inp{flex:1;min-width:180px}
 .pwlist{display:flex;flex-direction:column;gap:6px}
@@ -576,7 +591,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -610,6 +625,7 @@ const ICON = {
   key:'<circle cx="7.5" cy="15.5" r="5.5"/><path d="M11.4 11.6 21 2"/><path d="m16 7 3 3"/><path d="m19 4 2 2"/>',
   users:'<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   star:'<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>',
+  gift:'<polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
   grip:'<circle cx="9" cy="6" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="18" r="1"/>',
 };
 const icon = n => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${ICON[n]}</svg>`;
@@ -1784,6 +1800,107 @@ function pwField(){
     </div><div class="hint" style="margin-top:6px">設置のしかたは SETUP.md の「パスワード表」。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
 }
 
+// ===== クーポン（アンケートのくじの当選。正本はアンケートのスプレッドシートの「当選者一覧」） =====
+// 読み書きは、アンケートの Apps Script（salon-os の survey/gas/Code.gs）の窓口（coupon.search / coupon.use / coupon.unuse）を通して行う。GitHub には一切書かない。
+// 窓口の URL はお客様に送っているアンケートの URL と同じなので、鍵が無いと誰でも当選者を見たり利用済みにしたりできてしまう。だから鍵を付ける。
+// 接続先の URL と鍵は、この端末のブラウザにだけ保存する。お客様の名前などは端末に残さない（開いている間だけ持つ）。
+const cpConf = () => ({url:safeGet(LS.cpUrl)||'', key:safeGet(LS.cpKey)||''});
+const cpOn = () => S.be && (S.be.kind==='demo' || !!cpConf().url);
+const CP = {items:null, q:'', shownQ:'', loading:false, error:'', busy:{}, more:false, seq:0};
+let cpDemo = null;
+// 見本（?demo で接続先が未設定のとき）：画面の中だけで動かす
+function cpDemoRows(){
+  const d = n => addDays(todayStr(), n);
+  return [
+    {row:9, drawn:d(-2)+' 21:44', visit:d(-2), therapist:'見本みく', name:'ヤマダ', num:'1234', prize:'1,000円OFF', code:'ZP2C75', note:'', usedAt:'', colored:false},
+    {row:8, drawn:d(-6)+' 15:03', visit:d(-6), therapist:'見本さや', name:'サトウ', num:'5678', prize:'2,000円OFF', code:'NIQTES', note:'', usedAt:d(-1), colored:true},
+    {row:7, drawn:d(-27)+' 23:50', visit:d(-27), therapist:'見本れん', name:'たなか', num:'0420', prize:'3,000円OFF', code:'Q0VLRU', note:'', usedAt:'', colored:false},
+    {row:6, drawn:d(-33)+' 12:24', visit:d(-34), therapist:'見本みく', name:'すずき', num:'0627', prize:'1,000円OFF', code:'4N57J7', note:'', usedAt:'', colored:false},
+    {row:5, drawn:d(-40)+' 19:49', visit:d(-40), therapist:'見本ゆら', name:'ミナミ', num:'7191', prize:'1,000円OFF', code:'IZ8BVY', note:'電話で確認済み', usedAt:'', colored:true},
+  ];
+}
+// 期限：抽選日の1ヶ月後の同じ日まで（窓口の couponExpires_ と同じ）
+function cpExpires(drawn){ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(drawn||''); if(!m) return ''; const day=+m[3]; const d=new Date(+m[1], +m[2]-1+1, day); if(d.getDate()!==day) d.setDate(0); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function cpDemoItem(r){
+  const t=todayStr(), expires=cpExpires(r.drawn), used=!!r.usedAt||r.colored;
+  const status = used ? 'used' : (expires && t>expires ? 'expired' : 'valid');
+  return {...r, expires, status, daysLeft: status==='valid' ? Math.round((new Date(expires+'T00:00:00')-new Date(t+'T00:00:00'))/86400000) : null};
+}
+const cpNorm = s => String(s||'').normalize('NFKC').replace(/\s+/g,'').toLowerCase();
+async function cpCall(action, payload={}){
+  if(S.be && S.be.kind==='demo' && !cpConf().url){
+    if(!cpDemo) cpDemo=cpDemoRows();
+    await new Promise(r=>setTimeout(r,200));
+    if(action==='coupon.search'){ const q=cpNorm(payload.q); return {ok:true, items:cpDemo.filter(r=>!q||[r.code,r.num,r.name,r.therapist].some(x=>cpNorm(x).includes(q))).map(cpDemoItem)}; }
+    const r=cpDemo.find(x=>x.row===payload.row && x.code===payload.code); if(!r) return {ok:false, error:'当選者一覧が変わっています。探し直してください'};
+    if(action==='coupon.use'){ r.usedAt=todayStr(); r.colored=true; } else { r.usedAt=''; r.colored=false; }
+    return {ok:true, item:cpDemoItem(r)};
+  }
+  const {url,key}=cpConf();
+  if(!url||!key) throw new Error('クーポンの接続先と鍵が設定されていません（設定画面）');
+  // text/plain で送ると、Apps Script へ事前確認なしで届く
+  const r=await fetch(url,{method:'POST', body:JSON.stringify({key, action, ...payload}), redirect:'follow'});
+  if(!r.ok) throw new Error(`アンケートの窓口に接続できませんでした（${r.status}）`);
+  const j=await r.json().catch(()=>{ throw new Error('アンケートの窓口の返事を読めませんでした（URL が正しいか、窓口を足した版が公開されているか確かめてください）'); });
+  if(!j.ok) throw new Error(j.error||'アンケートの窓口でエラーが出ました');
+  return j;
+}
+async function cpSearch(q){
+  const my=++CP.seq; CP.loading=true; CP.error=''; render();
+  try{ const j=await cpCall('coupon.search',{q}); if(my!==CP.seq) return; CP.items=j.items||[]; CP.more=!!j.more; CP.shownQ=q; }
+  catch(e){ if(my===CP.seq){ CP.error=e.message; if(!CP.items) CP.items=[]; } }
+  if(my===CP.seq){ CP.loading=false; render(); }
+}
+async function cpMark(row, on){
+  const it=(CP.items||[]).find(x=>x.row===row); if(!it || CP.busy[row]) return;
+  const who=`「${it.code}」（${it.prize}・${it.name||'名前なし'}さん）`;
+  const msg = on
+    ? `${it.status==='expired'?`期限が切れています（${cpMd(it.expires)}まで）。\n`:''}${who}を利用済みにしますか？\nスプレッドシートのこの行の色も変わります。`
+    : `${who}の利用済みを取り消しますか？\nスプレッドシートのこの行の色も元に戻ります。`;
+  if(!confirm(msg)) return;
+  CP.busy[row]=true; render();
+  try{ const j=await cpCall(on?'coupon.use':'coupon.unuse',{row:it.row, code:it.code}); const i=CP.items.findIndex(x=>x.row===row); if(i>=0 && j.item) CP.items[i]=j.item; toast(on?'利用済みにしました（スプレッドシートの色も変えました）':'利用済みを取り消しました'); }
+  catch(e){ toast(e.message,true); }
+  delete CP.busy[row]; render();
+}
+const cpMd = ds => { const m=/^\d{4}-(\d{2})-(\d{2})/.exec(ds||''); return m ? `${+m[1]}/${+m[2]}` : (ds||''); };
+function cpStatusLabel(it){
+  if(it.status==='used') return it.usedAt ? `利用済み（${cpMd(it.usedAt)}）` : '利用済み（色）';
+  if(it.status==='expired') return `期限切れ（${cpMd(it.expires)}まで）`;
+  return it.daysLeft===0 ? '使える（今日まで）' : `使える（あと${it.daysLeft}日・${cpMd(it.expires)}まで）`;
+}
+function viewCoupon(){
+  if(!cpOn()) return `<div class="bkcard"><b>クーポン（アンケートの当選）につながっていません</b>
+    <div class="hint" style="margin-top:6px">設定画面の「クーポン（アンケートの当選）」に、アンケートの窓口の URL と鍵を入れると使えます。鍵は、アンケートの Apps Script のエディタで resetActionOsKey を実行すると作られます（ログに出た「設定画面に貼る文字」を1回貼るだけで済みます）。</div>
+    <div style="margin-top:10px"><button class="btn sm pri" data-act="settings">設定画面を開く</button></div></div>`;
+  if(CP.items===null && !CP.loading && !CP.error) setTimeout(()=>{ if(CP.items===null && !CP.loading) cpSearch(''); },0);  // 初めて開いたら新しい当選を出す
+  const search=`<form class="pwbar" data-act="cp-search" onsubmit="return false"><input class="inp" name="q" data-cpq value="${esc(CP.q)}" placeholder="当選コード・顧客番号・お客様名・セラピスト名" autocomplete="off" enterkeyhint="search"><button class="btn sm pri">探す</button>${CP.shownQ?'<button type="button" class="btn sm" data-act="cp-clear">新しい順に戻す</button>':''}</form>`;
+  const items=CP.items||[];
+  const info = CP.loading ? 'アンケートの窓口から読んでいます…' : CP.error ? '' : `${CP.shownQ?`「${esc(CP.shownQ)}」で見つかった当選 ${items.length}件`:`新しい当選 ${items.length}件`}${CP.more?'（多いので50件まで。コードや番号で絞ってください）':''}`;
+  const cards = items.map(it=>{ const busy=!!CP.busy[it.row];
+    return `<div class="cpcard ${it.status}">
+      <div class="cprow1"><span class="cpcode">${esc(it.code)}</span><span class="cpprize">${esc(it.prize)}</span><span class="sp"></span><span class="cpst ${it.status}">${esc(cpStatusLabel(it))}</span></div>
+      <div class="cpmeta">${esc(it.name||'名前なし')}${it.num?`（${esc(it.num)}）`:''}・担当 ${esc(it.therapist||'—')}</div>
+      <div class="cpmeta">抽選 ${esc(cpMd(it.drawn))}${it.visit?`・来店 ${esc(cpMd(it.visit))}`:''}${it.expires?`・期限 ${esc(cpMd(it.expires))}`:''}</div>
+      ${it.note?`<div class="cpnote">備考：${esc(it.note)}</div>`:''}
+      <div class="cpact">${it.status==='used'
+        ? `<button class="btn sm" data-act="cp-unuse" data-row="${it.row}" ${busy?'disabled':''}>${busy?'取り消し中…':'取り消す'}</button>`
+        : `<button class="btn sm ${it.status==='valid'?'pri':''}" data-act="cp-use" data-row="${it.row}" ${busy?'disabled':''}>${busy?'記録中…':'利用済みにする'}</button>`}</div>
+    </div>`; }).join('');
+  return `${search}<div class="cpinfo">${info}</div>${CP.error?`<div class="bkcard" style="color:var(--red)">${esc(CP.error)}</div>`:''}
+    <div class="cplist">${cards || (CP.loading||CP.error?'':'<div class="empty">見つかりません</div>')}</div>
+    <div class="hint" style="margin-top:12px">期限は抽選日の1ヶ月後の同じ日まで。「利用済みにする」を押すと、アンケートのスプレッドシートの「当選者一覧」のその行を利用済みの色で塗り、「利用日」の列に今日の日付を書きます。スプレッドシートで手で塗った行も「利用済み（色）」と出ます。</div>`;
+}
+function cpField(){
+  const c=cpConf();
+  return `<form class="field" data-act="save-cpconf" autocomplete="off"><label>クーポン（アンケートの当選）</label>
+    <div class="subl">
+      <input class="inp" name="url" value="${esc(c.url)}" placeholder="アンケートの窓口の URL（…/exec）。「設定画面に貼る文字」ならそのまま" autocapitalize="off" spellcheck="false">
+      <input class="inp" name="key" type="password" placeholder="${c.key?'鍵は保存済み（変える時だけ入力）':'鍵（上に「設定画面に貼る文字」を貼ったときは空でよい）'}" autocomplete="off">
+      <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${c.url?'<button type="button" class="btn sm danger" data-act="cp-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
+    </div><div class="hint" style="margin-top:6px">鍵は、アンケートの Apps Script のエディタで resetActionOsKey を実行すると、ログに出ます。URL と鍵は、この端末のブラウザにだけ保存されます。</div></form><hr style="border:0;border-top:1px solid var(--line);margin:18px 0">`;
+}
+
 // ===== 空室情報（BOK のルーム空室情報。正本は BOK のスプレッドシート） =====
 // 読み書きは BOK のウェブアプリの窓口（room.list / room.update）を通して行う。GitHub には一切書かない。
 // 表の形：ルーム（北千住・柏などのエリア）× 曜日（月〜日）× 1日3マス＋曜日ごとの「見せない人」。週によらない定常の表。
@@ -2737,12 +2854,12 @@ function supItemsModal(m){
 const NAV_DEF = {
   board:{l:'カテゴリ別', ic:'list'}, timeline:{l:'期限順', ic:'cal'}, someday:{l:'いつかやる', ic:'flag'}, runs:{l:'実行', ic:'play'}, done:{l:'完了', ic:'check'},
   notes:{l:'引き継ぎ', ic:'msg'}, memo:{l:'ノート', ic:'book'}, rooms:{l:'清掃', ic:'home'}, supplies:{l:'補充', ic:'box'},
-  bok:{l:'BOK', ic:'bell'}, pw:{l:'パスワード', ic:'key'},
+  bok:{l:'BOK', ic:'bell'}, coupon:{l:'クーポン', ic:'gift'}, pw:{l:'パスワード', ic:'key'},
 };
-const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['運用',['notes','memo','rooms','supplies']], ['システム',['bok','pw']]];
+const NAV_GROUPS = [['タスク',['board','timeline','someday','runs','done']], ['運用',['notes','memo','rooms','supplies']], ['システム',['bok','coupon','pw']]];
 const PIN_DEFAULT = ['board','notes','supplies','rooms'], PIN_MAX = 5;
 const navWide = () => matchMedia('(min-width:1100px)').matches;
-function navAvail(k){ return k==='notes'?!!S.notes : k==='memo'?!!S.memo : k==='rooms'?!!S.rooms : k==='supplies'?!!S.supplies : k==='pw'?pwOn() : !!NAV_DEF[k]; }
+function navAvail(k){ return k==='notes'?!!S.notes : k==='memo'?!!S.memo : k==='rooms'?!!S.rooms : k==='supplies'?!!S.supplies : k==='pw'?pwOn() : k==='coupon'?cpOn() : !!NAV_DEF[k]; }
 function navPins(){ let a=null; try{ a=JSON.parse(safeGet(LS.pins)||'null'); }catch{} return (Array.isArray(a)?a:PIN_DEFAULT).filter(k=>NAV_DEF[k]); }
 function setNavPin(k, on){ let a=navPins().filter(x=>x!==k); if(on){ if(a.length>=PIN_MAX) return toast(`★は${PIN_MAX}つまでです`,true); a.push(k); } safeSet(LS.pins, JSON.stringify(a)); render(); }
 // 画面ごとの件数と、赤くする（すぐ見てほしい）かどうか
@@ -2759,6 +2876,7 @@ function navBadge(k, st){
     case 'supplies': { const u=S.supplies ? S.supplies.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0) : 0; return {n:supOpenCount(), red:u>0}; }
     case 'bok': return {n:HIME.count>0?`姫 ${HIME.count}`:'', red:HIME.count>0};
     case 'pw': return {n:PWD.rows?PWD.rows.length:''};
+    case 'coupon': return {n:''};
   }
   return {n:''};
 }
@@ -2837,9 +2955,9 @@ function render(){
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
     ${S.tab==='board'||S.tab==='timeline'?whoBar():''}
-    ${waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='coupon'?viewCoupon():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
-  ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
+  ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='coupon'||S.tab==='bok'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
   document.body.classList.toggle('navopen', !!S.nav); document.body.classList.toggle('navpin', !!S.navPin);
@@ -2885,7 +3003,7 @@ function viewModal(){
     <textarea class="inp" rows="12" readonly>${esc(m.text)}</textarea>
     <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><a class="btn pri" href="${esc(m.link)}">親スレッドを開く</a></div>
   </div></div>`;
-  if(m.type==='settings') return `<div class="ov" data-act="close-ov"><div class="modal">${catManager()}${memberManager()}${extraTabsField()}${pwField()}${rvField()}${settingsForm(true)}</div></div>`;
+  if(m.type==='settings') return `<div class="ov" data-act="close-ov"><div class="modal">${catManager()}${memberManager()}${extraTabsField()}${pwField()}${cpField()}${rvField()}${settingsForm(true)}</div></div>`;
   if(m.type==='note') return noteModal(m);
   if(m.type==='pw') return pwModal(m);
   if(m.type==='rv') return rvModal(m);
@@ -3004,6 +3122,10 @@ document.addEventListener('click', async e=>{
     case 'tab': navGo(el.dataset.k); break;
     case 'nav-toggle': if(navWide()){ S.navPin=!S.navPin; safeSet(LS.navPin, S.navPin?'1':'0'); document.body.classList.toggle('navpin', S.navPin); if(!S.navPin) navSet(false); } else navSet(!S.nav); break;
     case 'nav-close': navSet(false); break;
+    case 'cp-use': cpMark(+el.dataset.row, true); break;
+    case 'cp-unuse': cpMark(+el.dataset.row, false); break;
+    case 'cp-clear': CP.q=''; cpSearch(''); break;
+    case 'cp-forget': if(confirm('この端末から、クーポンの接続先と鍵を消しますか？')){ safeSet(LS.cpUrl,null); safeSet(LS.cpKey,null); CP.items=null; CP.error=''; S.modal=null; render(); } break;
     case 'nav-pin': setNavPin(el.dataset.k, !navPins().includes(el.dataset.k)); break;
     case 'bok-open': { const k=el.dataset.k; S.bok=k; if(k!=='rv' && BK_LOAD[k] && rvOn()) BK_LOAD[k](); else render(); break; }  // 開くたびに BOK から読み直す（空室情報は10分の決まり）
     case 'bk-reload': { const f=BK_LOAD[el.dataset.k]; if(f) f(); break; }
@@ -3126,6 +3248,7 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-supq]') && !e.isComposing) supSearch(e.target);
   if(e.target.matches('[data-memoq]') && !e.isComposing) memoSearch(e.target);
   if(e.target.matches('[data-navq]')) navFilter(e.target);
+  if(e.target.matches('[data-cpq]')) CP.q=e.target.value;
   if(e.target.matches('[data-insq]') && !e.isComposing) insSearch(e.target);
   if(e.target.matches('[data-mtmsg]') && MT.draft) MT.draft.message=e.target.value;
   if(e.target.matches('[data-stf]') && ST.dr) ST.dr[e.target.dataset.stf]=e.target.value;
@@ -3245,6 +3368,13 @@ document.addEventListener('submit', async e=>{
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.rvUrl,url||null); safeSet(LS.rvKey,url?key:null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; if(url){ S.tab='bok'; S.bok=null; safeSet(LS.tab,'bok'); } render(); toast(url?'BOK（ささやき）につなぎました':'BOK の接続先と鍵を消しました'); return; }
+  if(a==='cp-search'){ CP.q=f.q.value.trim(); f.q.blur(); cpSearch(CP.q); return; }
+  if(a==='save-cpconf'){ let url=f.url.value.trim(), key=f.key.value.trim();
+    const hk=url.indexOf('#'); if(hk>=0){ if(!key) key=url.slice(hk+1).trim(); url=url.slice(0,hk).trim(); }  // 「設定画面に貼る文字」（URL#鍵）もそのまま受け付ける
+    if(!key) key=safeGet(LS.cpKey)||'';
+    if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
+    if(url && !key) return toast('鍵を入れてください',true);
+    safeSet(LS.cpUrl,url||null); safeSet(LS.cpKey,url?key:null); CP.items=null; CP.error=''; S.modal=null; if(url) navGo('coupon'); else render(); toast(url?'クーポンにつなぎました':'クーポンの設定を消しました'); return; }
   if(a==='save-pwconf'){ const url=f.url.value.trim(), key=f.key.value.trim()||safeGet(LS.pwKey);
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
@@ -3295,7 +3425,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:f9f8ece64570';
+const BUILD = 'AOS_BUILD:c59dbe2c8caf';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
