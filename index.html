@@ -1017,6 +1017,13 @@ function subsRule(r, who){
 - サブタスクが1つ終わるたびに、そのサブタスクを完了にしてよいか確認する。了承されたら、そのサブタスクの行だけを todo.md から消し（その下にさらに行があれば一緒に消す）、done/YYYY-MM.md に「- [x] サブタスク名（${r.task}） ✅YYYY-MM-DD」を1行足して、その2つだけをコミットして push する。
 - ${who}自体の行を完了にするのは、下のサブタスクがすべて片付いてから。下に行が残っているうちは${who}の行を消さない（消すと、残った行が1段上にずれる）。残っているのに終えたいと言われたら、残りをどうするか（一緒に完了にする・残しておく）を確認する。`;
 }
+// salon-os からの依頼（〔依頼 salon-os#番号〕の印）のタスク・その下のサブタスクなら、最初に Issue の本文とやり取りを読ませる
+// （▶ のスレッドは作業フォルダで開くので、Action OS の CLAUDE.md の「取りかかるとき」の決まりが届かないため）
+function iraiNote(r){
+  const ns=[...new Set([r.task, r.parent, ...(r.path||[])].filter(Boolean).join('\n').match(/〔依頼 salon-os#\d+〕/g)||[])].map(x=>x.match(/\d+/)[0]);
+  if(!ns.length) return '';
+  return `\n\nこのタスクは salon-os からの依頼（${ns.map(n=>'#'+n).join('・')}）です。1. の最初に ${ns.map(n=>`\`gh issue view ${n} --repo sukeee84/salon-os --comments\``).join(' と ')} で、依頼の本文（ゴール・期限・終わりの形・背景・やり方）とやり取りを読み、そのとおりに進めてください。質問や差し戻しはその Issue にコメントします（送る前に文面を見せて了承を得る）。`;
+}
 function buildPrompt(r){
   const lines=[`タスク: ${r.task}`]; if(r.who) lines.push(`担当: ${r.who}`); if(r.parent) lines.push(`親タスク: ${r.parent}`); if(r.path && r.path.length>1) lines.push(`上の階層（いちばん上から）: ${r.path.join(' ＞ ')}`); if(r.cat) lines.push(`カテゴリ: ${r.cat}`); if(r.due) lines.push(`期限: ${r.due}`);
   if(r.parent && r.parent_due) lines.push(`親タスクの期限: ${r.parent_due}`);
@@ -1026,7 +1033,7 @@ function buildPrompt(r){
     const log = sessionLog(r.prev_session);
     return `【Action OS から】（実行ID: ${r.id||''}）前のスレッドの続きです。前のスレッドは途中で止まったので、このスレッドで引き継ぎます。
 
-${lines.join('\n')}${subContext(r)}${r.subs&&r.subs.length?`\n\n${subsRule(r,'このタスク')}`:''}
+${lines.join('\n')}${subContext(r)}${iraiNote(r)}${r.subs&&r.subs.length?`\n\n${subsRule(r,'このタスク')}`:''}
 
 前のスレッドの会話記録: ${log}
 まずこの記録を読み、どこまで進んで何が決まっていたか（集めた数字・ユーザーの指示・やりかけの作業）を短くまとめてから、続きを進めてください。${r.note?`\n\nユーザーからの指示: ${r.note}`:''}
@@ -1035,7 +1042,7 @@ ${rules()}`;
   }
   return `【Action OS から】（実行ID: ${r.id||''}）この${r.parent?'サブタスク':'タスク'}を、ユーザーと相談しながら進めてください。
 
-${lines.join('\n')}${subContext(r)}${r.subs&&r.subs.length?`\n\n${subsRule(r,'このタスク')}`:''}${r.note?`\n\n補足（ユーザーより）: ${r.note}`:''}
+${lines.join('\n')}${subContext(r)}${iraiNote(r)}${r.subs&&r.subs.length?`\n\n${subsRule(r,'このタスク')}`:''}${r.note?`\n\n補足（ユーザーより）: ${r.note}`:''}
 
 ${rules()}
 
