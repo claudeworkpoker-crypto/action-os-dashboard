@@ -1038,7 +1038,7 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .rdanm{display:flex;flex-direction:column;min-height:min(760px, calc(100vh - 32px))}
 .rdanm>*{flex-shrink:0}
 .rdanm>.actions{margin-top:auto}
-@media (max-width:640px){ .rdanm{min-height:92vh} }
+@media (max-width:640px){ .rdanm{min-height:min(92vh, calc(var(--vvh,100vh) - 10px));min-height:min(92dvh, calc(var(--vvh,100dvh) - 10px))} }
 /* BOK の下層ページ：パンくずと、機能の切り替えの段（下線のタブ。上の大きいタブとは形を変えて、1段下の切り替えだと分かるように） */
 .bokback{margin:0 0 6px}
 .bokback .ttl{display:flex;align-items:center;gap:6px;min-width:0}
@@ -1110,6 +1110,26 @@ button.bnb:hover{color:var(--text);background:var(--panel2)}
 .naddbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .naddbar .hint{font-size:11.5px;margin:0}
 @media (max-width:640px){ .naddbar .hint{display:none} }
+/* ===== 2026-11-28 操作性の総点検 ===== */
+/* 通知：折り返して読めるように。下のボタンを押す邪魔をしない（「元に戻す」だけ押せる）。窓を開いているときは保存の帯より上に出す */
+.toast{white-space:normal;max-width:min(520px, calc(100vw - 32px));width:max-content;text-align:left;display:flex;align-items:center;gap:10px;pointer-events:none}
+.toast .tundo{pointer-events:auto;flex:none;border:0;border-radius:8px;padding:6px 10px;background:rgba(255,255,255,.16);color:inherit;font:inherit;font-weight:700;cursor:pointer}
+body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
+/* 窓の端までスクロールしても、後ろのページを動かさない */
+.modal{overscroll-behavior:contain}
+@media (max-width:640px){ body.modalopen{overflow:hidden} }
+/* iPhone：キーボードやツールバーの分を除いた、見えている高さに窓を合わせる（--vvh は visualViewport から入れる） */
+@media (max-width:640px){
+  .ov{bottom:auto;top:var(--vvt,0px);height:min(var(--vvh,100%), 100%)}
+  .modal{max-height:min(92vh, calc(var(--vvh,100vh) - 10px));max-height:min(92dvh, calc(var(--vvh,100dvh) - 10px))}
+}
+/* 指で押す所を広げる（見た目はそのまま、押せる範囲だけ広げる） */
+@media (pointer:coarse){
+  .chk,.nchk,.supord,.rvhb,.chip.tog,.chip.who,.iconbtn.sm{position:relative}
+  .chk::after,.nchk::after,.rvhb::after,.iconbtn.sm::after{content:'';position:absolute;inset:-9px}
+  .supord::after,.chip.tog::after,.chip.who::after{content:'';position:absolute;inset:-9px -4px}
+  .suproom .nrow .iconbtn.sm{margin-left:6px}
+}
 </style>
 </head>
 <body>
@@ -1388,7 +1408,9 @@ async function pump(){
   }
   qRunning=false; S.loadedAt=Date.now(); setSyncIndicator();
 }
-window.addEventListener('beforeunload', e=>{ if(qRunning||Q.length||rvDirtyRooms().length){ e.preventDefault(); e.returnValue=''; } });  // 空室情報の直しかけ（まだ BOK に保存していない）も
+window.addEventListener('beforeunload', e=>{ if(qRunning||Q.length||remoteBusy()||unsavedWork()){ e.preventDefault(); e.returnValue=''; } });
+// 窓口（BOK・セラピストDB・アンケートの送信など）へ保存している最中か
+function remoteBusy(){ try{ return !!(S.modal && (S.modal.rdBusy || S.modal.saving)) || Object.values(BK).some(x=>x.saving) || (typeof SI!=='undefined' && SI.sending) || (typeof RV!=='undefined' && Object.values(RV.dr||{}).some(d=>d.saving)); }catch{ return false; } }  // 空室情報の直しかけ（まだ BOK に保存していない）も
 function handleErr(e){
   console.error(e);
   if(e.gone) return toast('他の端末で変更されていたため、最新の状態に更新しました', true);
@@ -1868,12 +1890,19 @@ function sortByDue(a,b){
 }
 
 // ===== 描画 =====
-function toast(msg, err){ S.toast={msg,err}; renderToast(); clearTimeout(toast.h); toast.h=setTimeout(()=>{ S.toast=null; renderToast(); }, err?4500:1800); }
+// 通知：長い文は折り返し、文の長さに合わせて長めに出す。エラーが出ている間は、ふつうの通知で上書きしない（後に回す）。opt.undo があれば「元に戻す」を付ける
+function toast(msg, err, opt={}){
+  const now=Date.now();
+  if(!err && S.toast && S.toast.err && now < S.toast.until && !opt.undo){ const wait=S.toast.until-now; clearTimeout(toast.later); toast.later=setTimeout(()=>toast(msg, err, opt), wait); return; }
+  const ms = opt.ms || (err ? Math.max(4500, 2500+String(msg).length*60) : opt.undo ? 6000 : Math.min(6000, 1800+String(msg).length*45));
+  S.toast={msg, err, undo:opt.undo||null, until:now+ms}; renderToast(); clearTimeout(toast.h); toast.h=setTimeout(()=>{ S.toast=null; renderToast(); }, ms);
+}
 function renderToast(){
   let el=document.getElementById('toast');
   if(!S.toast){ el&&el.remove(); return; }
   if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
-  el.className='toast'+(S.toast.err?' err':''); el.textContent=S.toast.msg;
+  el.className='toast'+(S.toast.err?' err':''); el.setAttribute('role', S.toast.err?'alert':'status');
+  el.innerHTML=`<span>${esc(S.toast.msg)}</span>${S.toast.undo?'<button type="button" class="tundo" data-act="toast-undo">元に戻す</button>':''}`;
 }
 
 // サブのサブ以降（サブタスクの下にさらにサブタスクがあるもの）は開閉できる。開いているものだけこの端末に覚えておく（最初は閉じている）
@@ -2748,13 +2777,13 @@ async function gdCall(){
   return cpCall('guide.status', {});
 }
 async function gdLoad(){
-  const my=++GD.seq; GD.loading=true; GD.error=''; if(S.tab==='guide') render();
+  const my=++GD.seq; GD.loading=true; GD.error=''; if(S.tab==='guide' && !S.modal) render();
   try{ const j=await gdCall(); if(my!==GD.seq) return; GD.blocks=j.blocks||[]; GD.at=Date.now(); GD.srvAt=j.at||''; }
-  catch(e){ if(my===GD.seq) GD.error=e.message; }
+  catch(e){ if(my===GD.seq){ GD.error=e.message; GD.failAt=Date.now(); } }  // 失敗したときも30秒あけて読み直す（前は5秒ごとに窓口を呼び続けていた）
   if(my===GD.seq){ GD.loading=false; if(S.tab==='guide' && !S.modal) render(); }
 }
 // 開いている間だけ読み直す（ほかの画面・裏にいるときは読まない）
-function gdTick(){ if(S.tab==='guide' && document.visibilityState==='visible' && !GD.loading && Date.now()-GD.at>=GD_EVERY_MS-500) gdLoad(); }
+function gdTick(){ if(S.tab==='guide' && document.visibilityState==='visible' && !GD.loading && Date.now()-Math.max(GD.at, GD.failAt||0)>=GD_EVERY_MS-500) gdLoad(); }
 setInterval(gdTick, 5000);
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && S.tab==='guide' && !GD.loading) gdLoad(); });
 // 時間の書き方で色を分ける：最短（すぐ案内できる）は緑、完売・満は赤、それ以外（13:30 など）はふつう
@@ -4876,7 +4905,63 @@ function scrollBack(snap){
   const tb=document.querySelector('.toolbar .tabs'), on=tb && tb.querySelector('.tab.on');
   if(on && tb.scrollWidth>tb.clientWidth){ const l=on.offsetLeft-tb.offsetLeft, r=l+on.offsetWidth; if(l<tb.scrollLeft) tb.scrollLeft=Math.max(0,l-12); else if(r>tb.scrollLeft+tb.clientWidth) tb.scrollLeft=r-tb.clientWidth+12; }
 }
+// ===== 描き直しても、打ちかけの文字・フォーカス・カーソルを保つ（2026-11-28） =====
+// 画面はまるごと作り直すので、状態に写していない欄の文字・フォーカス・カーソルは、そのままだと消える（裏の読み直しや後読みで、打っている途中に起きていた）。
+// 作り直す前に「描いたときの値（defaultValue）から変わっている欄」と「フォーカスのある欄」を覚え、作り直したあと、同じ欄の描いた値が前と同じなら
+// （＝状態の側は変わっていない）打ちかけの値を戻す。状態の側が変わっていたら（保存した・読み直した）新しい値を使う。別窓の中は同じ窓のときだけ
+const FOCUS_ATTRS = ['data-rvi','data-rvhi','data-bkf','data-rdq','data-rdtag','data-rdnum','data-pwq','data-cpq','data-sqq','data-sqtq','data-svq','data-supq','data-memoq','data-navq','data-setq','data-insq','data-stf','data-stroom','data-stradd','data-siedit','data-catname','data-newsub','data-mtmsg','data-rdpdfmonth'];
+function inKey(el){
+  if(!el || !el.matches || !el.matches('input,textarea')) return '';
+  const pre = el.closest('.ov') ? '.ov ' : '#app ';
+  for(const a of FOCUS_ATTRS) if(el.hasAttribute(a)){ const v=el.getAttribute(a); return pre+(v?`[${a}="${CSS.escape(v)}"]`:`[${a}]`); }
+  const f=el.form || el.closest('form');
+  if(f && f.dataset.act && el.name){ let k=`form[data-act="${f.dataset.act}"]`; for(const d of ['cat','doc','id','room']) if(f.dataset[d]!==undefined) k+=`[data-${d}="${CSS.escape(f.dataset[d])}"]`; return pre+k+` [name="${CSS.escape(el.name)}"]`; }
+  return '';
+}
+const isChk = el => el.type==='checkbox' || el.type==='radio';
+// 押した・Enter・選んだ操作のその場で描き直すときは、打ちかけの値は戻さない（「追加」で欄を空にする処理などを打ち消さないように）。裏の読み直し・後読みのときだけ戻す
+let userActNow=false;
+['click','submit','keydown','change'].forEach(t=>document.addEventListener(t, ()=>{ userActNow=true; setTimeout(()=>{ userActNow=false; }, 0); }, true));
+function inputSnap(){
+  const a=document.activeElement, list=[];
+  document.querySelectorAll('#app input, #app textarea').forEach(el=>{
+    if(el.type==='file' || el.type==='hidden') return;
+    const chk=isChk(el), changed = chk ? el.checked!==el.defaultChecked : el.value!==el.defaultValue;
+    if(!changed && el!==a && !(el.tagName==='TEXTAREA' && el.scrollTop)) return;
+    const k=inKey(el); if(!k) return;
+    let sel=null; if(el===a && !chk){ try{ sel=[el.selectionStart, el.selectionEnd]; }catch{} }
+    list.push({k, def: chk?el.defaultChecked:el.defaultValue, v: chk?el.checked:el.value, chk, changed, focus: el===a, sel, st: el.scrollTop});
+  });
+  return list;
+}
+function inputBack(list, sameModal, values){
+  let refocus=null;
+  for(const x of list){
+    if(x.k.startsWith('.ov') && !sameModal) continue;
+    const el=document.querySelector(x.k); if(!el || el.readOnly || el.disabled) continue;
+    const def = x.chk ? el.defaultChecked : el.defaultValue;
+    if(values && x.changed && def===x.def){
+      if(x.chk) el.checked=x.v; else if(el.value===def) el.value=x.v;
+      if(el.matches('[data-setq]')) setFilter(el);
+    }
+    if(x.st) el.scrollTop=x.st;
+    if(x.focus) refocus={el, sel:x.sel};
+  }
+  const a=document.activeElement;
+  if(refocus && (!a || a===document.body) && !document.getElementById('guard')){ refocus.el.focus({preventScroll:true}); if(refocus.sel) try{ refocus.el.setSelectionRange(refocus.sel[0], refocus.sel[1]); }catch{} }
+}
+// 日本語の変換中は描き直さない（変換中の文字が消える・確定してしまうため）。変換が終わったら（欄を離れたら）まとめて描く
+const IME = {on:false};
+let renderPending=false;
+const flushRender = () => setTimeout(()=>{ if(renderPending && !IME.on){ renderPending=false; render(); } }, 0);
+document.addEventListener('compositionstart', ()=>{ IME.on=true; }, true);
+document.addEventListener('compositionend', ()=>{ IME.on=false; flushRender(); }, true);
+document.addEventListener('focusout', ()=>{ if(IME.on) IME.on=false; if(renderPending) flushRender(); }, true);
+// 変換を確定する Enter・取り消す Esc は、ほかの操作として扱わない（Mac の Safari は確定の Enter が keyCode 229 で、isComposing が false のことがある）
+document.addEventListener('keydown', e=>{ if((e.key==='Enter'||e.key==='Escape') && (e.isComposing || e.keyCode===229)) e.stopImmediatePropagation(); }, true);
 function render(){
+  if(IME.on && S.be){ renderPending=true; return; }
+  renderPending=false;
   if(tipFor) tipHide();
   const app=document.getElementById('app');
   if(!S.be){ app.innerHTML=viewSetup(); return; }
@@ -4890,7 +4975,7 @@ function render(){
   const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
   const showStats = S.tab==='board'||S.tab==='timeline';
   // 入力中の内容とフォーカスを保つ
-  const bnx=document.querySelector('.boknav')?.scrollLeft, ssnap=scrollSnap();
+  const bnx=document.querySelector('.boknav')?.scrollLeft, ssnap=scrollSnap(), isnap=inputSnap(), ivals=!userActNow;
   const fa=document.activeElement, fsel = fa && fa.dataset && (fa.dataset.rvi!==undefined ? `[data-rvi="${fa.dataset.rvi}"]` : fa.dataset.rvhi!==undefined ? `[data-rvhi="${fa.dataset.rvhi}"]` : ''), fpos = fsel ? [fa.selectionStart, fa.selectionEnd] : null;
   const active=document.activeElement; const kf = active && active.closest && active.closest('form.quick'); const keep = kf ? {cat:kf.dataset.cat, act:kf.dataset.act, doc:kf.dataset.doc, v:kf.q?kf.q.value:active.value, body:kf.body?kf.body.value:null, name:active.name||'q', pos:[active.selectionStart, active.selectionEnd]} : null;
   app.innerHTML=`
@@ -4920,13 +5005,16 @@ function render(){
   ${S.modal?viewModal():''}`;
   if(keep){ const fm=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''}${keep.doc?`[data-doc="${keep.doc}"]`:''}`); const f=fm && (fm.q || fm.querySelector('input'));
     if(f){ f.value=keep.v; if(fm.body && keep.body!=null) fm.body.value=keep.body; const t=(keep.name==='body' && fm.body) ? fm.body : f; t.focus(); try{ t.setSelectionRange(keep.pos[0], keep.pos[1]); }catch{} } }
+  inputBack(isnap, !!S.modal && S.modal===ssnap.modal && modalKey(S.modal)===ssnap.key, ivals);
   scrollBack(ssnap);
   if(S.tab==='bok' && S.bok) bokNavKeep(bnx);
+  document.body.classList.toggle('modalopen', !!S.modal);
   if(fsel && !S.modal){ const x=app.querySelector(fsel); if(x && !x.readOnly){ x.focus({preventScroll:true}); try{ x.setSelectionRange(fpos[0], fpos[1]); }catch{} } }
   document.body.classList.toggle('navopen', !!S.nav); document.body.classList.toggle('navpin', !!S.navPin);
   document.title = S.be ? `${pageTitle()}｜Action OS` : 'Action OS';
   renderToast();
   if(S.modal && S.modal.snap0===undefined){ if(S.modal.draft) syncDraftSafe(); S.modal.snap0 = modalSnap(); }
+  if(S.modal && S.modal.draft && S.modal.draft0===undefined) S.modal.draft0 = JSON.stringify(S.modal.draft);
 }
 // ===== 入力の画面を閉じる前の確認 =====
 // 開いたときから何か変えていたら、閉じる前に「保存しますか？」と聞く（画面の外を押した・Esc・キャンセル）
@@ -4936,11 +5024,23 @@ function modalSnap(){
   const vals=[...f.querySelectorAll('input,textarea,select')].filter(i=>!i.matches('[data-insq],[data-pwq]')).map(i=>i.type==='checkbox'?i.checked:i.value);
   return JSON.stringify([vals, S.modal.picks||null, S.modal.draft||null]);
 }
-function modalDirty(){ if(!S.modal || !modalForm()) return false; if(S.modal.draft) syncDraftSafe(); return S.modal.snap0!==undefined && modalSnap()!==S.modal.snap0; }
+// 窓の中に、描いたときの値から変わった欄があるか（探す欄は除く）
+const domDirty = root => !!root && [...root.querySelectorAll('input,textarea')].some(i=>!i.matches(FOCUS_SEARCH+',[type=file],[type=hidden]') && (isChk(i) ? i.checked!==i.defaultChecked : i.value!==i.defaultValue));
+function modalDirty(){
+  const m=S.modal; if(!m) return false;
+  // 名簿・受け入れNG の詳細は、欄の値の並びではなく「直した欄があるか」で決める（切り替えや PIN の「表示」だけで聞かないように）
+  if(/^rd(p|ng)$/.test(m.type)){ if(m.loading || m.loadErr || !m.draft) return false; try{ const p=rdChanges(m); return p.lines.length>0; }catch{ return false; } }
+  if(modalForm()){ if(m.draft) syncDraftSafe(); return m.snap0!==undefined && modalSnap()!==m.snap0; }
+  // form でない窓（BOK の書く窓・設定など）：draft が開いたときから変わったか、打ちかけの欄があるか
+  if(m.draft && m.draft0!==undefined && JSON.stringify(m.draft)!==m.draft0) return true;
+  return domDirty(document.querySelector('.ov .modal'));
+}
 function syncDraftSafe(){ try{ if(document.querySelector('form[data-act="save-task"]')) syncDraft(); }catch{} }
 function tryCloseModal(){
   if(!S.modal) return;
   if(S.modal.rdBusy){ toast('保存しています。終わるまで待ってください',true); return; }
+  if(S.modal.saving){ toast('保存しています。終わるまで待ってください',true); return; }
+  if(/^rd(p|ng)$/.test(S.modal.type) && S.modal.step==='confirm'){ S.modal.step='edit'; render(); return; }   // 保存の確認画面で外を押したら「戻る」と同じ
   if(!modalDirty()){ S.modal=null; render(); return; }
   if(document.getElementById('guard')) return;
   const g=document.createElement('div'); g.id='guard'; g.className='guard';
@@ -5038,13 +5138,15 @@ function settingsCards(){
     {sec:'device', t:'GitHub の接続', d:'この端末で使うリポジトリとトークン', k:'GitHub リポジトリ トークン 鍵 接続 この端末 ログアウト 消す', body:settingsForm(true), st:st(!!(S.be && S.be.kind==='github'))},
   ];
 }
+// 設定のまとまりの帯（スマホでは横に流す）で、選んだまとまりが隠れていれば横にだけ流す（scrollIntoView は窓の縦のスクロールまで動かすため使わない）
+function setNavShow(){ const n=document.querySelector('.ov .setnav'), b=n && n.querySelector('.setnavb.on'); if(!b || n.scrollWidth<=n.clientWidth) return; const l=b.offsetLeft-n.offsetLeft, r=l+b.offsetWidth; if(l<n.scrollLeft) n.scrollLeft=Math.max(0,l-8); else if(r>n.scrollLeft+n.clientWidth) n.scrollLeft=r-n.clientWidth+8; }
 function settingsModal(m){
   const sec = SET_SECS.some(x=>x[0]===m.sec) ? m.sec : (safeGet(LS.setSec)||'task');
   m.sec = SET_SECS.some(x=>x[0]===sec) ? sec : 'task';
   const cards=settingsCards();
   const nav = SET_SECS.map(([k,l,ic])=>{ const n=cards.filter(c=>c.sec===k).length, linked = k==='link' ? cards.filter(c=>c.sec==='link' && /つながっています/.test(c.st||'')).length : null;
     return `<button type="button" class="setnavb ${m.sec===k?'on':''}" data-act="set-sec" data-k="${k}">${icon(ic)}<span class="lb">${l}</span><span class="cnt">${linked!==null?`${linked}/${n}`:n}</span></button>`; }).join('');
-  setTimeout(()=>document.querySelector('.setnavb.on')?.scrollIntoView({inline:'nearest', block:'nearest'}), 0);
+  if(!m.navShown){ m.navShown=true; setTimeout(setNavShow, 0); }   // 開いたときだけ（前は描き直すたびに窓ごと上へ戻していた）
   const body = cards.map((c,i)=>`<section class="setcard" data-sec="${c.sec}" data-k="${esc(setFold(c.t+' '+c.d+' '+c.k))}" ${c.sec===m.sec?'':'hidden'}>
       <div class="sethd"><div class="setti"><b>${esc(c.t)}</b><span class="setdesc">${esc(c.d)}</span></div>${c.st||''}</div>
       <div class="setbody">${c.body}</div></section>`).join('');
@@ -5061,7 +5163,7 @@ function setShowSec(k){
   m.sec=k; safeSet(LS.setSec, k);
   const q=document.querySelector('[data-setq]'); if(q && q.value){ q.value=''; setFilter(q); }
   document.querySelectorAll('.setnavb').forEach(b=>b.classList.toggle('on', b.dataset.k===k));
-  document.querySelector('.setnavb.on')?.scrollIntoView({inline:'nearest', block:'nearest'});   // スマホで横に流したとき、選んだまとまりが見えるように
+  setNavShow();   // スマホで横に流したとき、選んだまとまりが見えるように（横にだけ流す）
   document.querySelectorAll('.setcard').forEach(c=>{ c.hidden = c.dataset.sec!==k; });
   const main=document.querySelector('.settings'); if(main) main.scrollTop=0;
 }
@@ -5131,19 +5233,22 @@ function syncDraft(){
 }
 
 // ===== イベント =====
+let ovDown=null;
+document.addEventListener('pointerdown', e=>{ ovDown = e.target && e.target.classList && e.target.classList.contains('ov') ? e.target : null; }, true);
 document.addEventListener('click', async e=>{
   if(e.target.closest('a[href]')) return; // リンク（スレッドを開く）はそのまま開く
   const el=e.target.closest('[data-act]'); if(!el) return;
   const a=el.dataset.act;
-  if(a==='close-ov'){ if(e.target===el) tryCloseModal(); return; }
+  if(a==='close-ov'){ if(e.target===el && ovDown===el) tryCloseModal(); return; }
   if(a==='guard-back'){ closeGuard(); return; }
   if(a==='guard-discard'){ closeGuard(); S.modal=null; render(); return; }
-  if(a==='guard-save'){ closeGuard(); const f=modalForm(); if(f){ if(f.reportValidity()) f.requestSubmit(); } return; }
+  if(a==='guard-save'){ closeGuard(); const f=modalForm(); if(f){ if(f.reportValidity()) f.requestSubmit(); } else document.querySelector('.ov .modal .actions .btn.pri:not([disabled])')?.click(); return; }   // form でない窓は、その窓の保存のボタンを押す
   if(el.tagName==='FORM' || el.tagName==='SELECT') return;
   if(a.startsWith('rd-')){ rdAct(a, el); return; }
   const ref = el.dataset.ref ? JSON.parse(el.dataset.ref) : null;
   switch(a){
     case 'tab': navGo(el.dataset.k); break;
+    case 'toast-undo': { const u=S.toast && S.toast.undo; S.toast=null; renderToast(); clearTimeout(toast.h); if(u) u(); break; }
     case 'nav-toggle': if(navWide()){ S.navPin=!S.navPin; safeSet(LS.navPin, S.navPin?'1':'0'); document.body.classList.toggle('navpin', S.navPin); if(!S.navPin) navSet(false); } else navSet(!S.nav); break;
     case 'nav-close': navSet(false); break;
     case 'nav-edit': S.navEdit=!S.navEdit; render(); break;
@@ -5189,7 +5294,7 @@ document.addEventListener('click', async e=>{
     case 'st-logoload': stLogoLoad(); break;
     case 'st-rup': { const i=Number(el.dataset.i); if(i>0){ const r=ST.rooms; [r[i-1],r[i]]=[r[i],r[i-1]]; render(); } break; }
     case 'st-rdel': ST.rooms.splice(Number(el.dataset.i),1); render(); break;
-    case 'st-radd': { const inp=document.querySelector('[data-stradd]'); const v=inp&&inp.value.trim(); if(v){ ST.rooms.push(v); render(); } break; }
+    case 'st-radd': { const inp=document.querySelector('[data-stradd]'); const v=inp&&inp.value.trim(); if(v){ ST.rooms.push(v); inp.value=''; render(); document.querySelector('[data-stradd]')?.focus(); } break; }
     case 'si-tog': { const r=Number(el.dataset.row), pk=SI.pick[r]||(SI.pick[r]={tg:false,app:false}); pk[el.dataset.f]=!pk[el.dataset.f]; render(); break; }
     case 'si-appoff': for(const k in SI.pick) SI.pick[k].app=false; render(); break;
     case 'si-edit': { const r=Number(el.dataset.row); SI.editing[r]=!SI.editing[r]; render(); break; }
@@ -5229,7 +5334,7 @@ document.addEventListener('click', async e=>{
     case 'edit': openEdit(ref); break;
     case 'toggle': { const k=el.dataset.key; setOpen(k, !isOpen(k)); render(); break; }
     case 'set': { syncDraft(); const d=S.modal.draft, f=el.dataset.f, v=el.dataset.v; d[f]= f==='prio'? !!v : v; render(); break; }
-    case 'sub-add': { syncDraft(); const d=S.modal.draft; if(d.newsub&&d.newsub.trim()) d.subs.push({text:d.newsub.trim(),due:null,prio:false}); d.newsub=''; render(); document.querySelector('[data-newsub]')?.focus(); break; }
+    case 'sub-add': { syncDraft(); const d=S.modal.draft; if(d.newsub&&d.newsub.trim()) d.subs.push({text:d.newsub.trim(),due:null,prio:false}); d.newsub=''; const ni=document.querySelector('[data-newsub]'); if(ni) ni.value=''; render(); document.querySelector('[data-newsub]')?.focus(); break; }
     case 'sub-del': { syncDraft(); S.modal.draft.subs.splice(+el.dataset.i,1); render(); break; }
     case 'del': { const r=S.modal.ref; if(!confirm(`「${r.text}」を削除しますか？（完了ログには残りません）`)) return; S.modal=null; deleteTask(r); break; }
     case 'to-someday': { const r=S.modal.ref; S.modal=null; toSomeday(r); break; }
@@ -5496,6 +5601,8 @@ document.addEventListener('submit', async e=>{
 // 画面に戻ってきたら最新を取り直す（スマホとPCの行き来用）
 document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && S.be && !qRunning && !Q.length && !S.modal && Date.now()-S.loadedAt>15000) loadAll(true); });
 
+// iPhone：見えている高さ（キーボード・ツールバーを除く）を CSS に渡す。下から出る窓が隠れないように
+if(window.visualViewport){ const vv=window.visualViewport, vvSet=()=>{ document.documentElement.style.setProperty('--vvh', vv.height+'px'); document.documentElement.style.setProperty('--vvt', vv.offsetTop+'px'); }; vv.addEventListener('resize', vvSet); vv.addEventListener('scroll', vvSet); window.addEventListener('resize', vvSet); window.addEventListener('orientationchange', ()=>setTimeout(vvSet, 300)); vvSet(); }
 // ピンチや2本指の操作で拡大させない（iOS Safari は viewport 指定だけでは拡大を止めないため）
 ['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t, e=>e.preventDefault(), {passive:false}));
 document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefault(); }, {passive:false});
@@ -5504,7 +5611,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:79a58a52c877';
+const BUILD = 'AOS_BUILD:178c9cdfd0e3';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
@@ -5516,7 +5623,20 @@ async function checkUpdate(force){
   UPD.newer=m[1]; applyUpdate();
 }
 // 入力中・保存中・画面を開いている間は読み込み直さない（入れかけの内容が消えるため）。そのときは上に知らせを出し、押したら読み込み直す
-const updSafe = () => { const a=document.activeElement; return !S.modal && !qRunning && !Q.length && !NDRAG && !S.nav && !(a && a.closest && a.closest('input,textarea,select')); };
+const updSafe = () => { const a=document.activeElement; return !S.modal && !qRunning && !Q.length && !NDRAG && !S.nav && !(a && a.closest && a.closest('input,textarea,select')) && !unsavedWork(); };
+// 画面の中にだけある直しかけ（新しい版の自動の読み込み・ページを閉じるときに、消さないように確かめる）
+function unsavedWork(){
+  try{
+    if(typeof rvDirtyRooms==='function' && rvDirtyRooms().length) return true;
+    if(Object.keys(S.ndraft||{}).length) return true;
+    if(typeof MT!=='undefined' && MT.draft && bk('maintenance').data){ const d=bk('maintenance').data; if(JSON.stringify([...(MT.draft.keys||[])].sort())!==JSON.stringify([...(d.keys||[])].sort()) || (MT.draft.message||'')!==(d.message||'')) return true; }
+    if(typeof SI!=='undefined' && (Object.keys(SI.edit||{}).length || SI.sending)) return true;
+    if(typeof stDirty==='function' && stDirty()) return true;
+    if([...document.querySelectorAll('#app input, #app textarea')].some(el=>el.type!=='file' && !el.matches(FOCUS_SEARCH) && (isChk(el)?el.checked!==el.defaultChecked:el.value!==el.defaultValue))) return true;
+  }catch{}
+  return false;
+}
+const FOCUS_SEARCH = '[data-rdq],[data-pwq],[data-cpq],[data-sqq],[data-sqtq],[data-svq],[data-supq],[data-memoq],[data-navq],[data-setq],[data-insq]';
 function applyUpdate(){
   if(!UPD.newer) return;
   let tried=null; try{ tried=sessionStorage.getItem('aos.updFor'); }catch{}
@@ -5537,7 +5657,7 @@ addEventListener('pageshow', e=>{ if(e.persisted) checkUpdate(true); });  // 戻
   setInterval(pollRuns, 12000);
   checkUpdate(true);
   setInterval(()=>{ if(document.visibilityState!=='visible') return; if(UPD.newer) applyUpdate(); else checkUpdate(false); }, 60000);
-  setInterval(()=>{ if(S.be && document.visibilityState==='visible' && !qRunning && !Q.length && !S.modal && !document.activeElement?.closest?.('form')) loadAll(true); }, 60000);
+  setInterval(()=>{ if(S.be && document.visibilityState==='visible' && !qRunning && !Q.length && !S.modal && !NDRAG && !IME.on && !document.activeElement?.closest?.('input,textarea,select,form')) loadAll(true); }, 60000);  // 入力欄（form の外のものも）・ドラッグ中・変換中は読み直さない
 })();
 window.__aos = {S, parseTodo, serializeTodo, parseSomeday, serializeSomeday, parseDone};
 </script>
