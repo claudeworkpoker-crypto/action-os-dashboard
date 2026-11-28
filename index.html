@@ -1236,7 +1236,7 @@ const catNames = () => S.sections.map(s=>s.name);
 const PALETTE = ['--c-p1','--c-p2','--c-p3','--c-p4','--c-p5','--c-p6','--c-p7'];
 const catColor = name => name===INBOX ? '--c-misc' : PALETTE[(catNames().filter(n=>n!==INBOX).indexOf(name)) % PALETTE.length] || '--c-misc';
 const WD = ['日','月','火','水','木','金','土'];
-const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', navLayout:'aos.navLayout', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey', sqView:'aos.sqView', sqPer:'aos.sqPer', rdUrl:'aos.rdUrl', rdKey:'aos.rdKey', setSec:'aos.setSec'};
+const LS = {token:'aos.token', repo:'aos.repo', tab:'aos.tab', open:'aos.open', pwUrl:'aos.pwUrl', pwKey:'aos.pwKey', supF:'aos.supF', who:'aos.who', rvUrl:'aos.rvUrl', rvKey:'aos.rvKey', memoShut:'aos.memoShut', pins:'aos.pins', navPin:'aos.navPin', navLayout:'aos.navLayout', cpUrl:'aos.cpUrl', cpKey:'aos.cpKey', sqView:'aos.sqView', sqPer:'aos.sqPer', rdUrl:'aos.rdUrl', rdKey:'aos.rdKey', setSec:'aos.setSec', devWork:'aos.devWork', devAos:'aos.devAos', devId:'aos.devId'};
 const DEFAULT_REPO = 'claudeworkpoker-crypto/action-os';
 const BRANCH = 'main';
 
@@ -1776,6 +1776,18 @@ const RUN_ST = {
   cancelled:{label:'取り消し', cls:'', attn:false},
   closed:{label:'完了', cls:'', attn:false},
 };
+// ▶ の作業フォルダ：runs.json の workdir・aos_dir・proj_dir は、実行係の動いている PC（スタッフの PC）の場所。
+// ほかのパソコン（社長の Mac など）で ▶ を使うときは、設定画面の「この端末で ▶ を使う」で、その端末の場所を決める（この端末のブラウザにだけ保存）。
+// 決めてあればそちらを使い、実行係の PC の場所は使わない。決めておらず、実行係の場所がこの端末の OS の形でないとき（Mac で C:\… など）は ▶ を止めて案内する（2026-11-28 社長）
+const devWork = () => safeGet(LS.devWork)||'', devAos = () => safeGet(LS.devAos)||'';
+const DEV_ID = (()=>{ let v=safeGet(LS.devId); if(!v){ v='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); safeSet(LS.devId, v); } return v; })();
+const IS_WIN = /Win/.test(navigator.platform||navigator.userAgent);
+const pathLooksHere = p => !p || (IS_WIN ? /^[A-Za-z]:[\\/]/.test(p) : p.startsWith('/'));
+const workDir = () => devWork() || S.workdir || '';
+const aosDir = () => devWork() ? devAos() : (S.aosDir || '');
+const projDir = () => devWork() ? '' : (S.projDir || '');
+// ほかの端末で開いたスレッドは、この端末からは開けない（会話記録も読めない）。実行係の PC の古い実行（dev が無い）は、その PC で使う
+const runHere = r => r.dev ? r.dev===DEV_ID : !devWork();
 function parseRuns(text){ try{ const d=JSON.parse(text||'{}'); if(d.workdir) S.workdir=d.workdir; if(d.proj_dir) S.projDir=d.proj_dir; if(d.aos_dir) S.aosDir=d.aos_dir; return Array.isArray(d.runs)?d.runs.filter(r=>RUN_ST[r.status]):[]; }catch{ return []; } }
 const runOpen = r => r.status!=='cancelled' && r.status!=='closed';
 const runPath = r => r.path || (r.parent ? [r.parent] : []);
@@ -1793,11 +1805,11 @@ const patchRun = (id, patch) => runs => { const r=runs.find(x=>x.id===id); if(!r
 const IS_MAC_DESKTOP = !/Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && !matchMedia('(hover: none)').matches;
 const PASTE_KEY = /Mac/.test(navigator.platform||navigator.userAgent) ? '⌘V' : 'Ctrl+V';
 // 作業フォルダの名前（最後の部分）
-const workName = () => (S.workdir||'').split(/[\\/]/).filter(Boolean).pop() || '作業フォルダ';
+const workName = () => (workDir()).split(/[\\/]/).filter(Boolean).pop() || '作業フォルダ';
 // 指示文に入れる決まり（このリポジトリの名前と、手元の場所は設定・実行係から受け取る）
 function rules(){
   const repo = (S.be && S.be.repo) || safeGet(LS.repo) || 'Action OS のリポジトリ';
-  const aos = S.aosDir || 'Action OS のリポジトリの手元の場所';
+  const aos = aosDir() || 'Action OS のリポジトリの手元の場所';
   return `進め方（どのタスクでも必ずこの順で）:
 1. 状況の確認と把握: 作業フォルダの CLAUDE.md や README があれば読み、関係するファイル・データを調べ、現状を短くまとめる。
 2. 提案: 最適な案（必要なら2〜3案と、どれを勧めるか）と、作業場所を示す。作業場所は、続き・改修・運用なら該当する既存のフォルダ、今までやっていない新しい取り組みなら作業フォルダ直下の新しいフォルダ（英小文字とハイフン）。
@@ -1812,7 +1824,7 @@ function rules(){
 - 区切りごとと終わったときは、やったこと・成果物の場所・残っていることをまとめたうえで、ボタンで選べる確認の質問（AskUserQuestion）を出す。質問は2つ：「Action OS のタスクを完了にしますか？」（完了にする／まだ）と「このスレッドをアーカイブしますか？」（アーカイブする／まだ）。完了を了承されたら、${aos} で完了処理まで行う（git pull --rebase --autostash → todo.md からそのタスクの行を消す → done/YYYY-MM.md に完了ログを1行足す → その2つだけをコミットして push。ほかの未コミットの変更は入れない。決まりは Action OS の CLAUDE.md の「完了処理」）。アーカイブも了承されたら、完了処理と報告を済ませてから、最後にこのスレッドをアーカイブする（archive_session に "self" を渡す。アーカイブすると会話が終わるので、言うことは先に言っておく。削除はしない）。`;
 }
 // デスクトップアプリのスレッドの会話記録（<ホーム>/.claude/projects/<作業フォルダ>/<セッション>.jsonl。場所は実行係が runs.json の proj_dir に書く）
-function sessionLog(sid){ if(!S.projDir) return `（セッション ${sid}）`; const sep=S.projDir.includes('\\')?'\\':'/'; return `${S.projDir}${sep}${sid}.jsonl`; }
+function sessionLog(sid){ const pd=projDir(); if(!pd) return `（セッション ${sid}）`; const sep=pd.includes('\\')?'\\':'/'; return `${pd}${sep}${sid}.jsonl`; }
 // サブタスクのときは、親タスク・同じ親の他のサブタスク・親タスクのスレッドの会話記録を添える
 function subContext(r){
   if(!r.parent) return '';
@@ -1875,7 +1887,7 @@ ${lines.join('\n')}${r.note?`\n補足（ユーザーより）: ${r.note}`:''}${r
 - 指示書は、このスレッドで分かっている経緯（決まったこと・関係するファイル・やりかけの作業）を踏まえて書く。
 - 指示書の1行目に、次の1行をそのまま入れる（ダッシュボードが子スレッドの進み具合を追う目印）:
 【Action OS から】（実行ID: ${r.id}）
-- 指示書には次も入れる: 状況の確認 → 案の提案 → 進め方の確認 → 実行 の順で、ユーザーと相談しながら進める／作業はこのサブタスクの範囲にとどめる／外部への送信・公開は、送る内容を見せてはっきり了承を得てから行う／作業中に新しく出てきたタスクは勝手に登録せず、区切りで提案する／区切りごとと終わったときは、やったこと・成果物の場所・残っていることをまとめ、ボタンで選べる確認の質問（AskUserQuestion）を2つ出し（「Action OS のサブタスクを完了にしますか？」と「このスレッドをアーカイブしますか？」。どちらも「まだ」を選べる）、完了を了承されたら ${S.aosDir || 'Action OS のリポジトリの手元の場所'} で完了処理（todo.md からその行を消し、done/YYYY-MM.md に完了ログを1行足し、その2つだけをコミットして push）まで行い、アーカイブも了承されたら、そのあと子スレッド自身をアーカイブする（archive_session に "self" を渡す。削除はしない）。
+- 指示書には次も入れる: 状況の確認 → 案の提案 → 進め方の確認 → 実行 の順で、ユーザーと相談しながら進める／作業はこのサブタスクの範囲にとどめる／外部への送信・公開は、送る内容を見せてはっきり了承を得てから行う／作業中に新しく出てきたタスクは勝手に登録せず、区切りで提案する／区切りごとと終わったときは、やったこと・成果物の場所・残っていることをまとめ、ボタンで選べる確認の質問（AskUserQuestion）を2つ出し（「Action OS のサブタスクを完了にしますか？」と「このスレッドをアーカイブしますか？」。どちらも「まだ」を選べる）、完了を了承されたら ${aosDir() || 'Action OS のリポジトリの手元の場所'} で完了処理（todo.md からその行を消し、done/YYYY-MM.md に完了ログを1行足し、その2つだけをコミットして push）まで行い、アーカイブも了承されたら、そのあと子スレッド自身をアーカイブする（archive_session に "self" を渡す。削除はしない）。
 ${r.subs&&r.subs.length?`- このサブタスクの下にはさらにサブタスクがあるので、指示書には次の決まりもそのまま入れる:\n${subsRule(r,'このサブタスク').replace(/^/gm,'  ')}\n`:''}- 立てたら、このスレッドでは立てたことを1行で報告するだけにし、サブタスクの作業はこのスレッドでは進めない。`;
 }
 function parentLink(r){ return 'claude://code/continue?'+new URLSearchParams({session:r.parent_local}).toString(); }
@@ -1884,7 +1896,7 @@ function copyNow(text){
   const ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly',''); ta.style.cssText='position:fixed;top:0;left:0;opacity:0';
   document.body.appendChild(ta); ta.select(); let ok=false; try{ ok=document.execCommand('copy'); }catch{} ta.remove(); return ok;
 }
-function deepLink(prompt){ const u=new URLSearchParams(); u.set('q',prompt); if(S.workdir) u.set('folder',S.workdir); return 'claude://code/new?'+u.toString(); }
+function deepLink(prompt){ const u=new URLSearchParams(); u.set('q',prompt); const w=workDir(); if(w) u.set('folder',w); return 'claude://code/new?'+u.toString(); }
 function openInDesktop(r){
   if(r.via==='parent' && r.parent_local){
     if(copyNow(r.prompt)){ location.href=parentLink(r); return true; }
@@ -1894,7 +1906,7 @@ function openInDesktop(r){
 }
 // サブタスクを親タスクのスレッドから立てられるか（PC で、親タスクのスレッドが開いていて、その ID が分かっているとき）
 // 上の階層のタスクで開いている実行（近い順）。すぐ上の親にスレッドが無ければ、さらに上の親のスレッドを使う
-function ancestorRuns(ref){ const out=[]; let p=refPath(ref); while(p.length){ const r=runFor(mkRef(ref.cat, p[p.length-1], p.slice(0,-1))); if(r) out.push(r); p=p.slice(0,-1); } return out; }
+function ancestorRuns(ref){ const out=[]; let p=refPath(ref); while(p.length){ const r=runFor(mkRef(ref.cat, p[p.length-1], p.slice(0,-1))); if(r && runHere(r)) out.push(r); p=p.slice(0,-1); } return out; }
 // 子スレッドを立ててもらう先は、開いているうちで「いちばん上」の親タスクのスレッド（孫でも、途中の親にスレッドがあっても、いちばん上の親の下にそろえる）
 function parentRunFor(ref){ if(ref.parent===undefined || !IS_MAC_DESKTOP) return null; return ancestorRuns(ref).filter(pr=>pr.status==='opened' && pr.desk_local).pop() || null; }
 const threadName = r => (S.progress[r.id] && S.progress[r.id].title) || r.task;
@@ -1917,7 +1929,8 @@ function startRun(ref, note, extra={}){
       if(pr && pr.id!==pp.id){ run.near_session=pr.desk_session; run.near_task=pr.task; } }
   }
   run.prompt = run.via==='parent' ? buildParentAsk(run) : buildPrompt(run);
-  const here = IS_MAC_DESKTOP && S.workdir;
+  const here = IS_MAC_DESKTOP && !!workDir();
+  if(here) run.dev = DEV_ID;   // どの端末で開いたスレッドか（子スレッドを立てる親を、同じ端末のものに限るため）
   run.status = here ? 'opened' : 'queued';
   const ok = here ? openInDesktop(run) : false;
   enqueue(!here ? 'PC のデスクトップアプリに開くよう依頼しました'
@@ -2685,6 +2698,18 @@ function viewCoupon(){
   return `${search}<div class="cpinfo">${info}${fresh}</div>${CP.error?`<div class="bkcard" style="color:var(--red)">${esc(CP.error)}</div>`:''}
     <div class="cplist">${cards || (firstLoad||CP.error||(sh.remote&&CP.sq!==CP.q.trim())?'':`<div class="empty">「${esc(CP.q.trim())}」に合う当選はありません <button type="button" class="btn sm" data-act="cp-clear">入力を消す</button></div>`)}</div>
     <div class="hint" style="margin-top:12px">期限は抽選日の1ヶ月後の同じ日まで。「利用済みにする」を押すと、アンケートのスプレッドシートの「当選者一覧」のその行を利用済みの色で塗り、「利用日」の列に今日の日付を書きます。スプレッドシートで手で塗った行も「利用済み（色）」と出ます。</div>`;
+}
+// この端末で ▶ を使う：実行係の動いている PC（スタッフの PC）以外で ▶ を使うときの、この端末の場所
+function devRunField(){
+  const w=devWork(), a=devAos(), ph=IS_WIN?'C:\\dev\\salon-os':'/Users/（名前）/dev/salon-os', pa=IS_WIN?'C:\\dev\\action-os':'/Users/（名前）/dev/staff-action-os';
+  return `<form class="field" data-act="save-devrun" autocomplete="off"><label>この端末の場所</label>
+    <div class="subl">
+      <div class="hint">作業フォルダ（▶ でスレッドを開く場所）</div>
+      <input class="inp" name="work" value="${esc(w)}" placeholder="${esc(ph)}" autocapitalize="off" spellcheck="false">
+      <div class="hint" style="margin-top:6px">Action OS（このリポジトリ）の手元の場所（終わったときの完了処理に使う）</div>
+      <input class="inp" name="aos" value="${esc(a)}" placeholder="${esc(pa)}" autocapitalize="off" spellcheck="false">
+      <div class="row" style="display:flex;gap:6px;justify-content:flex-end">${w?'<button type="button" class="btn sm danger" data-act="devrun-forget">この端末から消す</button>':''}<button class="btn sm pri">保存</button></div>
+    </div><div class="hint" style="margin-top:6px">実行係の動いている PC では空のままにしてください（実行係が記録した場所${S.workdir?`＝${esc(S.workdir)}`:''}を使います）。ほかのパソコンで ▶ を使うときだけ、そのパソコンの場所を入れます。この端末のブラウザにだけ保存されます。ほかの端末で開いたスレッドの進み具合は、実行の画面に出ません。</div></form>`;
 }
 function cpField(){
   const c=cpConf();
@@ -5415,9 +5440,17 @@ const closeGuard = () => document.getElementById('guard')?.remove();
 // ===== モーダル =====
 function viewModal(){
   const m=S.modal;
+  if(m.type==='run' && !devWork() && S.workdir && !pathLooksHere(S.workdir)) return `<div class="ov" data-act="close-ov"><div class="modal">
+    <h2>この端末の作業フォルダが決まっていません</h2>
+    <div class="runtask">${esc(m.ref.text)}</div>
+    <div class="bkok"><p>▶ は、押したパソコンの Claude アプリに新しいスレッドを開きます。いま記録されている作業フォルダ（<b>${esc(S.workdir)}</b>）は実行係の動いている PC の場所で、この端末では開けません。</p>
+    <p>設定画面の「この端末」→「この端末で ▶ を使う」で、この端末の作業フォルダと Action OS の手元の場所を決めると使えます。</p></div>
+    <div class="actions"><button type="button" class="btn" data-act="close">閉じる</button><button type="button" class="btn pri" data-act="settings" data-sec="device">設定を開く</button></div>
+  </div></div>`;
   if(m.type==='run') return `<div class="ov" data-act="close-ov"><form class="modal" data-act="run-start">
     <h2>Claude のスレッドで進める</h2>
     <div class="runtask">${esc(m.ref.text)}</div>${m.ref.parent!==undefined?`<div class="runparent">親タスク：${esc(m.ref.parent)}</div>`:''}
+    ${devWork()?`<div class="hint" style="margin-bottom:8px">この端末の作業フォルダ（${esc(devWork())}）で開きます。</div>`:''}
     <div class="field"><label>補足の指示（任意）</label><textarea class="inp" name="note" rows="3" placeholder="例：先月と同じ形式で。送る前に必ず見せて"></textarea></div>
     ${parentRunFor(m.ref)
       ? `<div class="hint">親タスクのスレッド「<b>${esc(threadName(parentRunFor(m.ref)))}</b>」が開きます。依頼文はコピー済みなので、そのスレッドで <b>${PASTE_KEY} → Enter</b> を押してください。親スレッドが経緯を踏まえた指示書を書き、このサブタスクの<b>子スレッド</b>を立てます（サイドバーで親の下に並び、区切りごとに親へ報告が届きます）。<br>子スレッドの中では <b>状況の確認 → 案の提案 → 進め方の確認 → 実行</b> の順に、相談しながら進めます。送信や公開の前には必ず確認が入ります。</div>`
@@ -5498,6 +5531,7 @@ function settingsCards(){
     {sec:'link', t:'クーポン・アンケート・ご案内状況', d:'アンケートの窓口につなぐ（クーポン・アンケート・ご案内状況の3つの画面で使う）', k:'クーポン アンケート ご案内状況 当選 窓口 鍵 URL つなぐ', body:cpField(), st:st(!!cpConf().url)},
     {sec:'link', t:'BOK（ささやき）', d:'BOK の管理画面の機能（お知らせ・空室情報・姫予約ログなど）につなぐ', k:'BOK ささやき 空室 姫予約 お知らせ アンケート管理 鍵 URL つなぐ 窓口', body:rvField(), st:st(!!rvConf().url)},
     {sec:'link', t:'セラピストDB', d:'名簿・特徴・受け入れNG・成績表の取り込みにつなぐ', k:'セラピスト DB 名簿 特徴 受け入れNG 成績 鍵 URL つなぐ 窓口', body:rdField(), st:st(!!rdConf().url)},
+    {sec:'device', t:'この端末で ▶ を使う', d:'▶ でスレッドを開く作業フォルダと、Action OS の手元の場所（この端末だけ）', k:'実行 ▶ スレッド 作業フォルダ フォルダ 場所 Mac パソコン この端末 Claude', body:devRunField(), st:devWork()?'<span class="bktag green">設定済み</span>':'<span class="bktag">実行係の PC の場所</span>'},
     {sec:'device', t:'GitHub の接続', d:'この端末で使うリポジトリとトークン', k:'GitHub リポジトリ トークン 鍵 接続 この端末 ログアウト 消す', body:settingsForm(true), st:st(!!(S.be && S.be.kind==='github'))},
   ];
 }
@@ -5691,7 +5725,8 @@ document.addEventListener('click', async e=>{
       if(confirm(cnt?`「${n}」を担当者の一覧から外しますか？（担当になっているタスク ${cnt}件の印はそのまま残ります）`:`「${n}」を担当者の一覧から外しますか？`)) removeMember(n); break; }
     case 'filter': S.filter = S.filter===el.dataset.k?null:el.dataset.k; if(S.tab!=='board'&&S.tab!=='timeline') S.tab='timeline'; render(); break;
     case 'reload': if(qRunning||Q.length){ toast('保存中です。少し待ってから更新してください'); break; } checkUpdate(true); loadAll(); if(S.tab==='guide') gdLoad(); if(S.tab==='db') rdFresh(true); break;
-    case 'settings': S.modal={type:'settings'}; render(); break;
+    case 'settings': S.modal={type:'settings', ...(el.dataset.sec?{sec:el.dataset.sec}:{})}; render(); break;
+    case 'devrun-forget': safeSet(LS.devWork,null); safeSet(LS.devAos,null); render(); toast('この端末の場所を消しました（実行係の PC の場所を使います）'); break;
     case 'logout': safeSet(LS.token,null); S.be=null; S.modal=null; render(); break;
     case 'add': S.modal={type:'add', draft:{text:'', notes:'', cat:INBOX, due:'', prio:false, who:(S.who&&S.who!=='__none')?S.who:'', subs:[]}}; render(); break;
     case 'close': tryCloseModal(); break;
@@ -5938,6 +5973,11 @@ document.addEventListener('submit', async e=>{
     if(url && !key) return toast('鍵を入れてください',true);
     safeSet(LS.rdUrl,url||null); safeSet(LS.rdKey,url?key:null); rdReset(); S.modal=null; if(url) navGo('db'); else render(); toast(url?'セラピストDB につなぎました':'セラピストDB の設定を消しました'); return; }
   if(a==='cp-search'||a==='sq-search'){ f.q.blur(); return; }  // Enter はキーボードを閉じるだけ（打つたびに絞り込んでいる）
+  if(a==='save-devrun'){ const w=f.work.value.trim(), ao=f.aos.value.trim();
+    if(w && !pathLooksHere(w)) return toast(IS_WIN?'この端末の場所（C:\\… の形）を入れてください':'この端末の場所（/ で始まる形）を入れてください',true);
+    if(w && !ao) return toast('Action OS の手元の場所も入れてください',true);
+    if(ao && !pathLooksHere(ao)) return toast('Action OS の手元の場所も、この端末の形で入れてください',true);
+    safeSet(LS.devWork, w||null); safeSet(LS.devAos, w?ao:null); S.modal=null; render(); toast(w?'この端末で ▶ を使えるようにしました':'この端末の場所を消しました（実行係の PC の場所を使います）'); return; }
   if(a==='save-cpconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url;  // 「設定画面に貼る文字」（URL#鍵）もそのまま受け付ける
     const key=sp.key||safeGet(LS.cpKey)||'';
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\//.test(url)) return toast('Apps Script のウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
@@ -5998,7 +6038,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:61cd15910176';
+const BUILD = 'AOS_BUILD:5ac298616b43';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
