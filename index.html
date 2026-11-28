@@ -2973,9 +2973,13 @@ function rvReload(){
     run: ()=>{ RV.dr={}; RV.hopen={}; rvLoad(); }});
 }
 // ===== BOK のタブ（BOK の管理画面の機能の入口） =====
-// 並びは BOK の管理画面と同じ。「セラピスト管理」は出さない（名簿の正本は外部のセラピストDBのため）。
+// 並びは BOK の管理画面と同じ。
+// 「セラピスト管理」（2026-11-28 足した）は、セラピストDB の名簿へ移る入口だけ。BOK の「セラピストDB」タブは、セラピストDB の名簿を保存するたびに
+// 名簿の値で上書きされる（名前・ログインID・PIN・有効・アンケート・間隔・姫予約NG）ので、BOK 側では直さず、名簿で直して BOK へ反映させる。
+// go：押すと BOK の中ではなく、そのタブ（セラピストDB）へ移る
 // s：下層ページの上に並べる切り替えの段で使う短い名前
 const BOK_FEATURES = [
+  {k:'therapists', s:'セラピスト管理', name:'セラピスト管理', desc:'ログインID・PIN などを名簿で直す（BOK にも反映）', ic:'users', go:'db'},
   {k:'news', s:'お知らせ', name:'お知らせ管理', desc:'セラピスト全員に出すお知らせ', ic:'bell'},
   {k:'personalNews', s:'個人お知らせ', name:'個人へのお知らせ', desc:'1人だけに届くお知らせ', ic:'mail'},
   {k:'rv', s:'空室情報', name:'ルーム空室情報の編集', desc:'北千住・柏などの曜日ごとの空き時間帯', ic:'cal'},
@@ -3023,14 +3027,14 @@ function viewBok(){
   const f=BOK_FEATURES.find(x=>x.k===S.bok);
   if(f){
     const back=`<div class="bokback"><button type="button" class="iconbtn sm" data-act="bok-back" title="BOK の機能の一覧へ">${icon('back')}</button><span class="ttl"><button type="button" class="bokcrumb" data-act="bok-back" title="BOK の機能の一覧へ">BOK</button><span class="sep">／</span>${esc(f.name)}</span></div>${bokNav(f.k)}`;
-    if(!rvOn()) return back+'<div class="plain"><div class="empty">この端末は、まだ BOK につながっていません。設定（右上の歯車）の「BOK（ささやき）につなぐ」に、ささやきの URL と鍵を入れてください。</div></div>';
+    if(!rvOn() && !f.go) return back+'<div class="plain"><div class="empty">この端末は、まだ BOK につながっていません。設定（右上の歯車）の「BOK（ささやき）につなぐ」に、ささやきの URL と鍵を入れてください。</div></div>';
     const v=BK_VIEW[f.k]; if(v) return back+v();
   }
   S.bok=null;
   if(rvOn()) himeRefresh();  // 姫予約の件数（BOK のタブの札）を、古ければ数え直す
   return `<div class="boksub">BOK（ささやき）</div><div class="boklist">${BOK_FEATURES.map(x=>{
     const n = x.k==='himeLog' && HIME.count>0 ? `<span class="bokn">${HIME.count}</span>` : '';
-    return `<button type="button" class="bokfn" data-act="bok-open" data-k="${x.k}"><span class="ic">${icon(x.ic)}</span><span class="tx"><span class="t1">${esc(x.name)}</span><span class="t2">${esc(x.desc||'')}</span></span>${n}${icon('chev')}</button>`;
+    return `<button type="button" class="bokfn" data-act="bok-open" data-k="${x.k}"><span class="ic">${icon(x.ic)}</span><span class="tx"><span class="t1">${esc(x.name)}${x.go?'<span class="tag">セラピストDB へ</span>':''}</span><span class="t2">${esc(x.desc||'')}</span></span>${n}${icon('chev')}</button>`;
   }).join('')}</div>`;
 }
 // 下層ページの上に、BOK の機能を横一列に並べる（一覧へ戻らずに、ほかの機能へ直接移れる）。いま開いている機能は押せない
@@ -3056,6 +3060,10 @@ function bokNavKeep(prev){
 // 左右にまだ続きがあるときだけ、その端を薄くして「横に流せる」と分かるようにする
 function bokNavFade(n){ n.classList.toggle('fl', n.scrollLeft>2); n.classList.toggle('fr', n.scrollLeft+n.clientWidth < n.scrollWidth-2); }
 window.addEventListener('resize', ()=>{ const n=document.querySelector('.boknav'); if(n) bokNavFade(n); });
+// セラピスト管理：セラピストDB につないでいない端末で押したときの案内（つないでいれば、押した時点でセラピストDB の名簿へ移る）
+BK_VIEW.therapists = () => `<div class="bkcard"><b>${rdOn()?'セラピストDB の名簿で直します':'この端末は、まだセラピストDB につながっていません'}</b>
+  <div class="hint" style="margin-top:6px">BOK のセラピストの情報（ログインID・PIN・アンケート送らない・姫予約NG・姫予約の間隔）は、セラピストDB の名簿の詳細の「BOK」の枠で直します。保存すると BOK にも反映されます。BOK の「有効」は在籍の状態で決まり（在籍・休み中なら有効）、新しく登録した人にはログインID が自動で付きます。BOK 側で直しても、名簿を保存したときに名簿の値に戻るので、BOK では直しません。</div>
+  <div style="margin-top:10px">${rdOn()?'<button type="button" class="btn sm pri" data-act="bok-open" data-k="therapists">セラピストDB の名簿を開く</button>':'<div class="hint" style="margin-bottom:8px">設定画面の「セラピストDB につなぐ」に URL と鍵を入れると、ここから名簿へ移れます。</div><button type="button" class="btn sm pri" data-act="settings">設定画面を開く</button>'}</div></div>`;
 // ===== 姫予約ログの未確認の件数（BOK のタブの「姫 ◯」の札） =====
 // himeLog.list を1件だけ読んで、シート全体の未確認の件数（unconfirmedCount）をもらう。BOK の注意に合わせ、5分より短い間隔では読まない
 const HIME = {count:0, loadedAt:0, loading:false};
@@ -5104,7 +5112,9 @@ document.addEventListener('click', async e=>{
     case 'sq-lowlist': SQ.view='list'; SQ.low=true; SQ.q=''; safeSet(LS.sqView,'list'); render(); window.scrollTo(0,0); break;
     case 'cp-forget': if(confirm('この端末から、クーポンの接続先と鍵を消しますか？')){ safeSet(LS.cpUrl,null); safeSet(LS.cpKey,null); CP.all=null; CP.at=0; CP.error=''; S.modal=null; render(); } break;
     case 'nav-pin': setNavPin(el.dataset.k, !navPins().includes(el.dataset.k)); break;
-    case 'bok-open': { const k=el.dataset.k; S.bok=k; if(k!=='rv' && BK_LOAD[k] && rvOn()) BK_LOAD[k](); else render(); break; }  // 開くたびに BOK から読み直す（空室情報は10分の決まり）
+    case 'bok-open': { const k=el.dataset.k;
+      if(k==='therapists' && rdOn()){ RD.sub='cast'; navGo('db'); toast('名前を押すと、詳細の「BOK」の枠で直せます'); break; }
+      S.bok=k; if(k!=='rv' && BK_LOAD[k] && rvOn()) BK_LOAD[k](); else render(); break; }  // 開くたびに BOK から読み直す（空室情報は10分の決まり）
     case 'bk-reload': { const f=BK_LOAD[el.dataset.k]; if(f) f(); break; }
     case 'mt-set': { const dr=MT.draft; if(!dr) break; const k=el.dataset.key; dr.keys=dr.keys.filter(x=>x!==k); if(el.dataset.v==='1') dr.keys.push(k); render(); break; }
     case 'mt-save': mtSave(); break;
@@ -5419,7 +5429,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:986f7884f921';
+const BUILD = 'AOS_BUILD:c74762a8c18e';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
