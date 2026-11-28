@@ -1043,6 +1043,27 @@ body.ndragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
 .rdanm>*{flex-shrink:0}
 .rdanm>.actions{margin-top:auto}
 @media (max-width:640px){ .rdanm{min-height:92vh} }
+/* BOK の下層ページ：パンくずと、機能の切り替えの段（下線のタブ。上の大きいタブとは形を変えて、1段下の切り替えだと分かるように） */
+.bokback{margin:0 0 6px}
+.bokback .ttl{display:flex;align-items:center;gap:6px;min-width:0}
+.bokcrumb{border:0;background:transparent;padding:2px 4px;margin:0 -4px;border-radius:6px;font:inherit;font-weight:700;color:var(--sub);cursor:pointer}
+.bokcrumb:hover{color:var(--accent);background:var(--accent-soft)}
+.bokback .sep{color:var(--faint);font-weight:400}
+.boknav{position:relative;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line);margin:0 0 14px}
+.boknav::-webkit-scrollbar{display:none}
+.boknav.fr{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 36px),transparent)}
+.boknav.fl{-webkit-mask-image:linear-gradient(to right,transparent,#000 36px);mask-image:linear-gradient(to right,transparent,#000 36px)}
+.boknav.fl.fr{-webkit-mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(to right,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
+.bnb{display:inline-flex;align-items:center;gap:6px;flex:none;white-space:nowrap;border:0;background:transparent;padding:9px 11px 10px;margin-bottom:-1px;border-bottom:2px solid transparent;color:var(--sub);font:inherit;font-size:13px;cursor:pointer;border-radius:8px 8px 0 0}
+.bnb svg{width:15px;height:15px;flex:none;opacity:.85}
+button.bnb:hover{color:var(--text);background:var(--panel2)}
+.bnb.on{color:var(--accent);border-bottom-color:var(--accent);font-weight:600;cursor:default}
+.bnb.on svg{opacity:1}
+.bnb .bokn{margin-left:2px;min-width:18px;height:18px;padding:0 5px;font-size:11px}
+@media (max-width:640px){
+  .boknav{margin-left:-16px;margin-right:-16px;padding:0 16px}
+  .bnb{padding:9px 10px 10px}
+}
 </style>
 </head>
 <body>
@@ -2837,16 +2858,17 @@ async function rvSave(){
 }
 // ===== BOK のタブ（BOK の管理画面の機能の入口） =====
 // 並びは BOK の管理画面と同じ。「セラピスト管理」は出さない（名簿の正本は外部のセラピストDBのため）。
+// s：下層ページの上に並べる切り替えの段で使う短い名前
 const BOK_FEATURES = [
-  {k:'news', name:'お知らせ管理', desc:'セラピスト全員に出すお知らせ', ic:'bell'},
-  {k:'personalNews', name:'個人へのお知らせ', desc:'1人だけに届くお知らせ', ic:'mail'},
-  {k:'rv', name:'ルーム空室情報の編集', desc:'北千住・柏などの曜日ごとの空き時間帯', ic:'cal'},
-  {k:'survey', name:'アンケート管理', desc:'お客様の声をセラピスト本人に届ける', ic:'msg'},
-  {k:'surveyImport', name:'アンケート取り込み', desc:'集計表のまだ送っていない回答を送る', ic:'inbox'},
-  {k:'himeLog', name:'姫予約ログ', desc:'セラピストが取った予約の確認', ic:'phone'},
-  {k:'roomBroadcast', name:'本日のルーム配信', desc:'その日のルーム割をセラピストに配る', ic:'send'},
-  {k:'maintenance', name:'メンテナンス管理', desc:'セラピストのアプリのメニューを一時的に止める', ic:'tool'},
-  {k:'settings', name:'設定', desc:'対象週・ルーム・リンク・Telegram・パスコード', ic:'gear'},
+  {k:'news', s:'お知らせ', name:'お知らせ管理', desc:'セラピスト全員に出すお知らせ', ic:'bell'},
+  {k:'personalNews', s:'個人お知らせ', name:'個人へのお知らせ', desc:'1人だけに届くお知らせ', ic:'mail'},
+  {k:'rv', s:'空室情報', name:'ルーム空室情報の編集', desc:'北千住・柏などの曜日ごとの空き時間帯', ic:'cal'},
+  {k:'survey', s:'アンケート', name:'アンケート管理', desc:'お客様の声をセラピスト本人に届ける', ic:'msg'},
+  {k:'surveyImport', s:'アンケート取込', name:'アンケート取り込み', desc:'集計表のまだ送っていない回答を送る', ic:'inbox'},
+  {k:'himeLog', s:'姫予約ログ', name:'姫予約ログ', desc:'セラピストが取った予約の確認', ic:'phone'},
+  {k:'roomBroadcast', s:'ルーム配信', name:'本日のルーム配信', desc:'その日のルーム割をセラピストに配る', ic:'send'},
+  {k:'maintenance', s:'メンテナンス', name:'メンテナンス管理', desc:'セラピストのアプリのメニューを一時的に止める', ic:'tool'},
+  {k:'settings', s:'設定', name:'設定', desc:'対象週・ルーム・リンク・Telegram・パスコード', ic:'gear'},
 ];
 // 機能ごとの「読み込む」処理（開くたび・「読み直す」で呼ぶ）と画面。下の各機能の節で入れる
 const BK_LOAD = {rv:()=>rvLoad()}, BK_VIEW = {rv:()=>viewRv()}, BK_MODAL = {};
@@ -2884,7 +2906,7 @@ const nameKey = s => rvNorm(s);
 function viewBok(){
   const f=BOK_FEATURES.find(x=>x.k===S.bok);
   if(f){
-    const back=`<div class="bokback"><button type="button" class="iconbtn sm" data-act="bok-back" title="BOK の機能の一覧へ">${icon('back')}</button><span class="ttl">BOK ／ ${esc(f.name)}</span></div>`;
+    const back=`<div class="bokback"><button type="button" class="iconbtn sm" data-act="bok-back" title="BOK の機能の一覧へ">${icon('back')}</button><span class="ttl"><button type="button" class="bokcrumb" data-act="bok-back" title="BOK の機能の一覧へ">BOK</button><span class="sep">／</span>${esc(f.name)}</span></div>${bokNav(f.k)}`;
     if(!rvOn()) return back+'<div class="plain"><div class="empty">この端末は、まだ BOK につながっていません。設定（右上の歯車）の「BOK（ささやき）につなぐ」に、ささやきの URL と鍵を入れてください。</div></div>';
     const v=BK_VIEW[f.k]; if(v) return back+v();
   }
@@ -2895,6 +2917,29 @@ function viewBok(){
     return `<button type="button" class="bokfn" data-act="bok-open" data-k="${x.k}"><span class="ic">${icon(x.ic)}</span><span class="tx"><span class="t1">${esc(x.name)}</span><span class="t2">${esc(x.desc||'')}</span></span>${n}${icon('chev')}</button>`;
   }).join('')}</div>`;
 }
+// 下層ページの上に、BOK の機能を横一列に並べる（一覧へ戻らずに、ほかの機能へ直接移れる）。いま開いている機能は押せない
+function bokNav(cur){
+  return `<nav class="boknav" aria-label="BOK の機能">${BOK_FEATURES.map(x=>{
+    const n = x.k==='himeLog' && HIME.count>0 ? `<span class="bokn">${HIME.count}</span>` : '';
+    return x.k===cur ? `<span class="bnb on" aria-current="page" title="${esc(x.name)}">${icon(x.ic)}${esc(x.s||x.name)}${n}</span>`
+      : `<button type="button" class="bnb" data-act="bok-open" data-k="${x.k}" title="${esc(x.name)}">${icon(x.ic)}${esc(x.s||x.name)}${n}</button>`;
+  }).join('')}</nav>`;
+}
+// 描き直すたびに、切り替えの段の横の位置を前のままにし、いま開いている機能が隠れていれば見える所まで流す（スマホ）
+function bokNavKeep(prev){
+  const n=document.querySelector('.boknav'); if(!n) return;
+  if(prev!=null) n.scrollLeft=prev;
+  const a=n.querySelector('.bnb.on');
+  if(a && n.scrollWidth>n.clientWidth){
+    const l=a.offsetLeft, r=l+a.offsetWidth, pad=28;
+    if(l < n.scrollLeft+pad) n.scrollLeft=Math.max(0, l-pad);
+    else if(r > n.scrollLeft+n.clientWidth-pad) n.scrollLeft=r-n.clientWidth+pad;
+  }
+  bokNavFade(n); n.addEventListener('scroll', ()=>bokNavFade(n), {passive:true});
+}
+// 左右にまだ続きがあるときだけ、その端を薄くして「横に流せる」と分かるようにする
+function bokNavFade(n){ n.classList.toggle('fl', n.scrollLeft>2); n.classList.toggle('fr', n.scrollLeft+n.clientWidth < n.scrollWidth-2); }
+window.addEventListener('resize', ()=>{ const n=document.querySelector('.boknav'); if(n) bokNavFade(n); });
 // ===== 姫予約ログの未確認の件数（BOK のタブの「姫 ◯」の札） =====
 // himeLog.list を1件だけ読んで、シート全体の未確認の件数（unconfirmedCount）をもらう。BOK の注意に合わせ、5分より短い間隔では読まない
 const HIME = {count:0, loadedAt:0, loading:false};
@@ -4657,6 +4702,7 @@ function render(){
   const statCard=(k,n,l,cls)=>`<button class="stat ${cls} ${S.filter===k?'on':''}" data-act="filter" data-k="${k}"><div class="n">${n}</div><div class="l">${l}</div></button>`;
   const showStats = S.tab==='board'||S.tab==='timeline';
   // 入力中の内容とフォーカスを保つ
+  const bnx=document.querySelector('.boknav')?.scrollLeft;
   const active=document.activeElement; const keep = active && active.closest && active.closest('form.quick') ? {cat:active.closest('form').dataset.cat, act:active.closest('form').dataset.act, v:active.value} : null;
   app.innerHTML=`
   ${viewNav(st)}
@@ -4684,6 +4730,7 @@ function render(){
   ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='coupon'||S.tab==='survey'||S.tab==='guide'||S.tab==='bok'||S.tab==='db'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
+  if(S.tab==='bok' && S.bok) bokNavKeep(bnx);
   document.body.classList.toggle('navopen', !!S.nav); document.body.classList.toggle('navpin', !!S.navPin);
   document.title = S.be ? `${pageTitle()}｜Action OS` : 'Action OS';
   renderToast();
@@ -5252,7 +5299,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:31bc6db834cb';
+const BUILD = 'AOS_BUILD:d920c0003387';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
