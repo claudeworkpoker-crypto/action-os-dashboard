@@ -1144,6 +1144,11 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 .supchip .supwho.on b::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:1px}
 .supchip .supwho.unk{color:var(--amber)}
 .colhd .supwho{font-style:normal;font-size:12px;color:var(--sub);min-width:0}
+.suproom .colhd{flex-wrap:wrap;row-gap:4px}
+.suproom .colhd .hint,.suproom .colhd .btn{white-space:nowrap;flex:none}
+.suproom .colhd .supwho{flex:1 1 100%;order:9;padding-left:18px}  /* ルーム名の前の点（幅10px＋すき間）にそろえる */
+.supwho .rnp{white-space:nowrap;margin-right:8px} .supwho .rnnext{color:var(--faint)}
+.supwho{display:inline-flex;flex-wrap:wrap;align-items:center;row-gap:3px}
 .colhd .supwho.on b{color:var(--green)}
 .supwhobox{margin:-4px 0 10px;padding:7px 10px;border-radius:8px;background:var(--panel2);font-size:13px}
 .supwhobox .supwho{font-style:normal;color:var(--sub)} .supwhobox .supwho.on b{color:var(--green)}
@@ -4915,8 +4920,8 @@ function rnWho(room, mode){
     if(st.next) return `<i class="supwho"><b>空き</b><span>次：${esc(st.next.name)}</span><em>${tm(st.next)}</em></i>`;
     return `<i class="supwho"><b>空き</b></i>`;
   }
-  const now = st.cur.length ? `いま：${st.cur.map(x=>`<b>${esc(x.name)}</b>（${tm(x)}）${job(x)}`).join('・')}` : st.unknown.length ? `いま：${st.unknown.map(x=>`<b>${unk(x)}</b>${job(x)}`).join('・')}` : 'いまは空き';
-  return `<i class="supwho ${st.cur.length?'on':st.unknown.length?'unk':''}">${now}${st.next?`${st.cur.length||st.unknown.length?' ／ ':'・'}次：${esc(st.next.name)}（${tm(st.next)}）`:''}</i>`;
+  const now = st.cur.length ? st.cur.map(x=>`<span class="rnp">いま：<b>${esc(x.name)}</b>（${tm(x)}）</span>${job(x)}`).join('') : st.unknown.length ? st.unknown.map(x=>`<span class="rnp">いま：<b>${unk(x)}</b></span>${job(x)}`).join('') : '<span class="rnp">いまは空き</span>';
+  return `<i class="supwho ${st.cur.length?'on':st.unknown.length?'unk':''}">${now}${st.next?`<span class="rnp rnnext">次：${esc(st.next.name)}（${tm(st.next)}）</span>`:''}</i>`;
 }
 // 補充の画面の上に出す一言（いつ読んだか・読めないとき）
 function rnInfo(){
@@ -4933,7 +4938,7 @@ function viewSupplies(){
   const areas=[...new Set(names.map(n=>roomArea(n)||'その他'))];
   const f=supF(), roomShow=n=>{ if(f==='all') return true; const r=supRoom(d,n); return !!r && supOpen(r).some(supShow); };
   const insp=`<div class="supinsp">${areas.filter(a=>names.some(n=>(roomArea(n)||'その他')===a && roomShow(n))).map(a=>`<div class="supa"><div class="grouphd">${esc(a)}</div><div class="supchips">${names.filter(n=>(roomArea(n)||'その他')===a && roomShow(n)).map(n=>{ const r=supRoom(d,n), c=r?supOpen(r):[], u=c.filter(x=>x.level==='urgent').length, o=c.filter(x=>x.order).length;
-      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`+(o?`・注文${o}`:''):'—'}</span><small>${r&&r.checked?`点検 ${esc(mdw(r.checked))}`:'未点検'}</small>${rnWho(n,'chip')}</button>`; }).join('')}</div></div>`).join('')}</div>`;
+      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`+(o?`・注文${o}`:''):'—'}</span>${rnWho(n,'chip')}</button>`; }).join('')}</div></div>`).join('')}</div>`;
   const qq=(S.supQ||'').trim().toLowerCase(), hit=t=>!qq || String(t).toLowerCase().includes(qq);
   const urgentN=d.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0), orderN=supOrderCount();
   const search=`<form class="supsearch" onsubmit="return false"><input class="inp" data-supq placeholder="さがす（品目・ルーム）" value="${esc(S.supQ||'')}" autocomplete="off">
@@ -4955,8 +4960,8 @@ function viewSupplies(){
     const sorted=items.slice().sort((a,b)=>(a.done-b.done)||(!!a.order-!!b.order)||((a.level==='urgent'?0:1)-(b.level==='urgent'?0:1)));
     const left=supOpen(r).length, canDone=supOpen(r).filter(x=>!x.order).length;
     return `<section class="suproom">
-      <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span>${rnWho(n,'line')}<span class="sp"></span>
-        ${canDone?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">${canDone<left?'注文中以外を補充した':'全部補充した'}</button>`:''}</div>
+      <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span><span class="sp"></span>
+        ${canDone?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">${canDone<left?'注文中以外を補充した':'全部補充した'}</button>`:''}${rnWho(n,'line')}</div>
       <div class="nlist">${sorted.map(x=>{ const ref=esc(JSON.stringify({room:n, name:x.name, done:!!x.done, order:!!x.order})), lv=SUP_LV[x.level];
         return `<div class="nrow ${x.done?'done':''}">
           <button class="nchk ${x.done?'on':''}" data-act="sup-toggle" data-ref='${ref}' title="${x.done?'未補充に戻す':'補充した'}">${icon('check')}</button>
@@ -5857,7 +5862,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:135af71364f9';
+const BUILD = 'AOS_BUILD:3ab530f26d04';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
