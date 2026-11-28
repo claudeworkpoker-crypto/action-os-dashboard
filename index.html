@@ -1952,8 +1952,8 @@ function stats(){
 }
 const FILTERS = {
   over:{label:'期限切れ', fn:x=>x.due && x.due<todayStr()},
-  today:{label:'今日まで', fn:x=>x.due && x.due<=todayStr()},
-  week:{label:'今週（日曜まで）', fn:x=>x.due && x.due<=endOfWeek()},
+  today:{label:'今日が期限', fn:x=>x.due && x.due===todayStr()},                       // 上の数字（今日が期限）と同じ数え方にそろえる（前は期限切れも入っていた）
+  week:{label:'今週が期限（今日〜日曜）', fn:x=>x.due && x.due>=todayStr() && x.due<=endOfWeek()},
   none:{label:'期限なし', fn:x=>!x.due},
 };
 function sortTasks(a,b){
@@ -2397,8 +2397,8 @@ async function pwLoad(){
 async function pwSave(id, row){
   try{
     if(id) await pwCall('update',{id,row}); else await pwCall('add',{row});
-    toast(id?'スプレッドシートを更新しました':'スプレッドシートに追加しました'); await pwLoad();
-  }catch(e){ toast(e.message,true); }
+    toast(id?'スプレッドシートを更新しました':'スプレッドシートに追加しました'); pwLoad(); return true;
+  }catch(e){ toast(e.message,true); pwSave.err=e.message; return false; }
 }
 async function pwDelete(id){
   try{ await pwCall('delete',{id}); toast('スプレッドシートから削除しました'); await pwLoad(); }
@@ -2416,9 +2416,10 @@ async function pwCopy(text, what){
 function viewPw(){
   if(PWD.rows===null && !PWD.loading && !PWD.error){ setTimeout(pwLoad,0); }
   const head=`<form class="pwbar" data-act="pw-search" onsubmit="return false"><input class="inp" data-pwq placeholder="さがす（サービス・区分・ID・メモ）" value="${esc(PWD.q)}" autocomplete="off">
-    <button type="button" class="btn sm" data-act="pw-reload" title="スプレッドシートから読み直す">${icon('refresh').replace('<svg','<svg width="14" height="14"')} 読み直す</button>
+    <button type="button" class="btn sm" data-act="pw-reload" ${PWD.loading?'disabled':''} title="スプレッドシートから読み直す">${icon('refresh').replace('<svg','<svg width="14" height="14"')} 読み直す</button>
     <button type="button" class="btn sm pri" data-act="pw-add">${icon('plus').replace('<svg','<svg width="14" height="14"')} 追加</button></form>`;
-  if(PWD.error) return head+`<div class="plain"><div class="empty" style="color:var(--red)">${esc(PWD.error)}</div></div>`;
+  if(PWD.error && !PWD.rows) return head+`<div class="plain"><div class="empty" style="color:var(--red)">${esc(PWD.error)}</div></div>`;
+  const pwErr = PWD.error ? `<div class="bkcard" style="color:var(--red);margin-bottom:10px">読み直しに失敗しました（前に読んだ内容を出しています）：${esc(PWD.error)}</div>` : '';
   if(PWD.rows===null) return head+'<div class="plain"><div class="empty">スプレッドシートから読み込んでいます…</div></div>';
   const q=PWD.q.trim().toLowerCase();
   const rows=PWD.rows.filter(r=>!q || ['区分','サービス','ID・メール','メモ','ログインURL'].some(k=>String(r[k]||'').toLowerCase().includes(q)))
@@ -2438,7 +2439,7 @@ function viewPw(){
       <button class="iconbtn sm" data-act="pw-edit" data-id="${esc(r.ID)}" title="編集">${icon('edit')}</button>
     </div>`;
   }).join('');
-  return head+`<div class="pwlist">${list||'<div class="plain"><div class="empty">'+(q?'合うものはありません <button type="button" class="btn sm" data-act="pw-clearq">検索を消す</button>':'まだありません。「追加」から入れてください')+'</div></div>'}</div>
+  return head+pwErr+`<div class="pwlist">${list||'<div class="plain"><div class="empty">'+(q?'合うものはありません <button type="button" class="btn sm" data-act="pw-clearq">検索を消す</button>':'まだありません。「追加」から入れてください')+'</div></div>'}</div>
     <div class="hint" style="margin-top:10px">正本は Google スプレッドシートです。ここで足したり直したりすると、スプレッドシートも同じように変わります（スプレッドシートで直した分は「読み直す」で出ます）。パスワードは押したときだけ表示し、20秒で隠れます。</div>`;
 }
 function pwModal(m){
@@ -3341,13 +3342,32 @@ function bkNameSel(f, v, names){
 }
 function bkModalWrap(title, body, buttons){ return `<div class="ov" data-act="close-ov"><div class="modal"><h2>${title}</h2>${body}<div class="actions">${buttons}</div></div></div>`; }
 // 一覧をまるごと保存する画面（お知らせ・アンケート）と、1件ずつの画面で共通：保存して、ずれていたら読み直す
+// 返り値：保存できたら true（2026-11-28。書く窓が、成功したときだけ閉じられるように）。保存中にもう一度呼ばれたら、黙って捨てずに知らせる
 async function bkSave(k, action, payload, apply, msg){
-  const s=bk(k); if(s.saving) return; s.saving=true; render();
-  try{ const j=await bokCall(action, payload); if(apply) apply(j); toast(msg); }
-  catch(e){ toast(e.message,true); if(/先に変更|変わって|ずれて|読み直/.test(e.message)){ s.saving=false; return BK_LOAD[k](); } }
-  s.saving=false; render();
+  const s=bk(k); if(s.saving){ bkSave.err='前の保存がまだ終わっていません。終わってからもう一度押してください'; toast(bkSave.err,true); return false; }
+  s.saving=true; render();
+  try{ const j=await bokCall(action, payload); if(apply) apply(j); toast(msg); s.saving=false; render(); return true; }
+  catch(e){
+    bkSave.err=e.message; toast(e.message,true); s.saving=false;
+    if(/先に変更|変わって|ずれて|読み直/.test(e.message)){ bkSave.err=e.message+'（最新を読み直しました。内容を確かめて、もう一度「BOK に保存」を押してください）'; await BK_LOAD[k](); return false; }
+    render(); return false;
+  }
 }
-const reqConfirm = (who, run) => bkConfirm({title:'既読確認を必須にして保存しますか？', ok:'必須にして保存', danger:true, run,
+// 書く窓から保存する：窓は開いたまま「保存中…」にし、できたら閉じる。失敗したら同じ窓に理由を出す（書いた内容は消えない）
+async function bkModalSave(m, run){
+  m.saving=true; m.error=''; S.modal=m; render();
+  const ok=await run();
+  m.saving=false;
+  if(ok){ if(S.modal===m) S.modal=null; }
+  else if(!S.modal || S.modal===m){ S.modal=m; m.error=bkSave.err||'保存できませんでした'; }
+  render();
+}
+// 一覧のカードを開くとき：同じ機能の保存が終わっていなければ開かない（保存中に開いた窓が、保存のあとで別の行を指すのを防ぐ）
+const bkBusy = k => { if(bk(k).saving){ toast('保存しています。終わってから開いてください',true); return true; } return false; };
+// 一覧まるごと保存するもの（お知らせ・アンケート）：直す行は、開いたときの中身で今の一覧から探し直す
+const sameItem = (a,b) => JSON.stringify(a)===JSON.stringify(b);
+function bkFindIdx(list, m){ if(!(m.i>=0)) return -1; if(m.src){ if(list[m.i] && sameItem(list[m.i], m.src)) return m.i; return list.findIndex(x=>sameItem(x, m.src)); } return m.i; }
+const reqConfirm = (who, run, back) => bkConfirm({title:'既読確認を必須にして保存しますか？', ok:'必須にして保存', danger:true, run, back,
   html:`<p class="sub">${who}が、次にアプリを開いたときにこのお知らせが全画面で出ます。「確認しました」を押すまで、アプリを使えません。</p>`});
 
 // ===== 【3】お知らせ管理（セラピスト全員に出す。保存は一覧まるごと書き直し） =====
@@ -3361,7 +3381,7 @@ BK_VIEW.news = () => {
       <div class="hlwho">${esc(n.title||'お知らせ')}</div><div class="bkbody bkclip" style="margin-top:4px;color:var(--sub)">${esc(n.body||'')}</div></div>`).join(''):'<div class="plain"><div class="empty">お知らせはありません</div></div>'}</div>
     ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
 };
-function nwOpen(i){ const d=bk('news').data; if(!d) return; const it= i>=0 ? d.news[i] : {date:todayMD(), title:'', body:'', required:false}; S.modal={type:'bknews', i, draft:{date:it.date||'', title:it.title||'', body:it.body||'', required:!!it.required}}; render(); }
+function nwOpen(i){ const d=bk('news').data; if(!d || bkBusy('news')) return; const it= i>=0 ? d.news[i] : {date:todayMD(), title:'', body:'', required:false}; S.modal={type:'bknews', i, src: i>=0 ? clone(it) : null, draft:{date:it.date||'', title:it.title||'', body:it.body||'', required:!!it.required}}; render(); }
 BK_MODAL.bknews = m => bkModalWrap(m.i>=0?'お知らせを直す':'お知らせを書く',
   bkField('日付（表示用。空欄でもよい）', bkIn('date',m.draft.date,'11/26'))+
   bkField('見出し（空欄なら「お知らせ」）', bkIn('title',m.draft.title,'お知らせ'))+
@@ -3372,11 +3392,11 @@ function nwSave(){
   const m=S.modal, dr=m.draft, d=bk('news').data; if(!d) return;
   const body=String(dr.body||'').replace(/\r/g,'').trim(); if(!body) return toast('本文を入れてください',true);
   const item={date:String(dr.date||'').trim(), title:String(dr.title||'').trim(), body, required:!!dr.required};
-  const list=clone(d.news||[]); if(m.i>=0) list[m.i]=item; else list.unshift(item);
-  const was=clone(d.news||[]), wasReq = m.i>=0 && !!(d.news[m.i]||{}).required;
-  const go=()=>bkSave('news','news.save',{news:list, was}, j=>{ d.news=j.news||list; }, 'BOK に保存しました');
-  S.modal=null; render();
-  if(item.required && !wasReq) reqConfirm('全セラピスト', go); else go();
+  const idx=bkFindIdx(d.news||[], m); if(m.i>=0 && idx<0){ m.error='直そうとしたお知らせが、ほかの人に直されたか消されていて見つかりません。キャンセルして一覧を確かめてください（書いた内容はこの窓に残っています）'; return render(); }
+  const go=()=>{ const cur=bk('news').data||d, list=clone(cur.news||[]), j=bkFindIdx(cur.news||[], m); if(m.i>=0 && j<0){ bkSave.err='直そうとしたお知らせが見つかりません（ほかの人が直した・消した）'; return Promise.resolve(false); } if(m.i>=0) list[j]=item; else list.unshift(item);
+    return bkSave('news','news.save',{news:list, was:clone(cur.news||[])}, r=>{ cur.news=r.news||list; }, 'BOK に保存しました'); };
+  const wasReq = m.i>=0 && !!((d.news||[])[idx]||{}).required;
+  if(item.required && !wasReq) reqConfirm('全セラピスト', ()=>bkModalSave(m, go), m); else bkModalSave(m, go);
 }
 function nwDel(){
   const m=S.modal, d=bk('news').data, it=d && d.news[m.i]; if(!it) return;
@@ -3404,7 +3424,7 @@ BK_VIEW.survey = () => {
     ${!SV.more&&list.length>shown.length?`<div class="actions" style="justify-content:center;margin-top:12px"><button type="button" class="btn" data-act="sv-more">残り ${list.length-shown.length}件を出す</button></div>`:''}
     ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
 };
-function svOpen(i){ const d=bk('survey').data; if(!d) return; const it= i>=0 ? d.surveys[i] : {date:todayMD(), name:SV.filter||'', body:''}; S.modal={type:'bksurvey', i, draft:{date:it.date||'', name:it.name||'', body:it.body||''}}; render(); }
+function svOpen(i){ const d=bk('survey').data; if(!d || bkBusy('survey')) return; const it= i>=0 ? d.surveys[i] : {date:todayMD(), name:SV.filter||'', body:''}; S.modal={type:'bksurvey', i, src: i>=0 ? clone(it) : null, draft:{date:it.date||'', name:it.name||'', body:it.body||''}}; render(); }
 BK_MODAL.bksurvey = m => { const names=(bk('survey').data||{}).therapistNames||[];
   return bkModalWrap(m.i>=0?'お客様の声を直す':'お客様の声を書く',
     bkField('日付（表示用）', bkIn('date',m.draft.date,'11/26'))+
@@ -3416,12 +3436,12 @@ function svSave(){
   const name=String(dr.name||'').trim(), body=String(dr.body||'').replace(/\r/g,'').trim();
   if(!name) return toast('宛先を選んでください',true); if(!body) return toast('本文を入れてください',true);
   const item={date:String(dr.date||'').trim(), name, body};
-  const list=clone(d.surveys||[]); if(m.i>=0) list[m.i]=item; else list.unshift(item);
-  const was=clone(d.surveys||[]);
-  S.modal=null; render();
-  bkConfirm({title:`${name} さんのアプリに出します`, ok:'出す',
+  if(m.i>=0 && bkFindIdx(d.surveys||[], m)<0){ m.error='直そうとしたお客様の声が、ほかの人に直されたか消されていて見つかりません。キャンセルして一覧を確かめてください（書いた内容はこの窓に残っています）'; return render(); }
+  const go=()=>{ const cur=bk('survey').data||d, list=clone(cur.surveys||[]), j=bkFindIdx(cur.surveys||[], m); if(m.i>=0 && j<0){ bkSave.err='直そうとしたお客様の声が見つかりません（ほかの人が直した・消した）'; return Promise.resolve(false); } if(m.i>=0) list[j]=item; else list.unshift(item);
+    return bkSave('survey','survey.save',{surveys:list, was:clone(cur.surveys||[])}, r=>{ cur.surveys=r.surveys||list; }, 'BOK に保存しました'); };
+  bkConfirm({title:`${name} さんのアプリに出します`, ok:'出す', back:m,
     html:`<div class="bkquote">${esc(body)}</div><p class="sub">本人に見えます。気になる言葉が入っていないか、もう一度確かめてください。</p>`,
-    run:()=>bkSave('survey','survey.save',{surveys:list, was}, j=>{ d.surveys=j.surveys||list; }, 'BOK に保存しました')});
+    run:()=>bkModalSave(m, go)});
 }
 function svDel(){
   const m=S.modal, d=bk('survey').data, it=d && d.surveys[m.i]; if(!it) return;
@@ -3446,7 +3466,7 @@ BK_VIEW.personalNews = () => {
       <div class="hlwho">${esc(x.title||'お知らせ')}</div><div class="bkbody bkclip" style="margin-top:4px;color:var(--sub)">${esc(x.body||'')}</div></div>`).join(''):'<div class="plain"><div class="empty">個人へのお知らせはありません</div></div>'}</div>
     ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
 };
-function pnOpen(row){ const d=bk('personalNews').data; if(!d) return; const it= row ? (d.list||[]).find(x=>x.rowNumber===row) : {date:todayMD(), target:PN.filter||'', title:'', body:'', required:false}; if(!it) return;
+function pnOpen(row){ const d=bk('personalNews').data; if(!d || bkBusy('personalNews')) return; const it= row ? (d.list||[]).find(x=>x.rowNumber===row) : {date:todayMD(), target:PN.filter||'', title:'', body:'', required:false}; if(!it) return;
   S.modal={type:'bkpn', row, orig: row?{target:it.target, body:it.body}:null, draft:{date:it.date||'', target:it.target||'', title:it.title||'', body:it.body||'', required:!!it.required}}; render(); }
 BK_MODAL.bkpn = m => { const names=(bk('personalNews').data||{}).therapistNames||[];
   return bkModalWrap(m.row?'個人へのお知らせを直す':'個人へのお知らせを書く',
@@ -3464,8 +3484,7 @@ function pnSave(){
   if(m.row) payload.was=m.orig;
   const orig=m.row?(d.list||[]).find(x=>x.rowNumber===m.row):null, wasReq=!!(orig&&orig.required);
   const go=()=>bkSave('personalNews','personalNews.save',payload, j=>{ if(j.list) d.list=j.list; else BK_LOAD.personalNews(); }, 'BOK に保存しました');
-  S.modal=null; render();
-  if(payload.required && !wasReq) reqConfirm(`${target} さん`, go); else go();
+  if(payload.required && !wasReq) reqConfirm(`${target} さん`, ()=>bkModalSave(m, go), m); else bkModalSave(m, go);
 }
 function pnDel(){
   const m=S.modal; if(!m.row) return; S.modal=null;
@@ -3501,7 +3520,7 @@ BK_VIEW.roomBroadcast = () => {
     ${sv?'<div class="hint" style="margin-top:10px">保存中…</div>':''}`;
 };
 function rbOpen(row){
-  const d=bk('roomBroadcast').data; if(!d) return;
+  const d=bk('roomBroadcast').data; if(!d || bkBusy('roomBroadcast')) return;
   const r = row ? (d.rows||[]).find(x=>x.rowNumber===row) : {name:'', body:''}; if(!r) return;
   S.modal={type:'bkrb', row, orig: row?{name:r.name, body:r.body}:null, draft:{name:r.name||'', body:r.body||''}}; render();
 }
@@ -3516,8 +3535,7 @@ function rbTpl(i){ const m=S.modal, t=((bk('roomBroadcast').data||{}).templates|
 function rbSave(){
   const m=S.modal, dr=m.draft; const name=String(dr.name||'').trim(); if(!name) return toast('セラピストを選んでください',true);
   const payload={name, body:String(dr.body||'').replace(/\r/g,'').trim()}; if(m.row){ payload.rowNumber=m.row; payload.was=m.orig; }
-  S.modal=null; render();
-  bkSave('roomBroadcast','roomBroadcast.saveRow',payload, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '保存しました（まだ公開はしていません）');
+  bkModalSave(m, ()=>bkSave('roomBroadcast','roomBroadcast.saveRow',payload, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '保存しました（まだ公開はしていません）'));
 }
 function rbDel(){
   const m=S.modal; if(!m.row) return; S.modal=null;
@@ -3533,7 +3551,7 @@ BK_MODAL.bkrbpub = m => { const d=bk('roomBroadcast').data||{}, rows=d.rows||[],
     '<div class="bknote">公開すると、セラピスト全員のアプリに、いまの送信表の内容が出ます。</div>',
     '<button type="button" class="btn" data-act="close">やめる</button><button type="button" class="btn pri" data-act="rb-pubgo">公開する</button>'); };
 function rbPubGo(){ const m=S.modal, dr=m.draft; const dateLabel=String(dr.dateLabel||'').trim(); if(!dateLabel) return toast('日付を入れてください',true);
-  S.modal=null; render(); bkSave('roomBroadcast','roomBroadcast.publish',{publish:true, dateLabel, bannerText:String(dr.bannerText||'').trim()}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '公開しました'); }
+  bkModalSave(m, ()=>bkSave('roomBroadcast','roomBroadcast.publish',{publish:true, dateLabel, bannerText:String(dr.bannerText||'').trim()}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '公開しました')); }
 function rbUnpub(){ bkConfirm({title:'公開をやめますか？', ok:'公開をやめる', danger:true, html:'<p class="sub">セラピストのアプリから、本日のルーム情報が見えなくなります。</p>',
   run:()=>bkSave('roomBroadcast','roomBroadcast.publish',{publish:false}, j=>{ bk('roomBroadcast').data=j; bk('roomBroadcast').at=hmNow(); }, '公開をやめました')}); }
 function rbHistDel(i){ const d=bk('roomBroadcast').data, h=d&&(d.history||[])[i]; if(!h) return;
@@ -3665,6 +3683,8 @@ const ST_FIELDS = ['weekStart','areas','rooms','homepageUrl','xUrl','zeroTwoUrl'
 const ST_LINKS = [['homepageUrl','店舗ホームページ'],['xUrl','X（旧Twitter）'],['zeroTwoUrl','02'],['externalShiftUrl','外部シフト']];
 const ST = {dr:null, rooms:null, tokEdit:false, logo:null, logoNew:null, logoLoading:false, saving:''};
 const splitList = v => String(v||'').split(/[,、]/).map(x=>x.trim()).filter(Boolean);
+// BOK の設定に、まだ保存していない直しかけがあるか（新しい版の自動の読み込み・ページを閉じるときに確かめる）
+function stDirty(){ const d=bk('settings').data; if(!d || !ST.dr) return false; if(ST.dr.telegramToken) return true; if(ST_FIELDS.some(f=>f!=='telegramToken' && f!=='rooms' && String(ST.dr[f]??'')!==String(d[f]??''))) return true; return ST.rooms && JSON.stringify(ST.rooms)!==JSON.stringify(splitList(d.rooms)); }
 function stInit(d){ ST.dr={}; for(const f of ST_FIELDS) ST.dr[f]=String(d[f]??''); ST.rooms=splitList(d.rooms); ST.tokEdit=false; ST.dr.telegramToken=''; }
 BK_LOAD.settings = () => { ST.logo=null; ST.logoNew=null; return bkLoad('settings','settings.get',{fields:ST_FIELDS}, d=>stInit(d)); };
 const stSec = (title, body, act, label='保存') => `<div class="bkcard stsec"><div class="sthd"><b>${title}</b><span class="sp"></span>${act?`<button type="button" class="btn sm pri" data-act="${act}" ${ST.saving?'disabled':''}>${ST.saving===act?'保存中…':label}</button>`:''}</div>${body}</div>`;
@@ -3714,9 +3734,12 @@ async function stSave(act, fields, extra={}){
     if(j.settings){ const keepLogo=ST.logo; Object.assign(d, j.settings); delete d.logoDataUri; if('logoDataUri' in fields) ST.logo=fields.logoDataUri, ST.logoNew=null; else ST.logo=keepLogo; }
     else Object.assign(d, fields);
     if('weekStart' in fields && /^\d{4}-\d{2}-\d{2}$/.test(String(d.weekStart||''))) RV.weekStart=String(d.weekStart);   // 空室情報の日付も合わせる
-    stInit(d);
+    // 保存した項目だけ入れ直す（2026-11-28。前は stInit でまるごと戻していたので、ほかの区切りの直しかけが消えていた）
+    for(const f of Object.keys(fields)) if(ST_FIELDS.includes(f)) ST.dr[f]=String(d[f]??'');
+    if('rooms' in fields) ST.rooms=splitList(d.rooms);
+    if('telegramToken' in fields){ ST.tokEdit=false; ST.dr.telegramToken=''; }
     toast('BOK に保存しました');
-    for(const w of j.warnings||[]) setTimeout(()=>toast(w,true), 1900);
+    if((j.warnings||[]).length) setTimeout(()=>toast(j.warnings.join('／'),true), 1900);   // 注意はまとめて1つに（重ねると最後の1つしか見えない）
   }catch(e){ toast(e.message,true); if(/先に変更|読み直/.test(e.message)){ ST.saving=''; return BK_LOAD.settings(); } }
   ST.saving=''; render();
 }
@@ -3742,6 +3765,7 @@ BK_MODAL.bkpass = m => bkModalWrap('管理者パスコードを変える',
   '<button type="button" class="btn" data-act="close">やめる</button><button type="button" class="btn pri warnbtn" data-act="st-passgo">変える</button>');
 function stPassGo(){ const m=S.modal, a=String(m.draft.p1||'').trim(), b=String(m.draft.p2||'').trim();
   if(!a) return toast('新しいパスコードを入れてください',true); if(a!==b) return toast('2回の入力が違います',true);
+  if(ST.saving) return toast('ほかの区切りを保存しています。終わってからもう一度押してください',true);
   S.modal=null; render(); stSave('st-pass',{newPasscode:a}); }
 async function stLogoLoad(){ ST.logoLoading=true; render(); try{ const j=await bokCall('settings.get',{fields:['logoDataUri']}); ST.logo=j.logoDataUri||''; }catch(e){ toast(e.message,true); } ST.logoLoading=false; render(); }
 // ロゴ：BOK に入る大きさ（45,000文字まで）になるまで縮める
@@ -4329,7 +4353,7 @@ function rdAnImg(r){ const f=RD.an.fields.find(x=>x.type==='image'); return rdSa
 const rdPho = (r, big) => { const u=rdAnImg(r); return `<span class="rdpho${big?' big':''}">${u?`<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">`:''}<span>${esc(String(r['名前']||'？').slice(0,1))}</span></span>`; };
 function rdViewAn(){
   const A=RD.an;
-  if(A.rows===null && !A.loading && !A.error) setTimeout(rdAnLoad,0);
+  if((A.rows===null || A.stale) && !A.loading && !A.error){ A.stale=false; setTimeout(rdAnLoad,0); }   // 特徴を保存したあと（stale）も読み直す（前は ↻ を押すまで古いままだった）
   const w=rdWait(A,'特徴'); if(w) return w;
   const q=A.q.trim().toLowerCase(), words=q?q.split(/\s+/):[];
   const inSt = r => !A.fst || r._st===A.fst;
@@ -5097,6 +5121,12 @@ function render(){
   renderToast();
   if(S.modal && S.modal.snap0===undefined){ if(S.modal.draft) syncDraftSafe(); S.modal.snap0 = modalSnap(); }
   if(S.modal && S.modal.draft && S.modal.draft0===undefined) S.modal.draft0 = JSON.stringify(S.modal.draft);
+  // BOK の書く窓：保存中はボタンを止めて「保存中…」、失敗したら理由を窓の中に出す（名簿などは、それぞれの窓で出している）
+  if(S.modal && (/^bk/.test(S.modal.type||'') || S.modal.type==='pw') && S.modal.type!=='bkok'){
+    const acts=app.querySelector('.ov .modal .actions');
+    if(acts && S.modal.saving){ acts.querySelectorAll('.btn').forEach(b=>{ b.disabled=true; }); const pri=acts.querySelector('.btn.pri'); if(pri) pri.textContent='保存中…'; }
+    if(acts && S.modal.error && !S.modal.saving){ const e=document.createElement('div'); e.className='rverr'; e.style.margin='0 0 10px'; e.textContent=S.modal.error; acts.parentNode.insertBefore(e, acts); }
+  }
 }
 // ===== 入力の画面を閉じる前の確認 =====
 // 開いたときから何か変えていたら、閉じる前に「保存しますか？」と聞く（画面の外を押した・Esc・キャンセル）
@@ -5637,7 +5667,11 @@ document.addEventListener('submit', async e=>{
   if(a==='someday-add'){ const v=f.q.value.trim(); if(!v) return; f.q.value=''; addSomeday(v); }
   if(a==='save-inspect'){ const m=S.modal; const picks={...m.picks}; const o=f.other.value.trim(); if(o) picks[o]=f.otherlv.value; S.modal=null; render(); saveInspection(m.room, picks); return; }
   if(a==='save-supitems'){ const items=f.items.value.split('\n').map(l=>l.split(/[｜|]/).map(x=>x.trim())).filter(c=>c[0]).map(c=>({name:c[0], urgent:c[1]||'', need:c[2]||'', ok:c[3]||'', pin:/★|☆|1|ピン|○|〇/.test(c[4]||'')})); S.modal=null; render(); saveSupItems(items); return; }
-  if(a==='save-pw'){ const m=S.modal; const row={}; for(const k of PW_FIELDS) row[k]=(f.elements[k]?.value||'').trim(); if(!row['サービス']) return toast('サービス名を入れてください',true); S.modal=null; render(); pwSave(m.id, row); return; }
+  if(a==='save-pw'){ const m=S.modal; if(m.saving) return; const row={}; for(const k of PW_FIELDS) row[k]=(f.elements[k]?.value||'').trim(); if(!row['サービス']) return toast('サービス名を入れてください',true);
+    for(const k of PW_FIELDS) m.draft[k]=f.elements[k]?.value ?? m.draft[k];   // 失敗したときに入力を残せるように写しておく
+    // 保存が終わるまで窓は開いたまま（「保存中…」。前は先に閉じていたので、失敗すると入力が消え、二重に追加しやすかった）
+    m.saving=true; render(); const sb=document.querySelector('.ov form.modal .actions .btn.pri'); if(sb){ sb.disabled=true; sb.textContent='保存中…'; }
+    const ok=await pwSave(m.id, row); m.saving=false; if(ok){ if(S.modal===m) S.modal=null; } else { m.error=pwSave.err; } render(); return; }
   if(a==='save-rvconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url.replace(/[?#].*$/,''), key=sp.key||safeGet(LS.rvKey);  // 管理画面の URL（?admin=1 など）を貼られても、窓口の …/exec だけを使う
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
@@ -5708,7 +5742,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:ba924f85e416';
+const BUILD = 'AOS_BUILD:6830f94f8818';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
