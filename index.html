@@ -4859,10 +4859,11 @@ function clearDoneSupplies(){ supOp('済みを消しました', d=>{ let hit=fal
 function toggleSupPin(name){ supOp('', d=>{ const it=d.items.find(x=>x.name===name); if(!it) return false; it.pin=!it.pin; }, `dashboard: 点検項目「${name}」のピンを切り替え`); }
 function saveSupItems(items){ supOp('点検項目を保存しました', d=>{ d.items=items; }, 'dashboard: 備品の点検項目を更新'); }
 
-// 絞り込み：all＝すべて／open＝要対応だけ（補充済みは隠す）／urgent＝至急だけ／order＝注文中だけ
-// 注文中のものも未補充なので、要対応・至急の数に入れ、行に「注文中」と出す
+// 絞り込み：all＝すべて／open＝補充できるもの（未補充で、注文中でないもの）／urgent＝至急だけ／order＝注文中だけ
+// open は、もとは「要対応だけ」（注文中も含む未補充）だった。注文中は届くまで補充できず、専用の「注文中」もあるので外した（2026-11-28 社長）。端末に覚えた open はそのまま新しい意味で使う
+// 注文中のものも未補充なので、至急の数やタブの数字には入れ、行に「注文中」と出す
 const supF = () => ['all','open','urgent','order'].includes(safeGet(LS.supF)) ? safeGet(LS.supF) : 'all';
-const supShow = x => { const f=supF(); return f==='all' ? true : f==='open' ? !x.done : f==='order' ? (!x.done && !!x.order) : (!x.done && x.level==='urgent'); };
+const supShow = x => { const f=supF(); return f==='all' ? true : f==='open' ? (!x.done && !x.order) : f==='order' ? (!x.done && !!x.order) : (!x.done && x.level==='urgent'); };
 const supOrderCount = () => S.supplies ? S.supplies.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.order).length,0) : 0;
 // 送る用の文面（いまは貼り付けて使う。Telegram などに自動で送るかは別に決める）。絞り込みに合わせる。注文中のものは「注文中」の行に分ける
 function supText(){
@@ -4986,7 +4987,7 @@ function viewSupplies(){
   const qq=(S.supQ||'').trim().toLowerCase(), hit=t=>!qq || String(t).toLowerCase().includes(qq);
   const urgentN=d.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0), orderN=supOrderCount();
   const search=`<form class="supsearch" onsubmit="return false"><input class="inp" data-supq placeholder="さがす（品目・ルーム）" value="${esc(S.supQ||'')}" autocomplete="off">
-    <div class="seg supfilter">${[['all','すべて',''],['open','要対応だけ',open],['urgent','至急だけ',urgentN], ...(orderN||f==='order'?[['order','注文中',orderN]]:[])].map(([k,l,n])=>`<button type="button" class="${f===k?'on':''}" data-act="sup-filter" data-k="${k}">${l}${n!==''?` ${n}`:''}</button>`).join('')}</div></form>`;
+    <div class="seg supfilter">${[['all','すべて',''],['open','補充できるもの',open-orderN],['urgent','至急だけ',urgentN], ...(orderN||f==='order'?[['order','注文中',orderN]]:[])].map(([k,l,n])=>`<button type="button" class="${f===k?'on':''}" data-act="sup-filter" data-k="${k}">${l}${n!==''?` ${n}`:''}</button>`).join('')}</div></form>`;
   const tools=`<div class="suptools">
     <button type="button" class="btn sm" data-act="sup-copy" ${open?'':'disabled'}>${icon('copy')} 文面をコピー</button>
     ${doneN?`<button type="button" class="btn sm" data-act="sup-clear">補充済みを消す（${doneN}）</button>`:''}
@@ -5013,7 +5014,7 @@ function viewSupplies(){
           ${x.done?'':`<button type="button" class="supord ${x.order?'on':''}" data-act="sup-order" data-ref='${ref}' title="${x.order?'注文中を外す（届いたとき）':'在庫切れで注文中にする'}">${x.order?'注文中':'注文中に'}</button>`}
           <button class="iconbtn sm" data-act="sup-del" data-ref='${ref}' title="消す">${icon('x')}</button></div>`; }).join('')}</div>
     </section>`; }).join('');
-  const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':f==='order'?'注文中のものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
+  const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':f==='order'?'注文中のものがあるルームはありません':f==='open'?'補充できるものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
   return `${search}<div class="grouphd suphd" style="padding-left:0"><span>ルームを押して点検する</span>${rnInfo()}</div>${inspBlock}${tools}${totals}<div class="notes suprooms">${rows||`<div class="plain"><div class="empty">${qq||f!=='all'?`${qq?`「${esc(S.supQ.trim())}」に合う`:'この条件の'}ものはありません <button type="button" class="btn sm" data-act="sup-reset">絞り込みを解く</button>`:'補充が要るものはありません'}</div></div>`}</div>
     <div class="hint" style="margin-top:10px">ルームを押すと、点検項目ごとに「至急・補充必要・足りている」を選べます。「至急」「補充必要」にしたものがここに並びます。補充したらチェックを入れてください。在庫切れで注文しているものは「注文中に」を押すと、届くまで「注文中」と出ます（品目ごとにまとめて付け外しするときは「買い出し用のまとめ」から）。「文面をコピー」で、まだの分をルームごとの文にしてコピーできます（LINE や Telegram に貼り付けて使えます）。</div>`;
 }
@@ -5906,7 +5907,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:e0bab5c5732c';
+const BUILD = 'AOS_BUILD:eed967f32516';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
