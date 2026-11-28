@@ -1104,8 +1104,8 @@ button.bnb:hover{color:var(--text);background:var(--panel2)}
 .nrow.done .nt .ntb{color:var(--faint)}
 .nadd{flex-direction:column;align-items:stretch}
 .nadd .naddmore{display:none;flex-direction:column;gap:6px;margin-top:6px;padding:10px;border:1px solid var(--accent);border-radius:12px;background:var(--panel);box-shadow:0 0 0 3px var(--accent-soft)}
-.nadd:focus-within .naddmore{display:flex}
-.nadd:focus-within input[name="q"]{border-style:solid;border-color:var(--accent);background:var(--panel)}
+.nadd.open .naddmore{display:flex}
+.nadd.open input[name="q"]{border-style:solid;border-color:var(--accent);background:var(--panel)}
 .nadd textarea{min-height:68px;resize:vertical;font-size:14px;line-height:1.6}
 .naddbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .naddbar .hint{font-size:11.5px;margin:0}
@@ -1313,6 +1313,7 @@ const S = {
   members:[],  // 担当者の一覧（members.md）
   tab: safeGet(LS.tab) || 'board', filter:null, who: safeGet(LS.who) || null, modal:null, toast:null, loadedAt:0,
   bok:null,  // BOK のタブで開いている機能（null＝機能の一覧）
+  ndraft:{},  // 引き継ぎ・ノートの追加の欄の書きかけ（区分ごと。画面の中だけで持つ）
   nav:false, navPin: safeGet(LS.navPin)!=='0',  // メニューを開いているか／広い画面で左に出しっぱなしにするか
 };
 function safeGet(k){ try{ return localStorage.getItem(k); }catch{ return null; } }
@@ -2107,9 +2108,9 @@ function viewNotes(k='notes'){
           <button class="iconbtn sm del" data-act="ncat-del" data-doc="${k}" data-cat="${esc(c.name)}" title="区分を削除">${icon('x')}</button>
         </span></div>
       ${closed?'':`<div class="nlist">${rows}</div>
-      ${qq?'':`<form class="quick nadd" data-act="note-add" data-doc="${k}" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加（表題）${plain||memo?'':'・チェック付き'}" autocomplete="off" enterkeyhint="next">
-          <div class="naddmore"><textarea class="inp" name="body" rows="3" placeholder="内容（なくても追加できます。改行できます）"></textarea>
-          <div class="naddbar"><span class="hint">表題のあと Enter で内容へ（内容が空のまま Enter なら表題だけ追加）。内容を書いたら「追加」か ${/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl'}+Enter</span><span class="sp"></span><button type="button" class="btn sm" data-act="nadd-cancel">やめる</button><button class="btn sm pri">追加</button></div></div></form>`}`}
+      ${qq?'':(()=>{ const dr=S.ndraft[k+'|'+c.name]||{}; return `<form class="quick nadd${dr.open?' open':''}" data-act="note-add" data-doc="${k}" data-cat="${esc(c.name)}"><input name="q" value="${esc(dr.q||'')}" placeholder="＋ ${esc(c.name)}に追加（表題）${plain||memo?'':'・チェック付き'}" autocomplete="off" enterkeyhint="next">
+          <div class="naddmore"><textarea class="inp" name="body" rows="3" placeholder="内容（なくても追加できます。改行できます）">${esc(dr.body||'')}</textarea>
+          <div class="naddbar"><span class="hint">表題のあと Enter で内容へ（内容が空のまま Enter なら表題だけ追加）。内容を書いたら「追加」か ${/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl'}+Enter</span><span class="sp"></span><button type="button" class="btn sm" data-act="nadd-cancel">やめる</button><button class="btn sm pri">追加</button></div></div></form>`; })()}`}
     </section>`;
   }).join('');
   const search = memo ? `<form class="supsearch" onsubmit="return false"><input class="inp" data-memoq placeholder="さがす（メモ・区分）" value="${esc(S.memoQ||'')}" autocomplete="off"></form>` : '';
@@ -4467,6 +4468,14 @@ function rdSel(el){
 }
 document.addEventListener('keydown', e=>{ if(e.key==='Enter' && e.target.matches && e.target.matches('.rdtr[data-act],.rditem[data-act]')){ e.preventDefault(); e.target.click(); } });
 document.addEventListener('keydown', e=>{ if(e.target.matches && e.target.matches('[data-rdtag]') && e.key==='Enter' && !e.isComposing){ e.preventDefault(); const n=e.target.dataset.rdtag; if(rdAddTag(e.target)){ render(); document.querySelector(`[data-rdtag="${CSS.escape(n)}"]`)?.focus(); } } });
+// 引き継ぎ・ノートの追加の欄の開け閉め（2026-11-28）。:focus-within で出し入れすると、Safari（Mac・iPhone）では「追加」「やめる」を押した瞬間に
+// 欄からフォーカスが外れて畳まれ、ボタンが押せないことがあるため、クラスで開け閉めする。ボタンは押してもフォーカスを奪わない
+const naddKey = f => `${ndoc(f.dataset.doc)}|${f.dataset.cat}`;
+function naddSave(f){ const q=f.q.value, body=f.body?f.body.value:''; if(q.trim()||body.trim()) S.ndraft[naddKey(f)]={q, body, open:true}; else delete S.ndraft[naddKey(f)]; }
+document.addEventListener('focusin', e=>{ const f=e.target.closest && e.target.closest('form.nadd'); if(f) f.classList.add('open'); });
+document.addEventListener('focusout', e=>{ const f=e.target.closest && e.target.closest('form.nadd'); if(!f) return;
+  setTimeout(()=>{ if(!f.isConnected || f.contains(document.activeElement)) return; if(!f.q.value.trim() && !(f.body && f.body.value.trim())) f.classList.remove('open'); }, 150); });
+document.addEventListener('mousedown', e=>{ if(e.target.closest && e.target.closest('.naddbar button')) e.preventDefault(); });
 document.addEventListener('focusout', e=>{ if(e.target.matches && e.target.matches('[data-rdtag]') && e.target.value.trim() && rdAddTag(e.target)) setTimeout(render,0); });
 function rdField(){
   const c=rdConf();
@@ -4847,14 +4856,19 @@ function pageTitle(){ const d=NAV_DEF[S.tab]; return d ? d.l : 'Action OS'; }
 // （セラピストDB の詳細で、特徴の後読みや PIN の「表示」のたびに上へ飛ばされていた）。作り直す前に位置を覚えて、作り直したあとに戻す。
 // 別窓の中のものは、同じ別窓が開いたままのときだけ戻す（別の窓に変わったら先頭から）
 const KEEP_SCROLL = ['.ov .modal', '.ov .mdbody', '.ov .bkquote', '.ov .setnav', '.dbody', '.toolbar .tabs', '.rdhead .vseg'];
+// 最後に描いた別窓と、そのときの段階（確認画面・切り替え）。呼ぶ側が描き直す前に S.modal を別の窓に替えていても、取り違えないように
+let lastModal=null, lastModalKey='';
+const modalKey = m => m ? `${m.type||''}|${m.step||''}|${m.pane||''}` : '';
 function scrollSnap(){
   const list=[];
   for(const sel of KEEP_SCROLL) document.querySelectorAll(sel).forEach((el,i)=>{ if(el.scrollTop||el.scrollLeft) list.push({sel, i, t:el.scrollTop, l:el.scrollLeft}); });
-  return {modal:S.modal, list};
+  return {modal:lastModal, key:lastModalKey, list};
 }
 function scrollBack(snap){
+  const sameModal = S.modal && S.modal===snap.modal && modalKey(S.modal)===snap.key;
+  lastModal=S.modal; lastModalKey=modalKey(S.modal);
   for(const x of snap.list){
-    if(x.sel.startsWith('.ov') && S.modal!==snap.modal) continue;
+    if(x.sel.startsWith('.ov') && !sameModal) continue;
     const el=document.querySelectorAll(x.sel)[x.i]; if(!el) continue;
     if(x.t) el.scrollTop=x.t; if(x.l) el.scrollLeft=x.l;
   }
@@ -5264,7 +5278,7 @@ document.addEventListener('click', async e=>{
     case 'note-toggle': toggleNote(ref); break;
     case 'note-edit': { const f=findNote(S[ndoc(ref.doc)], ref); if(!f) break; S.modal={type:'note', ref, draft:{text:f.it.text, body:noteBody(f.it.body), kind:f.it.check===null?'plain':'check', cat:ref.cat}}; render(); break; }
     case 'nset': { const fm=document.querySelector('form[data-act="save-note"]'); if(fm){ S.modal.draft.text=fm.text.value; if(fm.body) S.modal.draft.body=fm.body.value; } S.modal.draft[el.dataset.f]=el.dataset.v; render(); break; }
-    case 'nadd-cancel': { const fm=el.closest('form'); if(fm){ fm.reset(); if(document.activeElement) document.activeElement.blur(); } break; }
+    case 'nadd-cancel': { const fm=el.closest('form'); if(fm){ delete S.ndraft[naddKey(fm)]; fm.reset(); fm.q.value=''; fm.body.value=''; fm.classList.remove('open'); if(document.activeElement) document.activeElement.blur(); } break; }
     case 'note-del': { const r=S.modal.ref; if(!confirm('このメモを削除しますか？')) return; S.modal=null; deleteNote(r); break; }
     case 'note-copy': { const c=findCat(S[ndoc(el.dataset.doc)], el.dataset.cat); const t=c&&noteCatText(c); if(t) pwCopy(t, `「${c.name}」`); break; }
     case 'note-clear': { const c=el.dataset.cat; if(!confirm(`「${c}」の対応済み（チェック済み）のメモを消しますか？`)) return; clearChecked(c, el.dataset.doc); break; }
@@ -5305,6 +5319,8 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-stroom]') && ST.rooms) ST.rooms[Number(e.target.dataset.stroom)]=e.target.value;
   if(e.target.matches('[data-siedit]')) SI.edit[Number(e.target.dataset.siedit)]=e.target.value;
   if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
+  // 引き継ぎ・ノートの追加の欄：打つたびに、区分ごとの書きかけへ写す（描き直しても、欄の外を押しても消えない）
+  if(e.target.closest && e.target.closest('form.nadd')) naddSave(e.target.closest('form.nadd'));
   // 空室情報のマス：打つたびに、そのルームの直しかけへ写す（画面を描き直しても消えない）
   if(e.target.matches('[data-rvi],[data-rvhi]')) rvInput(e.target);
 });
@@ -5441,7 +5457,7 @@ document.addEventListener('submit', async e=>{
     safeSet(LS.pwUrl,url||null); safeSet(LS.pwKey,url?key:null); PWD.rows=null; PWD.error=''; S.modal=null; if(url){ S.tab='pw'; safeSet(LS.tab,'pw'); } render(); toast(url?'パスワード表につなぎました':'パスワード表の設定を消しました'); return; }
   if(a==='note-add'){ const v=f.q.value.trim(), body=f.body?f.body.value:'';
     if(!v){ if(noteBody(body)){ toast('表題を入れてください',true); f.q.focus(); } return; }
-    f.q.value=''; if(f.body) f.body.value=''; if(document.activeElement && f.contains(document.activeElement)) document.activeElement.blur();
+    f.q.value=''; if(f.body) f.body.value=''; delete S.ndraft[naddKey(f)]; f.classList.remove('open'); if(document.activeElement && f.contains(document.activeElement)) document.activeElement.blur();
     const k=ndoc(f.dataset.doc), c=findCat(S[k], f.dataset.cat); addNote(f.dataset.cat, v, k==='memo'?false:!(c&&catPlain(c)), k, body); return; }
   if(a==='ncat-add'){ const v=f.q.value.trim(); if(!v) return; const err=badNoteCat(v, undefined, f.dataset.doc); if(err) return toast(err,true); f.q.value=''; addNoteCat(v, f.dataset.doc); return; }
   if(a==='save-note'){ const m=S.modal, text=f.text.value.trim(); if(!text) return; S.modal=null; updateNote(m.ref, {text, body:f.body?f.body.value:undefined, kind:ndoc(m.ref.doc)==='memo'?'plain':m.draft.kind, cat:m.draft.cat}); return; }
@@ -5488,7 +5504,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:9f6cb1f4a331';
+const BUILD = 'AOS_BUILD:79a58a52c877';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
