@@ -2107,8 +2107,7 @@ function viewNotes(k='notes'){
           <button class="iconbtn sm del" data-act="ncat-del" data-doc="${k}" data-cat="${esc(c.name)}" title="区分を削除">${icon('x')}</button>
         </span></div>
       ${closed?'':`<div class="nlist">${rows}</div>
-      ${qq?'':memo?`<form class="quick" data-act="note-add" data-doc="${k}" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加" autocomplete="off" enterkeyhint="done"></form>`
-        :`<form class="quick nadd" data-act="note-add" data-doc="${k}" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加（表題）${plain?'':'・チェック付き'}" autocomplete="off" enterkeyhint="next">
+      ${qq?'':`<form class="quick nadd" data-act="note-add" data-doc="${k}" data-cat="${esc(c.name)}"><input name="q" placeholder="＋ ${esc(c.name)}に追加（表題）${plain||memo?'':'・チェック付き'}" autocomplete="off" enterkeyhint="next">
           <div class="naddmore"><textarea class="inp" name="body" rows="3" placeholder="内容（なくても追加できます。改行できます）"></textarea>
           <div class="naddbar"><span class="hint">表題のあと Enter で内容へ（内容が空のまま Enter なら表題だけ追加）。内容を書いたら「追加」か ${/Mac|iPhone|iPad/.test(navigator.platform)?'⌘':'Ctrl'}+Enter</span><span class="sp"></span><button type="button" class="btn sm" data-act="nadd-cancel">やめる</button><button class="btn sm pri">追加</button></div></div></form>`}`}
     </section>`;
@@ -2116,7 +2115,7 @@ function viewNotes(k='notes'){
   const search = memo ? `<form class="supsearch" onsubmit="return false"><input class="inp" data-memoq placeholder="さがす（メモ・区分）" value="${esc(S.memoQ||'')}" autocomplete="off"></form>` : '';
   const empty = qq ? `<div class="empty">「${esc(S.memoQ.trim())}」に合うメモはありません <button type="button" class="btn sm" data-act="memo-clear">検索を消す</button></div>` : '<div class="empty">区分がありません。下から追加してください</div>';
   const hint = memo
-    ? 'あとで探して見るメモ（ポスト番号・設備の使い方・連絡先など）を、区分ごとに貯めておく場所です。対応したら片付けるものは「引き継ぎ」へ。区分の名前を押すと開け閉めできます（この端末に覚えます）。行や区分の左の ⋮⋮ を押したまま動かすと、並べ替えたり、ほかの区分へ移したりできます（検索中はできません）。文字を押すと編集できます。**で囲んだところは赤く強調されます。'
+    ? 'あとで探して見るメモ（ポスト番号・設備の使い方・連絡先など）を、区分ごとに貯めておく場所です。対応したら片付けるものは「引き継ぎ」へ。区分の下の欄に表題を入れると、内容の欄が開きます（内容はなくても追加できます。検索は内容にも当たります）。区分の名前を押すと開け閉めできます（この端末に覚えます）。行や区分の左の ⋮⋮ を押したまま動かすと、並べ替えたり、ほかの区分へ移したりできます（検索中はできません）。文字を押すと編集できます。**で囲んだところは赤く強調されます。'
     : '区分の下の欄に表題を入れると、内容の欄が開きます（内容はなくても追加できます）。「コピー」は、表題に①②…を付け、内容をその下にそろえて写します。行や区分の左の ⋮⋮ を押したまま動かすと、並べ替えたり、ほかの区分へ移したりできます。チェックを押すと「対応済み」になります。済んだものは区分の「済みを消す」でまとめて片付けられます。文字を押すと編集できます。**で囲んだところは赤く強調されます。';
   return `${search}<div class="notes" data-doc="${k}">${body||empty}
     <div class="nfoot">${qq?'':`<form class="quick" data-act="ncat-add" data-doc="${k}"><input name="q" placeholder="＋ 区分を追加（例：${memo?'設備の使い方':'セラピスト情報'}）" autocomplete="off" enterkeyhint="done"></form>`}
@@ -2125,12 +2124,10 @@ function viewNotes(k='notes'){
 function noteModal(m){
   const d=m.draft, k=ndoc(m.ref&&m.ref.doc), memo=k==='memo';
   return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-note">
-    <h2>${memo?'メモを編集':'編集'}</h2>
-    ${memo?`<div class="field"><label>内容</label><textarea class="inp" name="text" rows="4" required>${esc(d.text)}</textarea>
-      <div class="hint" style="margin-top:6px">**で囲んだところは赤く強調されます（例：**絶対に開封しない**）</div></div>`
-    :`<div class="field"><label>表題</label><input class="inp" name="text" value="${esc(d.text)}" required autocomplete="off"></div>
+    <h2>編集</h2>
+    <div class="field"><label>表題</label><input class="inp" name="text" value="${esc(d.text)}" required autocomplete="off"></div>
     <div class="field"><label>内容（任意）</label><textarea class="inp" name="body" rows="5" placeholder="なくてもかまいません。改行できます">${esc(d.body||'')}</textarea>
-      <div class="hint" style="margin-top:6px">**で囲んだところは赤く強調されます（例：**絶対に開封しない**）</div></div>`}
+      <div class="hint" style="margin-top:6px">**で囲んだところは赤く強調されます（例：**絶対に開封しない**）</div></div>
     ${memo?'':`<div class="field"><label>種類</label><div class="seg">
       <button type="button" class="${d.kind==='check'?'on':''}" data-act="nset" data-f="kind" data-v="check">チェック付き（対応したら消す）</button>
       <button type="button" class="${d.kind==='plain'?'on':''}" data-act="nset" data-f="kind" data-v="plain">チェック無し（ずっと残す決まりごと）</button></div></div>`}
@@ -5470,7 +5467,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:ff8ffbb86d30';
+const BUILD = 'AOS_BUILD:3759558ca7b4';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
