@@ -1165,9 +1165,12 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 
 /* 補充リスト：ルームごとに1枚の枠にまとめる（上に見出しの帯・下に品目）。左の色の帯は、至急があれば赤・補充が要れば黄（上のルームのボタンと同じ色）。情報が増えてルームの境が分かりにくくなったため（2026-11-28 社長） */
 .notes.suprooms{gap:14px}
-.suproom{--sr:var(--line);background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--sr);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.suproom{--sr:transparent;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+/* 色は枠の線にしない（太い線を丸い角に沿わせると曲がって安っぽく見える。2026-11-28 社長）。見出しの帯の左に、角から離したまっすぐな細い線＋帯をうっすら色づける */
 .suproom.red{--sr:var(--red)} .suproom.amber{--sr:var(--amber)}
-.suproom .colhd{background:var(--panel2);padding:10px 12px;border-bottom:1px solid var(--line)}
+.suproom .colhd{position:relative;background:var(--panel2);padding:10px 12px;border-bottom:1px solid var(--line)}
+.suproom.red .colhd{background:color-mix(in srgb,var(--red) 7%,var(--panel2))} .suproom.amber .colhd{background:color-mix(in srgb,var(--amber) 7%,var(--panel2))}
+.suproom .colhd::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--sr)}
 .suproom .colhd .name{font-size:16px}
 .suproom .colhd .name::before{display:none}
 .suproom .colhd .count{background:var(--line)}  /* 件数の丸が見出しの帯と同じ色で消えないように */
@@ -5873,7 +5876,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:f3daddc6e898';
+const BUILD = 'AOS_BUILD:9aced00fb233';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
