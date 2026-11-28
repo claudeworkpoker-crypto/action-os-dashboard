@@ -1162,6 +1162,17 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 @keyframes rnpulse{50%{opacity:.35}}
 .colhd .rnjob,.supwhobox .rnjob{margin:0 0 0 4px;vertical-align:1px}
 .supchip .supwho .rnjob{font-size:10.5px;color:var(--sub);font-weight:600} .supchip .supwho .rnjob.on{color:var(--accent)}
+
+/* 補充リスト：ルームごとに1枚の枠にまとめる（上に見出しの帯・下に品目）。左の色の帯は、至急があれば赤・補充が要れば黄（上のルームのボタンと同じ色）。情報が増えてルームの境が分かりにくくなったため（2026-11-28 社長） */
+.notes.suprooms{gap:14px}
+.suproom{--sr:var(--line);background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--sr);border-radius:12px;box-shadow:var(--shadow);overflow:hidden}
+.suproom.red{--sr:var(--red)} .suproom.amber{--sr:var(--amber)}
+.suproom .colhd{background:var(--panel2);padding:10px 12px;border-bottom:1px solid var(--line)}
+.suproom .colhd .name{font-size:16px}
+.suproom .colhd .name::before{display:none}
+.suproom .colhd .count{background:var(--line)}  /* 件数の丸が見出しの帯と同じ色で消えないように */
+.suproom .colhd .supwho{padding-left:0}
+.suproom .nlist{background:transparent;border:0;border-radius:0;box-shadow:none;padding:2px 6px 4px}
 </style>
 </head>
 <body>
@@ -4958,8 +4969,8 @@ function viewSupplies(){
   const rows = names.map(n=>{ const r=supRoom(d,n); if(!r || !r.items.length) return '';
     const items = (hit(n) ? r.items : r.items.filter(x=>hit(x.name))).filter(supShow); if(!items.length) return '';
     const sorted=items.slice().sort((a,b)=>(a.done-b.done)||(!!a.order-!!b.order)||((a.level==='urgent'?0:1)-(b.level==='urgent'?0:1)));
-    const left=supOpen(r).length, canDone=supOpen(r).filter(x=>!x.order).length;
-    return `<section class="suproom">
+    const left=supOpen(r).length, canDone=supOpen(r).filter(x=>!x.order).length, urg=supOpen(r).some(x=>x.level==='urgent');
+    return `<section class="suproom ${urg?'red':left?'amber':''}">
       <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span><span class="sp"></span>
         ${canDone?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">${canDone<left?'注文中以外を補充した':'全部補充した'}</button>`:''}${rnWho(n,'line')}</div>
       <div class="nlist">${sorted.map(x=>{ const ref=esc(JSON.stringify({room:n, name:x.name, done:!!x.done, order:!!x.order})), lv=SUP_LV[x.level];
@@ -4970,7 +4981,7 @@ function viewSupplies(){
           <button class="iconbtn sm" data-act="sup-del" data-ref='${ref}' title="消す">${icon('x')}</button></div>`; }).join('')}</div>
     </section>`; }).join('');
   const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':f==='order'?'注文中のものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
-  return `${search}<div class="grouphd suphd" style="padding-left:0"><span>ルームを押して点検する</span>${rnInfo()}</div>${inspBlock}${tools}${totals}<div class="notes">${rows||`<div class="plain"><div class="empty">${qq||f!=='all'?`${qq?`「${esc(S.supQ.trim())}」に合う`:'この条件の'}ものはありません <button type="button" class="btn sm" data-act="sup-reset">絞り込みを解く</button>`:'補充が要るものはありません'}</div></div>`}</div>
+  return `${search}<div class="grouphd suphd" style="padding-left:0"><span>ルームを押して点検する</span>${rnInfo()}</div>${inspBlock}${tools}${totals}<div class="notes suprooms">${rows||`<div class="plain"><div class="empty">${qq||f!=='all'?`${qq?`「${esc(S.supQ.trim())}」に合う`:'この条件の'}ものはありません <button type="button" class="btn sm" data-act="sup-reset">絞り込みを解く</button>`:'補充が要るものはありません'}</div></div>`}</div>
     <div class="hint" style="margin-top:10px">ルームを押すと、点検項目ごとに「至急・補充必要・足りている」を選べます。「至急」「補充必要」にしたものがここに並びます。補充したらチェックを入れてください。在庫切れで注文しているものは「注文中に」を押すと、届くまで「注文中」と出ます（品目ごとにまとめて付け外しするときは「買い出し用のまとめ」から）。「文面をコピー」で、まだの分をルームごとの文にしてコピーできます（LINE や Telegram に貼り付けて使えます）。</div>`;
 }
 function supInspectModal(m){
@@ -5862,7 +5873,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:3ab530f26d04';
+const BUILD = 'AOS_BUILD:f3daddc6e898';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
