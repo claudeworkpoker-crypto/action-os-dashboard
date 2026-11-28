@@ -1219,6 +1219,9 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 .supa:first-child>.grouphd{padding-top:6px}
 .suptot summary{font-size:15px;font-weight:800;color:var(--text);padding:6px 2px 10px}
 .supchip .tk,.supords .tk{font-style:normal;white-space:nowrap}
+
+/* 届く予定の日を過ぎた注文中の印は黄色（まだ届いていない？の合図） */
+.supord.on.late{background:var(--amber-soft);color:var(--amber)}
 </style>
 </head>
 <body>
@@ -4899,6 +4902,19 @@ function itemSupOrder(name, on){ supOp(on?'注文中にしました':'注文中�
 // 発注の記録（品目ごと）
 const supOrdInfo = name => (S.supplies && S.supplies.orders || []).find(o=>o.name===name) || null;
 const supMD = ds => ds ? `${+ds.slice(5,7)}/${+ds.slice(8,10)}` : '';
+// 補充リストの注文中の印：届く日が入っていれば短く「今日着／明日着／12/2着」（過ぎていたら「12/1着予定」を黄色で）。無ければ発注済み／注文中。
+// 印を増やさず、いまの「注文中」の印の文字だけを変える（ごちゃつかせないため。2026-11-28 社長）。メモなどの詳しいことは注文のまとめで見る
+function supOrdTag(name){
+  const i=supOrdInfo(name)||{}, t=todayStr();
+  const title=[i.ordered?'発注済み':'未発注', i.eta?`${mdw(i.eta)} 着予定`:'', i.memo||''].filter(Boolean).join('・');
+  if(i.eta){
+    if(i.eta===t) return {label:'今日着', title};
+    if(i.eta===addDays(t,1)) return {label:'明日着', title};
+    if(i.eta<t) return {label:`${supMD(i.eta)}着予定`, title:title+'（予定の日を過ぎています）', late:true};
+    return {label:`${supMD(i.eta)}着`, title};
+  }
+  return {label:i.ordered?'発注済':'注文中', title};
+}
 function saveSupOrder(name, patch){ supOp('注文の記録を保存しました', d=>{ d.orders=d.orders||[]; let o=d.orders.find(x=>x.name===name); if(!o){ o={name, ordered:false, eta:'', memo:''}; d.orders.push(o); } Object.assign(o, patch); }, `dashboard: 「${name}」の注文の記録を更新`); }
 // 届いた：その品目の注文中をすべてのルームで外し（補充はまだの扱いに戻る）、発注の記録も片付ける
 function supArrived(name){ supOp('注文中を外しました（届いた）', d=>{ let hit=false; d.rooms.forEach(r=>supOpen(r).forEach(x=>{ if(x.name===name && x.order){ x.order=false; hit=true; } })); d.orders=(d.orders||[]).filter(o=>o.name!==name); if(!hit) return false; }, `dashboard: 「${name}」が届いたので注文中を外す`); }
@@ -5080,7 +5096,7 @@ function viewSupplies(){
         return `<div class="nrow ${x.done?'done':''}">
           <button class="nchk ${x.done?'on':''}" data-act="sup-toggle" data-ref='${ref}' title="${x.done?'未補充に戻す':'補充した'}">${icon('check')}</button>
           <div class="nt"><span class="suplv ${lv.cls}">${lv.tag}</span> ${esc(x.name)}${x.qty>1?` <b class="supq">×${x.qty}</b>`:''}</div>
-          ${x.done?'':`<button type="button" class="supord ${x.order?'on':''}" data-act="sup-order" data-ref='${ref}' title="${x.order?'注文中を外す（届いたとき）':'在庫切れで注文中にする'}">${x.order?(()=>{ const i=supOrdInfo(x.name); return i&&i.ordered ? `発注済${i.eta?` ${supMD(i.eta)}着`:''}` : '注文中'; })():'注文中に'}</button>`}
+          ${x.done?'':(()=>{ const t=x.order?supOrdTag(x.name):null; return `<button type="button" class="supord ${x.order?'on':''} ${t&&t.late?'late':''}" data-act="sup-order" data-ref='${ref}' title="${x.order?esc(t.title)+'（押すと注文中を外す）':'在庫切れで注文中にする'}">${x.order?t.label:'注文中に'}</button>`; })()}
           <button class="iconbtn sm" data-act="sup-del" data-ref='${ref}' title="消す">${icon('x')}</button></div>`; }).join('')}</div>
     </section>`; }).join('');
   const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':f==='order'?'注文中のものがあるルームはありません':f==='open'?'補充できるものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
@@ -5982,7 +5998,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:af74654e6f10';
+const BUILD = 'AOS_BUILD:61cd15910176';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
