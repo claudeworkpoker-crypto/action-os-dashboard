@@ -1134,6 +1134,29 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 .task.pdone .ttext,.task.pdone .tbody{opacity:.45;text-decoration:line-through}
 .task.pdone .chk{background:var(--green-soft);border-color:var(--green)}
 .task.pdone .chk svg{opacity:1}
+
+/* 補充：いまルームに入っているセラピスト */
+.supchip .supwho{display:flex;flex-direction:column;font-style:normal;font-size:11px;line-height:1.35;color:var(--sub);margin-top:4px;padding-top:4px;border-top:1px dashed var(--line);width:100%;overflow-wrap:anywhere}
+.supchip .supwho + .supwho{border-top:0;margin-top:2px;padding-top:0}
+.supchip .supwho b{font-size:12px;font-weight:600;color:inherit} .supchip .supwho em{font-style:normal;font-variant-numeric:tabular-nums;white-space:nowrap}
+.supchip .supwho span{font-size:11px;color:inherit;font-weight:400}
+.supchip .supwho.on{color:var(--green)}
+.supchip .supwho.on b::before{content:'';display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:4px;vertical-align:1px}
+.supchip .supwho.unk{color:var(--amber)}
+.colhd .supwho{font-style:normal;font-size:12px;color:var(--sub);min-width:0}
+.colhd .supwho.on b{color:var(--green)}
+.supwhobox{margin:-4px 0 10px;padding:7px 10px;border-radius:8px;background:var(--panel2);font-size:13px}
+.supwhobox .supwho{font-style:normal;color:var(--sub)} .supwhobox .supwho.on b{color:var(--green)}
+.suphd{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.suphd .rninfo{font-weight:400;font-size:11px;color:var(--faint);letter-spacing:0} .suphd .rninfo.err{color:var(--amber)}
+.rnre{border:0;background:transparent;color:var(--faint);padding:2px;width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer}
+.rnre:hover{color:var(--text);background:var(--line)} .rnre svg{width:13px;height:13px} .rnre.spin svg{animation:spin 1s linear infinite}
+.rnjob{display:inline-flex;align-items:center;gap:4px;align-self:flex-start;font-size:10.5px;font-weight:600;line-height:1;padding:3px 6px;border-radius:999px;margin-top:3px;background:var(--panel2);color:var(--sub);white-space:nowrap;font-style:normal}
+.rnjob.on{background:var(--accent-soft);color:var(--accent)}
+.rnjob s{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;text-decoration:none;animation:rnpulse 1.6s ease-in-out infinite}
+@keyframes rnpulse{50%{opacity:.35}}
+.colhd .rnjob,.supwhobox .rnjob{margin:0 0 0 4px;vertical-align:1px}
+.supchip .supwho .rnjob{font-size:10.5px;color:var(--sub);font-weight:600} .supchip .supwho .rnjob.on{color:var(--accent)}
 </style>
 </head>
 <body>
@@ -4812,14 +4835,105 @@ function supTotals(){
   for(const r of S.supplies.rooms) for(const x of supOpen(r).filter(supShow)){ const e=m.get(x.name)||{urgent:[], need:[], order:[]}; e[x.level==='urgent'?'urgent':'need'].push(r.room); if(x.order) e.order.push(r.room); m.set(x.name,e); }
   return [...m.entries()].sort((a,b)=>(b[1].urgent.length-a[1].urgent.length)||((b[1].urgent.length+b[1].need.length)-(a[1].urgent.length+a[1].need.length))||a[0].localeCompare(b[0],'ja'));
 }
+// ===== 補充：いまルームに入っているセラピスト（受付システムの「ルーム割当」と出勤の時間。アンケートの窓口 room.now で読むだけ） =====
+// 補充の画面を開いたときに読み（2分より前に読んだ分は読み直す）、開いている間は5分ごとに読み直す。名前は端末に保存しない（開いている間だけ持つ）
+// 入っている＝出勤の開始の30分前（入室）から、終了の30分後（退出）まで（受付の「ルーム表」と同じ）。時間は受付と同じ書き方（深夜は 26:00 など）
+// 施術中＝受付ログの予約の開始から終了まで（終了は延長込み）。窓口が予約を読めないとき（jobs が無い）は、施術中・待機中の印を出さない
+const RN = {rows:null, biz:'', jobs:false, at:0, tried:0, loading:false, error:'', seq:0};
+const RN_EVERY_MS = 5*60*1000, RN_STALE_MS = 2*60*1000;
+const rnBiz = hhmm => { const m=/^(\d{1,2}):(\d{2})$/.exec(String(hhmm||'').trim()); if(!m) return -1; let t=(+m[1])*60+(+m[2]); if(+m[1]<10) t+=1440; return t; };  // 受付と同じ：10時より前は前の日の深夜
+const rnHm = t => t<0 ? '' : `${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')}`;
+const rnAbs = (d,t) => new Date(d+'T00:00:00+09:00').getTime() + t*60000;
+const rnKey = s => String(s||'').normalize('NFKC').replace(/\s+/g,'').toUpperCase();
+const rnJst = ms => { const j=new Date(ms+9*3600000); return `${j.getUTCFullYear()}-${String(j.getUTCMonth()+1).padStart(2,'0')}-${String(j.getUTCDate()).padStart(2,'0')}`; };
+// 見本（?demo で接続先が未設定のとき）：いまの時刻から作る
+function rnDemoRows(){
+  const now=Date.now(), biz=rnJst(now-8*3600000), names=(S.rooms||[]).map(r=>r.name);
+  const base=rnAbs(biz,0), cm=Math.round((now-base)/60000/30)*30;   // 営業日の0時からの分（30分刻み）
+  const job=(s,e)=>({start:rnHm(s), end:rnHm(e)});
+  const at=(i,s,e,name,jobs=[])=>names[i] ? [{date:biz, name, room:names[i], start:rnHm(s), end:rnHm(e), status:'', noShift:false, jobs}] : [];
+  return {biz, jobs:true, rows:[
+    ...at(0, cm-120, cm+240, '見本みく', [job(cm-90, cm-10), job(cm-30, cm+60)]), ...at(0, cm+300, cm+540, '見本さや'),
+    ...at(1, cm+120, cm+420, '見本れん', [job(cm+150, cm+240)]),
+    ...(names[2]?[{date:biz, name:'見本ゆら', room:names[2], start:'', end:'', status:'完売', noShift:false, jobs:[job(cm-60, cm+30)]}]:[]),
+    ...at(3, cm-300, cm-60, '見本えみ'),
+    ...at(4, cm-10, cm+600, '見本りの', [job(cm+40, cm+120)]),
+  ]};
+}
+async function rnCall(){
+  if(S.be && S.be.kind==='demo' && !cpConf().url){ await new Promise(r=>setTimeout(r,300)); return {ok:true, ...rnDemoRows()}; }
+  return cpCall('room.now', {});
+}
+async function rnLoad(){
+  const my=++RN.seq; RN.loading=true; RN.tried=Date.now();
+  try{ const j=await rnCall(); if(my!==RN.seq) return; RN.rows=j.rows||[]; RN.biz=j.biz||''; RN.jobs=!!j.jobs; RN.at=Date.now(); RN.error=''; }
+  catch(e){ if(my===RN.seq) RN.error=e.message; }
+  if(my===RN.seq){ RN.loading=false; if(S.tab==='supplies' && !S.modal) render(); }
+}
+const rnWant = () => cpOn() && !!S.supplies && !RN.loading && Date.now()-RN.tried >= RN_STALE_MS;
+setInterval(()=>{ if(S.tab==='supplies' && document.visibilityState==='visible' && cpOn() && !RN.loading && Date.now()-RN.tried>=RN_EVERY_MS-500) rnLoad(); }, 30000);
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='visible' && S.tab==='supplies' && rnWant()) rnLoad(); });
+// ルームごと：いま入っている人（cur）・このあと入る人（next。今の営業日だけ）・時間が分からない人（unknown。完売・出勤の行が無いなど）
+// 予約（施術）：いま施術中の予約（job）と、このあと最初の予約（nextJob）。予約を読めていないときは付けない
+function rnJob(r, now){
+  if(!RN.jobs || !Array.isArray(r.jobs)) return {};
+  let job=null, nextJob=null;
+  for(const j of r.jobs){
+    const s=rnBiz(j.start); let e=rnBiz(j.end); if(s<0 || e<0) continue; if(e<s) e+=1440;
+    const a=rnAbs(r.date,s), b=rnAbs(r.date,e);
+    if(now>=a && now<b){ if(!job || b>job.b) job={s, e, a, b}; }
+    else if(now<a && (!nextJob || a<nextJob.a)) nextJob={s, e, a, b};
+  }
+  return {job, nextJob, hasJobs:true};
+}
+function rnRoom(room){
+  if(!RN.rows) return null;
+  const k=rnKey(room), now=Date.now(), cur=[], later=[], unknown=[];
+  for(const r0 of RN.rows){
+    if(rnKey(r0.room)!==k) continue;
+    const r={...r0, ...rnJob(r0, now)};
+    const s=rnBiz(r.start); let e=rnBiz(r.end);
+    if(s<0 || e<0){ if(r.date===RN.biz) unknown.push(r); continue; }
+    if(e<s) e+=1440;
+    const x={...r, s, e, a:rnAbs(r.date, s-30), b:rnAbs(r.date, e+30)};
+    if(now>=x.a && now<=x.b) cur.push(x); else if(now<x.a && r.date===RN.biz) later.push(x);
+  }
+  cur.sort((x,y)=>x.a-y.a); later.sort((x,y)=>x.a-y.a);
+  return {cur, next:later[0]||null, unknown};
+}
+// 表示：chip＝ルームのボタン（短く）／line＝ルームの見出し・点検の画面（時間も）
+function rnWho(room, mode){
+  const st=rnRoom(room); if(!st) return '';
+  const tm=x=>`${rnHm(x.s)}〜${rnHm(x.e)}`, unk=x=>`${esc(x.name)}（時間不明${x.status?`・${esc(x.status)}`:''}）`;
+  // 施術中・待機中の印（予約を読めたときだけ）
+  const job=x=>!x.hasJobs ? '' : x.job ? `<span class="rnjob on" title="施術中（予約 ${rnHm(x.job.s)}〜${rnHm(x.job.e)}）"><s></s>施術中 〜${rnHm(x.job.e)}</span>` : `<span class="rnjob" title="いまは予約が入っていない時間">待機中${x.nextJob?`・次 ${rnHm(x.nextJob.s)}`:''}</span>`;
+  if(mode==='chip'){
+    // 名前と出勤の時間（開始〜終了）を1人ずつ。いまは空きなら、次に入る人
+    const one=(x,cls)=>`<i class="supwho ${cls}"><b>${esc(x.name)}</b><em>${x.s!=null&&x.s>=0?tm(x):`時間不明${x.status?`・${esc(x.status)}`:''}`}</em>${job(x)}</i>`;
+    if(st.cur.length) return st.cur.map(x=>one(x,'on')).join('');
+    if(st.unknown.length) return st.unknown.map(x=>one(x,'unk')).join('');
+    if(st.next) return `<i class="supwho"><b>空き</b><span>次：${esc(st.next.name)}</span><em>${tm(st.next)}</em></i>`;
+    return `<i class="supwho"><b>空き</b></i>`;
+  }
+  const now = st.cur.length ? `いま：${st.cur.map(x=>`<b>${esc(x.name)}</b>（${tm(x)}）${job(x)}`).join('・')}` : st.unknown.length ? `いま：${st.unknown.map(x=>`<b>${unk(x)}</b>${job(x)}`).join('・')}` : 'いまは空き';
+  return `<i class="supwho ${st.cur.length?'on':st.unknown.length?'unk':''}">${now}${st.next?`${st.cur.length||st.unknown.length?' ／ ':'・'}次：${esc(st.next.name)}（${tm(st.next)}）`:''}</i>`;
+}
+// 補充の画面の上に出す一言（いつ読んだか・読めないとき）
+function rnInfo(){
+  if(!cpOn()) return '';
+  if(RN.error && !RN.rows) return `<span class="rninfo err">${/知らない操作/.test(RN.error)?'いまいる人を出すには、アンケートの窓口を新しい版にしてください':`いまいる人を読めませんでした：${esc(RN.error)}`}</span>`;
+  if(!RN.rows) return `<span class="rninfo">いまいる人を読んでいます…</span>`;
+  return `<span class="rninfo">いまいる人：${new Date(RN.at).toTimeString().slice(0,5)} 時点（受付のルーム割当）${RN.error?'。読み直しに失敗したので前の分を出しています':''}</span><button type="button" class="rnre ${RN.loading?'spin':''}" data-act="rn-reload" ${RN.loading?'disabled':''} title="いまいる人を読み直す" aria-label="いまいる人を読み直す">${icon('refresh')}</button>`;
+}
 function viewSupplies(){
+  if(rnWant()) setTimeout(()=>{ if(rnWant()) rnLoad(); },0);
   const d=S.supplies, open=supOpenCount(), doneN=d.rooms.reduce((a,r)=>a+r.items.filter(x=>x.done).length,0);
   const names=supRoomNames();
   // 点検：エリアごとにルームを並べ、押すと点検の画面を開く
   const areas=[...new Set(names.map(n=>roomArea(n)||'その他'))];
   const f=supF(), roomShow=n=>{ if(f==='all') return true; const r=supRoom(d,n); return !!r && supOpen(r).some(supShow); };
   const insp=`<div class="supinsp">${areas.filter(a=>names.some(n=>(roomArea(n)||'その他')===a && roomShow(n))).map(a=>`<div class="supa"><div class="grouphd">${esc(a)}</div><div class="supchips">${names.filter(n=>(roomArea(n)||'その他')===a && roomShow(n)).map(n=>{ const r=supRoom(d,n), c=r?supOpen(r):[], u=c.filter(x=>x.level==='urgent').length, o=c.filter(x=>x.order).length;
-      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`+(o?`・注文${o}`:''):'—'}</span><small>${r&&r.checked?`点検 ${esc(mdw(r.checked))}`:'未点検'}</small></button>`; }).join('')}</div></div>`).join('')}</div>`;
+      return `<button class="supchip ${u?'red':c.length?'amber':''}" data-act="sup-inspect" data-room="${esc(n)}"><b>${esc(n)}</b><span>${c.length?(u?`至急${u}・`:'')+`要${c.length}`+(o?`・注文${o}`:''):'—'}</span><small>${r&&r.checked?`点検 ${esc(mdw(r.checked))}`:'未点検'}</small>${rnWho(n,'chip')}</button>`; }).join('')}</div></div>`).join('')}</div>`;
   const qq=(S.supQ||'').trim().toLowerCase(), hit=t=>!qq || String(t).toLowerCase().includes(qq);
   const urgentN=d.rooms.reduce((a,r)=>a+supOpen(r).filter(x=>x.level==='urgent').length,0), orderN=supOrderCount();
   const search=`<form class="supsearch" onsubmit="return false"><input class="inp" data-supq placeholder="さがす（品目・ルーム）" value="${esc(S.supQ||'')}" autocomplete="off">
@@ -4841,7 +4955,7 @@ function viewSupplies(){
     const sorted=items.slice().sort((a,b)=>(a.done-b.done)||(!!a.order-!!b.order)||((a.level==='urgent'?0:1)-(b.level==='urgent'?0:1)));
     const left=supOpen(r).length, canDone=supOpen(r).filter(x=>!x.order).length;
     return `<section class="suproom">
-      <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span><span class="sp"></span>
+      <div class="colhd"><span class="name">${esc(n)}</span>${roomArea(n)?`<span class="hint">${esc(roomArea(n))}</span>`:''}<span class="count">${left}</span>${rnWho(n,'line')}<span class="sp"></span>
         ${canDone?`<button class="btn sm" data-act="sup-room-done" data-room="${esc(n)}">${canDone<left?'注文中以外を補充した':'全部補充した'}</button>`:''}</div>
       <div class="nlist">${sorted.map(x=>{ const ref=esc(JSON.stringify({room:n, name:x.name, done:!!x.done, order:!!x.order})), lv=SUP_LV[x.level];
         return `<div class="nrow ${x.done?'done':''}">
@@ -4851,7 +4965,7 @@ function viewSupplies(){
           <button class="iconbtn sm" data-act="sup-del" data-ref='${ref}' title="消す">${icon('x')}</button></div>`; }).join('')}</div>
     </section>`; }).join('');
   const inspBlock = insp.includes('supchip') ? insp : `<div class="plain" style="margin-bottom:14px"><div class="empty">${f==='urgent'?'至急のものがあるルームはありません':f==='order'?'注文中のものがあるルームはありません':'補充が要るルームはありません'}（「すべて」で全ルームを出せます）</div></div>`;
-  return `${search}<div class="grouphd" style="padding-left:0">ルームを押して点検する</div>${inspBlock}${tools}${totals}<div class="notes">${rows||`<div class="plain"><div class="empty">${qq||f!=='all'?`${qq?`「${esc(S.supQ.trim())}」に合う`:'この条件の'}ものはありません <button type="button" class="btn sm" data-act="sup-reset">絞り込みを解く</button>`:'補充が要るものはありません'}</div></div>`}</div>
+  return `${search}<div class="grouphd suphd" style="padding-left:0"><span>ルームを押して点検する</span>${rnInfo()}</div>${inspBlock}${tools}${totals}<div class="notes">${rows||`<div class="plain"><div class="empty">${qq||f!=='all'?`${qq?`「${esc(S.supQ.trim())}」に合う`:'この条件の'}ものはありません <button type="button" class="btn sm" data-act="sup-reset">絞り込みを解く</button>`:'補充が要るものはありません'}</div></div>`}</div>
     <div class="hint" style="margin-top:10px">ルームを押すと、点検項目ごとに「至急・補充必要・足りている」を選べます。「至急」「補充必要」にしたものがここに並びます。補充したらチェックを入れてください。在庫切れで注文しているものは「注文中に」を押すと、届くまで「注文中」と出ます（品目ごとにまとめて付け外しするときは「買い出し用のまとめ」から）。「文面をコピー」で、まだの分をルームごとの文にしてコピーできます（LINE や Telegram に貼り付けて使えます）。</div>`;
 }
 function supInspectModal(m){
@@ -4863,7 +4977,7 @@ function supInspectModal(m){
       <div class="seg insseg">${[['urgent','至急',crit&&crit.urgent],['need','補充必要',crit&&crit.need],['ok','足りている',crit&&crit.ok]].map(([k,l,c])=>`<button type="button" class="${v===k?'on '+k:''}" data-act="ins-set" data-name="${esc(name)}" data-v="${k}">${l}${c?`<small>${esc(c)}</small>`:''}</button>`).join('')}</div></div>`; };
   return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-inspect">
     <h2>${esc(m.room)} の備品を点検</h2>
-    <div class="hint" style="margin-bottom:10px">${roomArea(m.room)?esc(roomArea(m.room))+' ・ ':''}${r&&r.checked?`前回の点検 ${esc(mdw(r.checked))}`:'はじめての点検'}。いまの状態を選んで「保存」を押してください。</div>
+    <div class="hint" style="margin-bottom:10px">${roomArea(m.room)?esc(roomArea(m.room))+' ・ ':''}${r&&r.checked?`前回の点検 ${esc(mdw(r.checked))}`:'はじめての点検'}。いまの状態を選んで「保存」を押してください。</div>${RN.rows?`<div class="supwhobox">${rnWho(m.room,'line')}</div>`:''}
     <input class="inp" data-insq placeholder="品目をさがす（☆を押すとピン留めして上に並びます）" value="${esc(m.q||'')}" autocomplete="off" style="margin-bottom:10px">
     <div class="inslist">${[...d.items.filter(i=>i.pin), ...d.items.filter(i=>!i.pin)].map(i=>row(i.name, i)).join('')}${extra.map(x=>row(x.name, null)).join('')}</div>
     <div class="field" style="margin-top:12px"><label>ほかに補充が要るもの（任意）</label><div class="row" style="display:flex;gap:6px"><input class="inp" name="other" placeholder="例：ハンガー" style="flex:1"><select class="inp" name="otherlv" style="flex:0 0 120px"><option value="need">補充必要</option><option value="urgent">至急</option></select></div></div>
@@ -5474,6 +5588,7 @@ document.addEventListener('click', async e=>{
     case 'run-complete': { const r=S.runs.find(x=>x.id===el.dataset.id); if(!confirm(`「${r.task}」を完了にして、スレッドを終えますか？`)) break; setRun(r.id,{status:'closed'},'スレッドを終えました','dashboard: スレッドを終える'); if(findTask(S.sections,runRef(r))) completeTask(runRef(r)); break; }
     case 'some-del': if(confirm(`「${el.dataset.text}」を削除しますか？`)) removeSomeday(el.dataset.text); break;
     // 備品の補充
+    case 'rn-reload': if(!RN.loading){ rnLoad(); render(); } break;
     case 'enable-supplies': enableFile('supplies.md', SUP_INIT, 'supplies', parseSupplies, '補充のタブを作りました'); break;
     case 'sup-toggle': toggleSupply(ref); toast(`${ref.room} の「${ref.name}」を${ref.done?'未補充に戻しました':'補充済みにしました'}`, false, {undo:()=>toggleSupply({...ref, done:!ref.done})}); break;
     case 'sup-del': if(confirm(`「${ref.name}」を補充リストから消しますか？`)) delSupply(ref); break;
@@ -5742,7 +5857,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:5300f7d9ebb4';
+const BUILD = 'AOS_BUILD:135af71364f9';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
