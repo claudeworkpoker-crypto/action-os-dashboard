@@ -181,8 +181,8 @@ button.pinbtn:hover{background:var(--panel2);color:var(--amber)}
 .dates .btn.on{background:var(--accent-soft);color:var(--accent);border-color:transparent}
 .rvbar{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--sub);margin:0 0 12px}
 .rvbar svg{width:14px;height:14px;flex:none}
-.rvlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start}
-.rvcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow);cursor:pointer}
+.rvlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;align-items:start}
+.rvcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;box-shadow:var(--shadow)}
 .rvcard.bad{cursor:default}
 .rvhd{display:flex;align-items:center;gap:8px;margin-bottom:4px}
 .rvhd .name{font-weight:700;font-size:16px}
@@ -194,10 +194,6 @@ button.pinbtn:hover{background:var(--panel2);color:var(--amber)}
 .rvnone{font-size:13px;color:var(--faint)}
 .rvhid{flex-basis:100%;font-size:12px;color:var(--sub)}
 .rvprob{font-size:13px;color:var(--red);background:var(--red-soft);border-radius:8px;padding:6px 8px;margin:6px 0}
-.rvrow{display:grid;grid-template-columns:24px repeat(3,minmax(0,1fr));gap:6px;align-items:center;margin-top:12px}
-.rvrow .dl{font-size:14px;color:var(--sub)}
-.rvrow .inp{min-width:0;padding-left:8px;padding-right:8px}
-.rvhrow{margin:6px 0 0 30px}
 .rverr{color:var(--red);background:var(--red-soft);border-radius:8px;padding:8px 10px;margin-top:12px;font-size:13px}
 .boksub{font-size:13px;color:var(--sub);margin:0 0 10px}
 .boklist{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
@@ -1064,6 +1060,44 @@ button.bnb:hover{color:var(--text);background:var(--panel2)}
   .boknav{margin-left:-16px;margin-right:-16px;padding:0 16px}
   .bnb{padding:9px 10px 10px}
 }
+/* 空室情報：一覧のままで直す（マスを押して打つ。直したマスは青い枠、使えない書き方は赤） */
+.rvday.rved{grid-template-columns:50px 1fr 26px;align-items:center;padding:5px 0}
+.rvday.rved .dn{padding-top:0}
+.rvday:not(.rved){grid-template-columns:50px 1fr}
+.rvday .dn{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.rvday .dn b{font-weight:600;color:var(--text)}
+.rvday .dn small{font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums}
+.rvday .dn.today b,.rvday .dn.today small{color:var(--accent)}
+.rvday .dn.past b{color:var(--sub)}
+.rvweek{display:flex;align-items:center;flex-wrap:wrap;gap:4px 8px;font-size:13px;color:var(--sub);margin:-4px 0 12px}
+.rvweek svg{width:14px;height:14px;flex:none}
+.rvweek b{color:var(--text);font-weight:600}
+.rvweek .sub{font-size:12px;color:var(--faint);flex-basis:100%;padding-left:22px}
+.rvins{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;min-width:0}
+.rvin{width:100%;min-width:0;height:28px;border-radius:999px;border:1px solid transparent;background:var(--panel2);color:var(--text);font:inherit;font-size:13px;text-align:center;padding:0 4px;outline:none;cursor:text;transition:border-color .12s,background .12s}
+.rvin::placeholder{color:var(--faint);opacity:1}
+.rvin:hover{border-color:var(--line)}
+.rvin.on{background:var(--green-soft);color:var(--green);font-weight:500}
+.rvin.ch{border-color:var(--accent)}
+.rvin:focus{border-color:var(--accent);background:var(--panel);color:var(--text);box-shadow:0 0 0 3px var(--accent-soft)}
+.rvin:focus::placeholder{color:transparent}
+.rvin.bad,.rvin.bad:focus{border-color:var(--red);background:var(--red-soft);color:var(--red)}
+.rvin[readonly]{opacity:.6;cursor:default}
+.rvhb{width:26px;height:26px;border:0;border-radius:7px;background:transparent;color:var(--faint);display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
+.rvhb svg{width:15px;height:15px}
+.rvhb:hover{background:var(--panel2);color:var(--sub)}
+.rvhb.on{color:var(--amber)}
+.rvhidin{display:flex;align-items:center;gap:8px;margin:0 0 6px 56px;font-size:12px;color:var(--sub)}
+.rvhidin span{flex:none}
+.rvhidin .inp{flex:1;min-width:0;height:30px;padding:4px 10px;font-size:13px}
+.rvhidin .inp.ch{border-color:var(--accent)}
+.rvcard.dirty{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft),var(--shadow)}
+.rvfoot:empty{display:none}
+.rvfoot{border-top:1px solid var(--line);margin-top:4px;padding-top:10px}
+.rvfoot .rverr{margin:0 0 8px}
+.rvfrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rvfn{font-size:13px;color:var(--accent);font-weight:600;display:flex;flex-direction:column;gap:2px}
+.rvfsh{font-size:11px;color:var(--sub);font-weight:400}
 </style>
 </head>
 <body>
@@ -1097,6 +1131,7 @@ const ICON = {
   play:'<polygon points="6 4 20 12 6 20 6 4"/>',
   user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
   back:'<polyline points="15 18 9 12 15 6"/>',
+  eyeoff:'<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
   bell:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
   mail:'<rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/>',
   msg:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
@@ -1340,7 +1375,7 @@ async function pump(){
   }
   qRunning=false; S.loadedAt=Date.now(); setSyncIndicator();
 }
-window.addEventListener('beforeunload', e=>{ if(qRunning||Q.length){ e.preventDefault(); e.returnValue=''; } });
+window.addEventListener('beforeunload', e=>{ if(qRunning||Q.length||rvDirtyRooms().length){ e.preventDefault(); e.returnValue=''; } });  // 空室情報の直しかけ（まだ BOK に保存していない）も
 function handleErr(e){
   console.error(e);
   if(e.gone) return toast('他の端末で変更されていたため、最新の状態に更新しました', true);
@@ -2715,7 +2750,7 @@ function viewGuide(){
 // 接続先の URL と鍵は、この端末のブラウザにだけ保存する。中身はブラウザに残さない（開いている間だけ持つ）。
 const rvConf = () => ({url:safeGet(LS.rvUrl)||'', key:safeGet(LS.rvKey)||''});
 const rvOn = () => S.be && (S.be.kind==='demo' || !!rvConf().url);
-const RV = {rows:null, names:[], loading:false, error:'', at:'', loadedAt:0, ms:0};
+const RV = {rows:null, names:[], loading:false, error:'', at:'', loadedAt:0, ms:0, dr:{}, hopen:{}, weekStart:''};  // weekStart：BOK の対象週（シフト提出の週の月曜）  // dr：ルームごとの直しかけ・hopen：「見せない人」の欄を開いた曜日
 const RV_STALE_MS = 10*60*1000;  // これより前に読んだものは、開いたときに読み直す
 const rvDay = d => String(d||'').replace(/曜日$/,'');
 const rvNone = s => { const t=String(s||'').trim(); return !t || t==='-' || t==='−' || t==='ー'; };  // BOK と同じ「空きなし」の決まり
@@ -2783,7 +2818,10 @@ async function rvLoad(quiet){
   if(RV.loading) return;
   RV.loading=true; RV.error=''; if(!quiet) render();
   const t0=performance.now();
-  try{ const j=await rvCall('room.list'); RV.rows=j.rooms||[]; RV.names=j.therapistNames||[]; RV.loadedAt=Date.now(); RV.at=new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}); }
+  try{
+    const [j, w] = await Promise.all([rvCall('room.list'), bokCall('settings.get',{fields:['weekStart']}).catch(()=>null)]);
+    RV.weekStart = w && /^\d{4}-\d{2}-\d{2}$/.test(String(w.weekStart||'')) ? String(w.weekStart) : '';
+    RV.rows=j.rooms||[]; RV.names=j.therapistNames||[]; Object.keys(RV.dr).forEach(k=>{ const r=RV.rows.find(x=>x.room===k); if(!r || r.problem) delete RV.dr[k]; }); RV.loadedAt=Date.now(); RV.at=new Date().toLocaleTimeString('ja-JP',{timeZone:'Asia/Tokyo',hour:'2-digit',minute:'2-digit'}); }
   catch(e){ if(!quiet || S.tab==='bok') RV.error=e.message; }  // 裏で読んで失敗したときは、開いたときに読み直す
   RV.ms=performance.now()-t0;
   RV.loading=false;
@@ -2794,67 +2832,145 @@ function rvPrefetch(){ if(rvConf().url && RV.rows===null && !RV.loading && !RV.e
 const rvSec = ms => `${(ms/1000).toFixed(1)}秒`;
 function viewRv(){
   // まだ読んでいない・前に読んでから時間がたっているときは読み直す（古い内容は出したまま、上に「読み込んでいます」を出す）
-  if(!RV.loading && !RV.error && (RV.rows===null || Date.now()-RV.loadedAt>RV_STALE_MS)) setTimeout(()=>rvLoad(),0);
+  // 直しかけ（まだ保存していないマス）がある間は、自動では読み直さない
+  if(!RV.loading && !RV.error && (RV.rows===null || (Date.now()-RV.loadedAt>RV_STALE_MS && !rvDirtyRooms().length))) setTimeout(()=>rvLoad(),0);
   const demo = S.be && S.be.kind==='demo' && !rvConf().url;
   const head=`<div class="rvbar">${icon('refresh')}<span>${RV.loading?'BOK から読み込んでいます…（数秒かかります）':RV.at?`BOK（ささやき）から ${esc(RV.at)} に読み込み（${rvSec(RV.ms)}）`:''}${demo?'（デモ）':''}</span><span class="sp"></span><button type="button" class="btn sm" data-act="rv-reload" ${RV.loading?'disabled':''}>読み直す</button></div>`;
   if(RV.error) return head+`<div class="plain"><div class="empty" style="color:var(--red)">${esc(RV.error)}</div></div>`;
   if(RV.rows===null) return head+'<div class="plain"><div class="empty">BOK から読み込んでいます…</div></div>';
   if(!RV.rows.length) return head+'<div class="plain"><div class="empty">ルームがありません（BOK の設定のルーム一覧を確かめてください）</div></div>';
-  return head+`<div class="rvlist">${RV.rows.map(rvCard).join('')}</div><div class="hint" style="margin-top:12px">押すと直せます。保存すると、セラピストが次に開いたときから反映されます（正本は BOK です）。</div>`;
+  const names=RV.names||[], wk=rvWeek();
+  const week = wk ? `<div class="rvweek">${icon('cal')}<b>${rvMd(wk.from)}（月）〜${rvMd(wk.to)}（日）</b>の空き<span class="sub">セラピストのアプリでこの週として出ます（BOK の対象週 ${rvMd(RV.weekStart)}〜 の1週間前）</span></div>` : '';
+  return head+week+`<div class="rvlist">${RV.rows.map(rvCard).join('')}</div>${names.length?`<datalist id="rvnames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`:''}
+    <div class="hint" style="margin-top:12px">マスを押すと、その場で直せます。半角の数字をハイフンでつないで書きます（例：10-17、24-6、10-14.5。全角で打っても半角に直します）。空欄か「-」は空きなし。「10:00」や「1/2」の形は使えません。右の目のしるしで、その曜日の空きを見せない人を決められます。直したルームの下の「BOK に保存」を押すと、セラピストが次に開いたときから反映されます（正本は BOK です）。</div>`;
 }
-function rvCard(r){
-  const days=(r.days||[]).map(d=>{
-    const sl=(d.slots||[]).filter(s=>!rvNone(s)), hid=String(d.hidden||'').trim();
-    return `<div class="rvday"><span class="dn">${esc(rvDay(d.day))}</span><span class="dv">${sl.length?sl.map(s=>`<span class="rvslot">${esc(s)}</span>`).join(''):'<span class="rvnone">空きなし</span>'}${hid?`<span class="rvhid">見せない人：${esc(hid)}</span>`:''}</span></div>`;
+// ===== 空室情報の日付（2026-11-28） =====
+// 空室情報は曜日ごとの表だが、セラピストのアプリでは「BOK の対象週（シフト提出の週）の1週間前」の月〜日として出る。
+// 対象週は BOK の時間トリガーが毎週土曜8時台に再来週の月曜へ進めるので、ふだんは「直近の月曜〜日曜」になる（土曜の朝より前は今週）。
+const RV_WD = {'日':0,'月':1,'火':2,'水':3,'木':4,'金':5,'土':6};
+function rvWeek(){
+  if(!RV.weekStart) return null;
+  const from=addDays(RV.weekStart,-7);
+  const date = day => { const w=RV_WD[rvDay(day)]; if(w===undefined) return ''; for(let i=0;i<7;i++){ const d=addDays(from,i); if(wdayOf(d)===w) return d; } return ''; };
+  return {from, to:addDays(from,6), date};
+}
+const rvMd = d => d ? `${+d.slice(5,7)}/${+d.slice(8,10)}` : '';
+// 曜日の欄：「月 11/30」。今日は色を付け、過ぎた日は薄くする
+function rvDn(day, wk){
+  const d=wk?wk.date(day):'', t=todayStr();
+  return `<span class="dn${d&&d===t?' today':d&&d<t?' past':''}"><b>${esc(rvDay(day))}</b>${d?`<small>${rvMd(d)}</small>`:''}</span>`;
+}
+// ===== 一覧のままで直す（2026-11-28。前は、ルームを押すと別の画面が開いて直していた） =====
+// マスを押してそのまま打つ。打った内容はルームごとの直しかけ（RV.dr）に持ち、ルームの「BOK に保存」を押したときだけ BOK に送る
+// RV.dr[ルーム名] = {was:読んだときの7曜日ぶん（そのまま。BOK が「先に変更」を見分けるのに使う）, days:直しかけ, bad:書き方が違うマス, error, conflict, saving}
+const rvBase = days => (days||[]).map(d=>({day:d.day, slots:[...(d.slots||[]),'','',''].slice(0,3), hidden:d.hidden||''}));
+const rvOld = (dr,di,si) => String(((dr.was[di]||{}).slots||[])[si]??'');
+const rvOldHid = (dr,di) => String((dr.was[di]||{}).hidden||'').trim();
+// 直したマスの数（見せない人も1つと数える）
+function rvChanges(dr){
+  let n=0; dr.days.forEach((d,di)=>{ d.slots.forEach((v,si)=>{ if(String(v??'')!==rvOld(dr,di,si)) n++; }); if(String(d.hidden||'').trim()!==rvOldHid(dr,di)) n++; });
+  return n;
+}
+const rvDirtyRooms = () => Object.keys(RV.dr).filter(k=>rvChanges(RV.dr[k])>0 || RV.dr[k].saving);
+function rvDraftOf(ri){
+  const r=(RV.rows||[])[ri]; if(!r || r.problem) return null;
+  return RV.dr[r.room] || (RV.dr[r.room]={was:clone(r.days||[]), days:rvBase(r.days), bad:{}, error:'', conflict:false, saving:false});
+}
+// 書いたり書き換えたりしたマスだけ確かめる（BOK に前から入っている値は、書き方が違ってもそのまま戻す）
+const rvBadCell = (dr,di,si) => { const v=String(dr.days[di].slots[si]??''); return v!==rvOld(dr,di,si) && !rvNone(v) && !RV_OK.test(rvClean(v)); };
+function rvCard(r, ri){
+  const wk=rvWeek();
+  if(r.problem){  // 設定がずれたルームは直せない（BOK の設定を直してもらう）
+    const days=(r.days||[]).map(d=>{
+      const sl=(d.slots||[]).filter(s=>!rvNone(s)), hid=String(d.hidden||'').trim();
+      return `<div class="rvday">${rvDn(d.day, wk)}<span class="dv">${sl.length?sl.map(s=>`<span class="rvslot">${esc(s)}</span>`).join(''):'<span class="rvnone">空きなし</span>'}${hid?`<span class="rvhid">見せない人：${esc(hid)}</span>`:''}</span></div>`;
+    }).join('');
+    return `<div class="rvcard bad"><div class="rvhd"><span class="name">${esc(r.room)}</span>${r.shared?'<span class="chip">共有</span>':''}</div><div class="rvprob">${esc(r.problem)}。BOK の設定を確かめてください（ここでは直せません）。</div>${days}</div>`;
+  }
+  const dr=RV.dr[r.room], days=dr?dr.days:rvBase(r.days), ro=dr&&dr.saving?' readonly':'';
+  const rows=days.map((d,di)=>{
+    const empty=d.slots.every(rvNone), hv=String(d.hidden||''), hopen=!!hv.trim() || !!RV.hopen[r.room+'|'+di];
+    const hch=dr && hv.trim()!==rvOldHid(dr,di);
+    const ins=[0,1,2].map(si=>{ const v=String(d.slots[si]??'');
+      return `<input class="${rvInCls(dr,di,si,v)}" data-rvi="${ri}-${di}-${si}" value="${esc(v)}" placeholder="${rvPh(empty,si)}" aria-label="${esc(r.room)} ${esc(rvDay(d.day))}曜 ${si+1}つ目" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="done"${ro}>`; }).join('');
+    return `<div class="rvday rved">${rvDn(d.day, wk)}<span class="rvins">${ins}</span><button type="button" class="rvhb${hopen?' on':''}" data-act="rv-hid" data-ri="${ri}" data-di="${di}" title="${hv.trim()?'見せない人がいます':'見せない人を決める（この曜日の空きを、決めた人にだけ見せない）'}" aria-label="見せない人">${icon('eyeoff')}</button></div>`
+      +(hopen?`<div class="rvhidin"><span>見せない人</span><input class="inp${hch?' ch':''}" data-rvhi="${ri}-${di}" value="${esc(hv)}" placeholder="名前（複数は「、」で区切る）" autocomplete="off"${RV.names.length?' list="rvnames"':''}${ro}></div>`:'');
   }).join('');
-  return `<div class="rvcard${r.problem?' bad':''}"${r.problem?'':` data-act="rv-edit" data-room="${esc(r.room)}"`}>
-    <div class="rvhd"><span class="name">${esc(r.room)}</span>${r.shared?'<span class="chip">共有</span>':''}<span class="sp"></span>${r.problem?'':icon('edit')}</div>
-    ${r.problem?`<div class="rvprob">${esc(r.problem)}。BOK の設定を確かめてください（ここでは直せません）。</div>`:''}${days}</div>`;
+  const n=dr?rvChanges(dr):0;
+  return `<div class="rvcard${n||(dr&&dr.error)?' dirty':''}" data-rvcard="${ri}">
+    <div class="rvhd"><span class="name">${esc(r.room)}</span>${r.shared?'<span class="chip">共有</span>':''}</div>
+    ${rows}<div class="rvfoot" data-rvfoot="${ri}">${rvFoot(r, dr)}</div></div>`;
 }
-function rvOpen(room){
-  const r=(RV.rows||[]).find(x=>x.room===room); if(!r || r.problem) return;
-  const copy=JSON.parse(JSON.stringify(r.days||[]));
-  S.modal={type:'rv', room:r.room, shared:!!r.shared, was:JSON.parse(JSON.stringify(r.days||[])),
-    draft:copy.map(d=>({day:d.day, slots:[...(d.slots||[]),'','',''].slice(0,3), hidden:d.hidden||''})), error:'', saving:false};
-  render();
+const rvPh = (empty,si) => empty ? (si===0?'空きなし':'') : '＋';
+const rvInCls = (dr,di,si,v) => `rvin${rvNone(v)?'':' on'}${dr && v!==rvOld(dr,di,si)?' ch':''}${dr && dr.bad[di+'-'+si] && rvBadCell(dr,di,si)?' bad':''}`;
+function rvFoot(r, dr){
+  const n=dr?rvChanges(dr):0;
+  if(!n && !(dr && dr.error)) return '';
+  return `${dr.error?`<div class="rverr">${esc(dr.error)}${dr.conflict?` <button type="button" class="btn sm" data-act="rv-relist" data-room="${esc(r.room)}">読み直す（直しかけは消えます）</button>`:''}</div>`:''}
+    ${n?`<div class="rvfrow"><span class="rvfn">${n}か所 直しました${r.shared?'<span class="rvfsh">共有ルーム：ほかの店舗にも同じ内容が出ます</span>':''}</span><span class="sp"></span>
+    <button type="button" class="btn sm" data-act="rv-undo" data-room="${esc(r.room)}" ${dr.saving?'disabled':''}>元に戻す</button>
+    <button type="button" class="btn sm pri" data-act="rv-save" data-room="${esc(r.room)}" ${dr.saving?'disabled':''}>${dr.saving?'保存中…':'BOK に保存'}</button></div>`:''}`;
 }
-function rvModal(m){
-  const names=RV.names||[];
-  return `<div class="ov" data-act="close-ov"><form class="modal" data-act="save-rv" autocomplete="off">
-    <h2>${esc(m.room)} の空き時間帯</h2>
-    <div class="hint">半角の数字をハイフンでつないで書きます（例：10-17、24-6、10-14.5）。空欄か「-」は空きなし。「10:00」や「1/2」の形は使えません。${m.shared?'<br><b>共有ルームです。</b>ほかの店舗にも同じ内容が出ます。':''}</div>
-    ${m.draft.map((d,di)=>`<div class="rvrow"><span class="dl">${esc(rvDay(d.day))}</span>${[0,1,2].map(si=>`<input class="inp" data-rvs="${di}-${si}" value="${esc(d.slots[si]||'')}" placeholder="—" autocomplete="off" autocapitalize="off" spellcheck="false">`).join('')}</div>
-      <div class="rvhrow"><input class="inp" data-rvh="${di}" value="${esc(d.hidden||'')}" placeholder="見せない人（空欄なら全員に見せる。複数は「、」で区切る）" autocomplete="off"${names.length?' list="rvnames"':''}></div>`).join('')}
-    ${names.length?`<datalist id="rvnames">${names.map(n=>`<option value="${esc(n)}">`).join('')}</datalist>`:''}
-    ${m.error?`<div class="rverr">${esc(m.error)}${m.conflict?' <button type="button" class="btn sm" data-act="rv-relist">読み直す</button>':''}</div>`:''}
-    <div class="actions"><button type="button" class="btn" data-act="close">キャンセル</button><button class="btn pri" ${m.saving?'disabled':''}>${m.saving?'保存中…':'BOK に保存'}</button></div>
-    <div class="hint" style="margin-top:8px">保存すると、セラピストが次に開いたときから反映されます。</div>
-  </form></div>`;
+// 打つたび：直しかけに写し、そのカードの見た目（色・下の保存の帯）だけを直す（画面は作り直さないので、打っている場所が動かない）
+function rvInput(el){
+  const [ri,di,si] = (el.dataset.rvi ?? el.dataset.rvhi+'-h').split('-');
+  const r=(RV.rows||[])[+ri], dr=rvDraftOf(+ri); if(!dr || dr.saving) return;
+  if(si==='h') dr.days[+di].hidden=el.value; else { dr.days[+di].slots[+si]=el.value; if(dr.bad[di+'-'+si] && !rvBadCell(dr,+di,+si)) delete dr.bad[di+'-'+si]; }
+  dr.error=''; dr.conflict=false;
+  if(!rvChanges(dr)) delete RV.dr[r.room];
+  rvSyncCard(+ri);
 }
-async function rvSave(){
-  const m=S.modal; if(!m || m.type!=='rv' || m.saving) return;
+// 欄を離れたとき：書いたマスを半角にそろえ（全角の数字・「〜」など）、使えない書き方なら赤くする
+function rvLeave(el){
+  if(el.dataset.rvi===undefined) return;
+  const [ri,di,si]=el.dataset.rvi.split('-').map(Number), dr=RV.dr[((RV.rows||[])[ri]||{}).room]; if(!dr || dr.saving) return;
+  const v=String(dr.days[di].slots[si]??'');
+  if(v!==rvOld(dr,di,si) && !rvNone(v)){ const c=rvClean(v); if(c!==v){ dr.days[di].slots[si]=c; el.value=c; } }
+  if(rvBadCell(dr,di,si)) dr.bad[di+'-'+si]=1;
+  if(!rvChanges(dr)) delete RV.dr[(RV.rows[ri]||{}).room];
+  rvSyncCard(ri);
+}
+function rvSyncCard(ri){
+  const card=document.querySelector(`[data-rvcard="${ri}"]`), r=(RV.rows||[])[ri]; if(!card || !r) return;
+  const dr=RV.dr[r.room], days=dr?dr.days:rvBase(r.days);
+  card.querySelectorAll('[data-rvi]').forEach(x=>{ const [,di,si]=x.dataset.rvi.split('-').map(Number), v=String(days[di].slots[si]??''); x.className=rvInCls(dr,di,si,v); x.placeholder=rvPh(days[di].slots.every(rvNone),si); });
+  card.querySelectorAll('[data-rvhi]').forEach(x=>{ const di=+x.dataset.rvhi.split('-')[1]; x.classList.toggle('ch', !!dr && String(days[di].hidden||'').trim()!==rvOldHid(dr,di)); });
+  card.classList.toggle('dirty', !!dr && (rvChanges(dr)>0 || !!dr.error));
+  const f=card.querySelector('[data-rvfoot]'); if(f) f.innerHTML=rvFoot(r, dr);
+}
+async function rvSaveRoom(room){
+  const dr=RV.dr[room]; if(!dr || dr.saving || !rvChanges(dr)) return;
   // 今回さわっていないマス（BOK に前から入っている値）は、そのまま戻す（書き方も確かめない）。
   // 書いたり書き換えたりしたマスだけ、書き方をそろえて（空きなしの印はそのまま、それ以外は半角に）確かめる
-  const old=(di,si)=>String(((m.was[di]||{}).slots||[])[si]??'');
-  const days=m.draft.map((d,di)=>({day:d.day, slots:d.slots.map((s,si)=>{ const v=String(s??''); if(v===old(di,si)) return v; return rvNone(v)?v.trim():rvClean(v); }), hidden:String(d.hidden||'').trim()}));
-  const bad=[]; days.forEach((d,di)=>d.slots.forEach((v,si)=>{ if(v!==old(di,si) && !rvNone(v) && !RV_OK.test(v)) bad.push(`${rvDay(d.day)}の「${v}」`); }));
-  if(bad.length){ m.error=`使えない書き方があります：${bad.join('、')}。半角の数字をハイフンでつないでください（例：10-17、24-6、10-14.5）。`; m.conflict=false; render(); return; }
+  const days=dr.days.map((d,di)=>({day:d.day, slots:d.slots.map((s,si)=>{ const v=String(s??''); if(v===rvOld(dr,di,si)) return v; return rvNone(v)?v.trim():rvClean(v); }), hidden:String(d.hidden||'').trim()}));
+  const bad=[]; dr.bad={};
+  days.forEach((d,di)=>d.slots.forEach((v,si)=>{ if(v!==rvOld(dr,di,si) && !rvNone(v) && !RV_OK.test(v)){ bad.push(`${rvDay(d.day)}の「${v}」`); dr.bad[di+'-'+si]=1; } }));
+  if(bad.length){ dr.error=`使えない書き方があります：${bad.join('、')}。半角の数字をハイフンでつないでください（例：10-17、24-6、10-14.5）。`; dr.conflict=false; render(); return; }
   if(RV.names.length){  // 見せない人の名前を名簿と照らす（書き間違いだと、見せたくない人に見えてしまうため）
     const known=new Set(RV.names.map(rvNorm));
     const unk=[...new Set(days.flatMap(d=>d.hidden.split(/[,、]/).map(s=>s.trim()).filter(Boolean)).filter(n=>!known.has(rvNorm(n))))];
     if(unk.length && !confirm(`名簿にない名前があります：${unk.join('、')}\n書き間違いだと、見せたくない人に見えてしまいます。このまま保存しますか？`)) return;
   }
-  m.draft=days.map(d=>({...d, slots:[...d.slots]})); m.saving=true; m.error=''; m.conflict=false; render();
+  dr.days=days.map(d=>({...d, slots:[...d.slots]})); dr.saving=true; dr.error=''; dr.conflict=false;
+  if(document.activeElement && document.activeElement.closest && document.activeElement.closest('[data-rvcard]')) document.activeElement.blur();
+  render();
   const t0=performance.now();
   try{
-    const j=await rvCall('room.update', {room:m.room, days, was:m.was});
-    const i=(RV.rows||[]).findIndex(r=>r.room===m.room); if(i>=0 && j.room) RV.rows[i]=j.room;
-    if(S.modal===m) S.modal=null;
-    render(); toast(`BOK に保存しました（${rvSec(performance.now()-t0)}。セラピストが次に開いたときから反映）`);
+    const j=await rvCall('room.update', {room, days, was:dr.was});
+    const i=(RV.rows||[]).findIndex(r=>r.room===room); if(i>=0 && j.room) RV.rows[i]=j.room;
+    delete RV.dr[room];
+    render(); toast(`${room} を BOK に保存しました（${rvSec(performance.now()-t0)}。セラピストが次に開いたときから反映）`);
   }catch(e){
-    m.saving=false; m.error=e.message; m.conflict=/先に変更/.test(e.message);
-    if(S.modal===m) render(); else toast(e.message,true);
+    dr.saving=false; dr.error=e.message; dr.conflict=/先に変更/.test(e.message);
+    render(); if(S.tab!=='bok' || S.bok!=='rv') toast(e.message,true);
   }
+}
+// 上の「読み直す」：保存していない直しかけがあれば、消えてよいか先に聞く
+function rvReload(){
+  const d=rvDirtyRooms();
+  if(!d.length){ RV.dr={}; return rvLoad(); }
+  bkConfirm({title:'読み直しますか？', ok:'読み直す', danger:true, html:`<p>まだ BOK に保存していない直しかけがあります：${d.map(esc).join('、')}</p><p class="sub">読み直すと、直しかけは消えます。残したいときは、先にそれぞれの「BOK に保存」を押してください。</p>`,
+    run: ()=>{ RV.dr={}; RV.hopen={}; rvLoad(); }});
 }
 // ===== BOK のタブ（BOK の管理画面の機能の入口） =====
 // 並びは BOK の管理画面と同じ。「セラピスト管理」は出さない（名簿の正本は外部のセラピストDBのため）。
@@ -3448,6 +3564,7 @@ async function stSave(act, fields, extra={}){
     }
     if(j.settings){ const keepLogo=ST.logo; Object.assign(d, j.settings); delete d.logoDataUri; if('logoDataUri' in fields) ST.logo=fields.logoDataUri, ST.logoNew=null; else ST.logo=keepLogo; }
     else Object.assign(d, fields);
+    if('weekStart' in fields && /^\d{4}-\d{2}-\d{2}$/.test(String(d.weekStart||''))) RV.weekStart=String(d.weekStart);   // 空室情報の日付も合わせる
     stInit(d);
     toast('BOK に保存しました');
     for(const w of j.warnings||[]) setTimeout(()=>toast(w,true), 1900);
@@ -4703,6 +4820,7 @@ function render(){
   const showStats = S.tab==='board'||S.tab==='timeline';
   // 入力中の内容とフォーカスを保つ
   const bnx=document.querySelector('.boknav')?.scrollLeft;
+  const fa=document.activeElement, fsel = fa && fa.dataset && (fa.dataset.rvi!==undefined ? `[data-rvi="${fa.dataset.rvi}"]` : fa.dataset.rvhi!==undefined ? `[data-rvhi="${fa.dataset.rvhi}"]` : ''), fpos = fsel ? [fa.selectionStart, fa.selectionEnd] : null;
   const active=document.activeElement; const keep = active && active.closest && active.closest('form.quick') ? {cat:active.closest('form').dataset.cat, act:active.closest('form').dataset.act, v:active.value} : null;
   app.innerHTML=`
   ${viewNav(st)}
@@ -4731,6 +4849,7 @@ function render(){
   ${S.modal?viewModal():''}`;
   if(keep){ const f=app.querySelector(`form[data-act="${keep.act}"]${keep.cat?`[data-cat="${CSS.escape(keep.cat)}"]`:''} input`); if(f){ f.value=keep.v; f.focus(); } }
   if(S.tab==='bok' && S.bok) bokNavKeep(bnx);
+  if(fsel && !S.modal){ const x=app.querySelector(fsel); if(x && !x.readOnly){ x.focus({preventScroll:true}); try{ x.setSelectionRange(fpos[0], fpos[1]); }catch{} } }
   document.body.classList.toggle('navopen', !!S.nav); document.body.classList.toggle('navpin', !!S.navPin);
   document.title = S.be ? `${pageTitle()}｜Action OS` : 'Action OS';
   renderToast();
@@ -4779,7 +4898,6 @@ function viewModal(){
   if(m.type==='settings') return settingsModal(m);
   if(m.type==='note') return noteModal(m);
   if(m.type==='pw') return pwModal(m);
-  if(m.type==='rv') return rvModal(m);
   if(m.type==='bkok') return bkOkModal(m);
   if(BK_MODAL[m.type]) return BK_MODAL[m.type](m);
   if(m.type==='inspect') return supInspectModal(m);
@@ -5066,9 +5184,13 @@ document.addEventListener('click', async e=>{
     case 'sup-copy': { const t=supText(); if(t) pwCopy(t, '補充リストの文面'); break; }
     // パスワード表
     case 'pw-reload': pwLoad(); break;
-    case 'rv-reload': rvLoad(); break;
-    case 'rv-edit': rvOpen(el.dataset.room); break;
-    case 'rv-relist': S.modal=null; rvLoad(); break;
+    case 'rv-reload': rvReload(); break;
+    case 'rv-relist': delete RV.dr[el.dataset.room]; rvLoad(); break;   // 先に変更されていたとき：そのルームの直しかけを捨てて読み直す
+    case 'rv-save': rvSaveRoom(el.dataset.room); break;
+    case 'rv-undo': delete RV.dr[el.dataset.room]; render(); break;
+    case 'rv-hid': { const r=(RV.rows||[])[+el.dataset.ri]; if(!r) break; const k=r.room+'|'+el.dataset.di, dr=RV.dr[r.room], hv=String(((dr?dr.days:rvBase(r.days))[+el.dataset.di]||{}).hidden||'').trim();
+      if(hv){ document.querySelector(`[data-rvhi="${el.dataset.ri}-${el.dataset.di}"]`)?.focus(); break; }   // 名前が入っているときは欄へ
+      RV.hopen[k]=!RV.hopen[k]; render(); if(RV.hopen[k]) document.querySelector(`[data-rvhi="${el.dataset.ri}-${el.dataset.di}"]`)?.focus(); break; }
     case 'rv-forget': if(confirm('この端末から、BOK（ささやき）の接続先と鍵を消しますか？')){ safeSet(LS.rvUrl,null); safeSet(LS.rvKey,null); RV.rows=null; RV.error=''; RV.at=''; S.modal=null; render(); toast('BOK の接続先と鍵を消しました'); } break;
     case 'pw-add': S.modal={type:'pw', id:null, draft:{}}; render(); break;
     case 'pw-edit': { const r=(PWD.rows||[]).find(x=>x.ID===el.dataset.id); if(!r) break; S.modal={type:'pw', id:r.ID, draft:{...r}}; render(); break; }
@@ -5121,12 +5243,8 @@ document.addEventListener('input', e=>{
   if(e.target.matches('[data-stroom]') && ST.rooms) ST.rooms[Number(e.target.dataset.stroom)]=e.target.value;
   if(e.target.matches('[data-siedit]')) SI.edit[Number(e.target.dataset.siedit)]=e.target.value;
   if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
-  // 空室情報の入力は、画面を描き直しても消えないよう、打つたびに下書きへ写す
-  if(e.target.matches('[data-rvs],[data-rvh]') && S.modal && S.modal.type==='rv'){
-    const d=S.modal.draft;
-    if(e.target.dataset.rvs!==undefined){ const [di,si]=e.target.dataset.rvs.split('-').map(Number); if(d[di]) d[di].slots[si]=e.target.value; }
-    else { const di=+e.target.dataset.rvh; if(d[di]) d[di].hidden=e.target.value; }
-  }
+  // 空室情報のマス：打つたびに、そのルームの直しかけへ写す（画面を描き直しても消えない）
+  if(e.target.matches('[data-rvi],[data-rvhi]')) rvInput(e.target);
 });
 // ===== 引き継ぎ・ノートのドラッグ並べ替え（行・区分の左のつかむ所 .ngrip を押したまま動かす。指でもマウスでも） =====
 let NDRAG=null;
@@ -5196,6 +5314,7 @@ document.addEventListener('keydown', e=>{ if(NDRAG && e.key==='Escape') ndragEnd
 document.addEventListener('toggle', e=>{ if(e.target.matches && e.target.matches('details[data-act="sup-tot"]')) S.supTotOpen=e.target.open; if(e.target.matches && e.target.matches('details[data-inbox]')){ S.inboxOpen=e.target.open; const o=e.target.querySelector('.ibopen'); if(o) o.textContent=e.target.open?'閉じる':'取り込む'; } }, true);
 document.addEventListener('change', e=>{
   if(e.target.matches('[data-rds]')) rdSel(e.target);
+  if(e.target.matches('[data-rvi]')) rvLeave(e.target);
   if(e.target.matches('[data-rdpdf]')){ const f=e.target.files&&e.target.files[0]; if(f) rdPdfRead(f); }
   if(e.target.matches('[data-rdpdfmonth]') && S.modal && S.modal.type==='rdpdf'){ S.modal.month=e.target.value; }
   if(e.target.matches('[data-bkf]') && S.modal && S.modal.draft){ const f=e.target.dataset.bkf; S.modal.draft[f] = e.target.type==='checkbox' ? e.target.checked : e.target.value; }
@@ -5218,6 +5337,8 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Enter' && e.target.matches('[data-sqtq]') && !e.isComposing){ e.preventDefault(); const m=sqTherMatch(SQ.tq, sqThers()); if(SQ.tq && m.length){ if(!SQ.ther){ SQ.ther=m[0]; SQ.tq=m[0]; render(); } if(document.activeElement) document.activeElement.blur(); } }
   if(e.key==='Enter' && e.target.matches('[data-navq]') && !e.isComposing){ e.preventDefault(); const f=[...document.querySelectorAll('.drawer .drow')].find(r=>r.style.display!=='none')?.querySelector('.navi:not([disabled])'); if(f) f.click(); }
   if(e.key==='Enter' && e.target.matches('[data-newsub]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="sub-add"]').click(); }
+  // 空室情報のマスで Enter：そのルームを BOK に保存（直したところがあるとき）
+  if(e.key==='Enter' && e.target.matches('[data-rvi],[data-rvhi]') && !e.isComposing){ e.preventDefault(); rvLeave(e.target); const r=(RV.rows||[])[+(e.target.dataset.rvi??e.target.dataset.rvhi).split('-')[0]]; if(r) rvSaveRoom(r.room); }
   if(e.key==='Enter' && e.target.matches('[data-stradd]') && !e.isComposing){ e.preventDefault(); document.querySelector('[data-act="st-radd"]').click(); }
 });
 document.addEventListener('submit', async e=>{
@@ -5233,7 +5354,6 @@ document.addEventListener('submit', async e=>{
   if(a==='save-inspect'){ const m=S.modal; const picks={...m.picks}; const o=f.other.value.trim(); if(o) picks[o]=f.otherlv.value; S.modal=null; render(); saveInspection(m.room, picks); return; }
   if(a==='save-supitems'){ const items=f.items.value.split('\n').map(l=>l.split(/[｜|]/).map(x=>x.trim())).filter(c=>c[0]).map(c=>({name:c[0], urgent:c[1]||'', need:c[2]||'', ok:c[3]||'', pin:/★|☆|1|ピン|○|〇/.test(c[4]||'')})); S.modal=null; render(); saveSupItems(items); return; }
   if(a==='save-pw'){ const m=S.modal; const row={}; for(const k of PW_FIELDS) row[k]=(f.elements[k]?.value||'').trim(); if(!row['サービス']) return toast('サービス名を入れてください',true); S.modal=null; render(); pwSave(m.id, row); return; }
-  if(a==='save-rv'){ rvSave(); return; }
   if(a==='save-rvconf'){ const sp=splitUrlKey(f.url.value.trim(), f.key.value.trim()), url=sp.url.replace(/[?#].*$/,''), key=sp.key||safeGet(LS.rvKey);  // 管理画面の URL（?admin=1 など）を貼られても、窓口の …/exec だけを使う
     if(url && !/^https:\/\/script\.google(usercontent)?\.com\/.+\/exec$/.test(url)) return toast('ささやきのウェブアプリの URL（https://script.google.com/…/exec）を入れてください',true);
     if(url && !key) return toast('鍵を入れてください',true);
@@ -5299,7 +5419,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:d920c0003387';
+const BUILD = 'AOS_BUILD:986f7884f921';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
