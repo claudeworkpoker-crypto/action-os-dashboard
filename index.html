@@ -1162,7 +1162,7 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 @keyframes rnpulse{50%{opacity:.35}}
 .colhd .rnjob,.supwhobox .rnjob{margin:0 0 0 4px;vertical-align:1px}
 .supchip .supwho .rnjob{font-size:10.5px;color:var(--sub);font-weight:600} .supchip .supwho .rnjob.on{color:var(--accent)}
-.supchip .supwho{align-items:center;text-align:center} .supchip .supwho .rnjob{align-self:center}  /* ルームのボタンの中では、名前・時間・施術中／待機中の印を真ん中にそろえる（2026-11-28 社長） */
+.supchip{align-items:center;text-align:center} .supchip .supwho{align-items:center;text-align:center} .supchip .supwho .rnjob{align-self:center}  /* ルームのボタンの中は、ルーム番号・件数（至急・要・注文）・名前・時間・施術中／待機中の印をすべて真ん中にそろえる（2026-11-28 社長） */
 
 /* 補充リスト：ルームごとに1枚の枠にまとめる（上に見出しの帯・下に品目）。左の色の帯は、至急があれば赤・補充が要れば黄（上のルームのボタンと同じ色）。情報が増えてルームの境が分かりにくくなったため（2026-11-28 社長） */
 .notes.suprooms{gap:14px}
@@ -5888,7 +5888,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:fb27d424f6fe';
+const BUILD = 'AOS_BUILD:896abac5c91d';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
