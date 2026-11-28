@@ -1162,6 +1162,7 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 @keyframes rnpulse{50%{opacity:.35}}
 .colhd .rnjob,.supwhobox .rnjob{margin:0 0 0 4px;vertical-align:1px}
 .supchip .supwho .rnjob{font-size:10.5px;color:var(--sub);font-weight:600} .supchip .supwho .rnjob.on{color:var(--accent)}
+.supchip .supwho{align-items:center;text-align:center} .supchip .supwho .rnjob{align-self:center}  /* ルームのボタンの中では、名前・時間・施術中／待機中の印を真ん中にそろえる（2026-11-28 社長） */
 
 /* 補充リスト：ルームごとに1枚の枠にまとめる（上に見出しの帯・下に品目）。左の色の帯は、至急があれば赤・補充が要れば黄（上のルームのボタンと同じ色）。情報が増えてルームの境が分かりにくくなったため（2026-11-28 社長） */
 .notes.suprooms{gap:14px}
@@ -1174,6 +1175,13 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
 .suproom .colhd .count{background:var(--line)}  /* 件数の丸が見出しの帯と同じ色で消えないように */
 .suproom .colhd .supwho{padding-left:0}
 .suproom .nlist{background:transparent;border:0;border-radius:0;box-shadow:none;padding:2px 6px 4px}
+
+/* いまいる人（ルームの見出し・点検の画面）：1人1行、施術中・待機中の印は行の右端 */
+.supwho.line{display:flex;flex-direction:column;align-items:stretch;row-gap:3px}
+.supwho .rnrow{display:flex;flex-wrap:wrap;align-items:center;column-gap:8px;row-gap:2px}
+.supwho .rnrow .rnp{margin-right:0}
+.supwho .rnrow .rnjob{margin:0 0 0 auto}
+.supwho .rnrow.rnnext{color:var(--faint)}
 </style>
 </head>
 <body>
@@ -4856,6 +4864,7 @@ function supTotals(){
 // 補充の画面を開いたときに読み（2分より前に読んだ分は読み直す）、開いている間は5分ごとに読み直す。名前は端末に保存しない（開いている間だけ持つ）
 // 入っている＝出勤の開始の30分前（入室）から、終了の30分後（退出）まで（受付の「ルーム表」と同じ）。時間は受付と同じ書き方（深夜は 26:00 など）
 // 施術中＝受付ログの予約の開始から終了まで（終了は延長込み）。窓口が予約を読めないとき（jobs が無い）は、施術中・待機中の印を出さない
+// 受付終了（done。早退などで受付システムが「受付終了」にした人）：施術中か、このあと予約が残っている間だけルームにいる扱い。残りが無ければ帰ったものとして「いる人」から外す（2026-11-28 社長：早退した人が待機中と出ていた）
 const RN = {rows:null, biz:'', jobs:false, at:0, tried:0, loading:false, error:'', seq:0};
 const RN_EVERY_MS = 5*60*1000, RN_STALE_MS = 2*60*1000;
 const rnBiz = hhmm => { const m=/^(\d{1,2}):(\d{2})$/.exec(String(hhmm||'').trim()); if(!m) return -1; let t=(+m[1])*60+(+m[2]); if(+m[1]<10) t+=1440; return t; };  // 受付と同じ：10時より前は前の日の深夜
@@ -4875,6 +4884,7 @@ function rnDemoRows(){
     ...(names[2]?[{date:biz, name:'見本ゆら', room:names[2], start:'', end:'', status:'完売', noShift:false, jobs:[job(cm-60, cm+30)]}]:[]),
     ...at(3, cm-300, cm-60, '見本えみ'),
     ...at(4, cm-10, cm+600, '見本りの', [job(cm+40, cm+120)]),
+    ...(names[5]?[{date:biz, name:'見本ゆずき', room:names[5], start:rnHm(cm-360), end:rnHm(cm+60), status:'満枠', noShift:false, done:true, jobs:[job(cm-300, cm-200)]}]:[]),
   ]};
 }
 async function rnCall(){
@@ -4905,10 +4915,11 @@ function rnJob(r, now){
 }
 function rnRoom(room){
   if(!RN.rows) return null;
-  const k=rnKey(room), now=Date.now(), cur=[], later=[], unknown=[];
+  const k=rnKey(room), now=Date.now(), cur=[], later=[], unknown=[], left=[];
   for(const r0 of RN.rows){
     if(rnKey(r0.room)!==k) continue;
     const r={...r0, ...rnJob(r0, now)};
+    if(r.done && !r.job && !r.nextJob){ if(r.date===RN.biz) left.push(r); continue; }  // 受付終了で、施術中でも予約が残ってもいない＝帰った
     const s=rnBiz(r.start); let e=rnBiz(r.end);
     if(s<0 || e<0){ if(r.date===RN.biz) unknown.push(r); continue; }
     if(e<s) e+=1440;
@@ -4916,7 +4927,7 @@ function rnRoom(room){
     if(now>=x.a && now<=x.b) cur.push(x); else if(now<x.a && r.date===RN.biz) later.push(x);
   }
   cur.sort((x,y)=>x.a-y.a); later.sort((x,y)=>x.a-y.a);
-  return {cur, next:later[0]||null, unknown};
+  return {cur, next:later[0]||null, unknown, left};
 }
 // 表示：chip＝ルームのボタン（短く）／line＝ルームの見出し・点検の画面（時間も）
 function rnWho(room, mode){
@@ -4932,8 +4943,11 @@ function rnWho(room, mode){
     if(st.next) return `<i class="supwho"><b>空き</b><span>次：${esc(st.next.name)}</span><em>${tm(st.next)}</em></i>`;
     return `<i class="supwho"><b>空き</b></i>`;
   }
-  const now = st.cur.length ? st.cur.map(x=>`<span class="rnp">いま：<b>${esc(x.name)}</b>（${tm(x)}）</span>${job(x)}`).join('') : st.unknown.length ? st.unknown.map(x=>`<span class="rnp">いま：<b>${unk(x)}</b></span>${job(x)}`).join('') : '<span class="rnp">いまは空き</span>';
-  return `<i class="supwho ${st.cur.length?'on':st.unknown.length?'unk':''}">${now}${st.next?`<span class="rnp rnnext">次：${esc(st.next.name)}（${tm(st.next)}）</span>`:''}</i>`;
+  // 1人1行。施術中・待機中の印はその行の右端に寄せる（2026-11-28 社長）。次に入る人は下の行
+  const row=(left, right='', cls='')=>`<span class="rnrow ${cls}"><span class="rnp">${left}</span>${right}</span>`;
+  const now = st.cur.length ? st.cur.map(x=>row(`いま：<b>${esc(x.name)}</b>（${tm(x)}）`, job(x))).join('') : st.unknown.length ? st.unknown.map(x=>row(`いま：<b>${unk(x)}</b>`, job(x))).join('') : row('いまは空き');
+  const gone = st.left.map(x=>row(`${esc(x.name)}：受付終了（退勤）`,'','rnnext')).join('');
+  return `<i class="supwho line ${st.cur.length?'on':st.unknown.length?'unk':''}">${now}${st.next?row(`次：${esc(st.next.name)}（${tm(st.next)}）`,'','rnnext'):''}${gone}</i>`;
 }
 // 補充の画面の上に出す一言（いつ読んだか・読めないとき）
 function rnInfo(){
@@ -5874,7 +5888,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:c25e8af1e5d0';
+const BUILD = 'AOS_BUILD:fb27d424f6fe';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
