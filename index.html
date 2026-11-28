@@ -1407,7 +1407,7 @@ function enqueue(label, local, remote){
 //  ・その1件だけの失敗（ほかの端末で消えていた・競合が続いた など）：その1件だけ外して後ろを続け、最後に読み直して、何が保存されなかったかを出す
 //  ・トークンの失敗（401・403）：後ろも同じく失敗するので止め、読み直して知らせる
 const PUMP = {msgs:[], dropped:[], retry:0, timer:0};
-const isNetErr = e => !!e && !e.gone && !e.conflict && (e.status ? (e.status>=500 || e.status===429) : (e instanceof TypeError || /fetch|network|load failed|接続|通信/i.test(String(e.message||''))));
+const isNetErr = e => !!e && !e.gone && !e.conflict && (e.status ? (e.status>=500 || e.status===429) : /failed to fetch|networkerror|network error|load failed|the internet connection|接続|通信/i.test(String(e.message||'')));   // 通信の失敗の文だけ（コードの誤り［TypeError］まで通信の失敗と取り違えて、送り直しを続けないように）
 const jobWhat = msgs => String((msgs||[])[0]||'').replace(/^dashboard:\s*/,'').replace(/^ノート:\s*/,'');
 async function pump(){
   if(qRunning) return;
@@ -1572,7 +1572,7 @@ function updateTask(ref, patch){
       f.remove(); (dest ? dest.task.subs : f.sec.items).push(f.task); return;
     }
     if(patch.cat && patch.cat!==ref.cat && ref.parent===undefined){
-      f.remove(); s.find(x=>x.name===patch.cat).items.push(f.task);
+      const to=secOrInbox(s, patch.cat); if(!to) return false; f.remove(); to.items.push(f.task);   // 移し先のカテゴリがほかの端末で消されていたら、インボックスへ
     }
   };
   // 名前・置き場所・カテゴリが変わったら、そのタスク（と下のタスク）の実行の記録も合わせる
@@ -5742,7 +5742,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:6830f94f8818';
+const BUILD = 'AOS_BUILD:5300f7d9ebb4';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
