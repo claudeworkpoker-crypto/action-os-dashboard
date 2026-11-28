@@ -1130,6 +1130,10 @@ body.modalopen .toast{bottom:calc(86px + env(safe-area-inset-bottom))}
   .supord::after,.chip.tog::after,.chip.who::after{content:'';position:absolute;inset:-9px -4px}
   .suproom .nrow .iconbtn.sm{margin-left:6px}
 }
+#offbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(64px + env(safe-area-inset-top));z-index:70;border:0;border-radius:14px;background:var(--red);color:#fff;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:calc(100vw - 32px);cursor:pointer}
+.task.pdone .ttext,.task.pdone .tbody{opacity:.45;text-decoration:line-through}
+.task.pdone .chk{background:var(--green-soft);border-color:var(--green)}
+.task.pdone .chk svg{opacity:1}
 </style>
 </head>
 <body>
@@ -1301,7 +1305,7 @@ function githubBackend(token, repo){
       ...opts, cache:'no-store',
       headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28',...(opts.body?{'Content-Type':'application/json'}:{})},
     });
-    if(r.status===404) return null;
+    if(r.status===404 && (!opts.method || opts.method==='GET')) return null;   // 読み込みの 404 は「ファイルが無い」。書き込みの 404 はエラーにする（黙って保存されないのを防ぐ）
     if(!r.ok){ const e=new Error(`GitHub ${r.status}`); e.status=r.status; try{ e.detail=(await r.json()).message; }catch{} throw e; }
     return r.status===204 ? {} : r.json();
   };
@@ -1347,30 +1351,28 @@ async function loadAll(quiet){
   S.loading=true; render();
   try{
     const ym=monthOf(todayStr());
+    // 一部のファイルだけ読めなかったとき（通信・混雑）は、前に読んだ中身を残す（「ファイルが無い」と扱ってタブが消えないように。無いのは 404 のときだけ）
+    const KEEP={}, soft = p => p.catch(e=>{ console.warn(e); return KEEP; });
     const [todo, some, d1, d2, iss, runs, prog, notes, rooms, sup, mem, memo] = await Promise.all([
       S.be.read('todo.md'), S.be.read('someday.md'), S.be.read(`done/${ym}.md`), S.be.read(`done/${prevMonth(ym)}.md`),
-      S.be.issues().catch(e=>{ console.warn(e); return null; }),
-      S.be.read('runs.json').catch(()=>null),
-      S.be.read('progress.json').catch(()=>null),
-      S.be.read('notes.md').catch(()=>null),
-      S.be.read('rooms.md').catch(()=>null),
-      S.be.read('supplies.md').catch(()=>null),
-      S.be.read('members.md').catch(()=>null),
-      S.be.read('memo.md').catch(()=>null),
+      S.be.issues().catch(e=>{ console.warn(e); return S.issues||null; }),
+      soft(S.be.read('runs.json')), soft(S.be.read('progress.json')), soft(S.be.read('notes.md')), soft(S.be.read('rooms.md')),
+      soft(S.be.read('supplies.md')), soft(S.be.read('members.md')), soft(S.be.read('memo.md')),
     ]);
-    S.runs=parseRuns(runs&&runs.text);
-    S.progress=parseProgress(prog&&prog.text);
+    const got = (x, prev, fn) => x===KEEP ? prev : fn(x);
+    S.runs=got(runs, S.runs, x=>parseRuns(x&&x.text));
+    S.progress=got(prog, S.progress, x=>parseProgress(x&&x.text));
     S.sections=parseTodo(todo?todo.text:'# TODO\n');
     S.someday=parseSomeday(some?some.text:'');
     S.done={[ym]:d1?parseDone(d1.text):[], [prevMonth(ym)]:d2?parseDone(d2.text):[]};
     S.issues=iss;
-    S.notes = notes ? parseNotes(notes.text) : null;   // ファイルがあるときだけタブを出す
-    S.memo = memo ? parseNotes(memo.text) : null;      // ノート（memo.md）も同じ
-    S.rooms = rooms ? parseRooms(rooms.text) : null;
-    S.supplies = sup ? parseSupplies(sup.text) : null;
-    S.members = mem ? parseMembers(mem.text) : [];
-    S.loadedAt=Date.now();
-  }catch(e){ handleErr(e); }
+    S.notes = got(notes, S.notes, x=>x ? parseNotes(x.text) : null);   // ファイルがあるときだけタブを出す
+    S.memo = got(memo, S.memo, x=>x ? parseNotes(x.text) : null);      // ノート（memo.md）も同じ
+    S.rooms = got(rooms, S.rooms, x=>x ? parseRooms(x.text) : null);
+    S.supplies = got(sup, S.supplies, x=>x ? parseSupplies(x.text) : null);
+    S.members = got(mem, S.members, x=>x ? parseMembers(x.text) : []);
+    S.loadedAt=Date.now(); S.loadErr='';
+  }catch(e){ loadFail(e); }
   S.loading=false; S.loadDone=true; render();
   rvPrefetch();  // BOK につないだ端末では、空室情報も裏で読み始めておく
   himeRefresh(); // 姫予約ログの未確認の件数も（5分より短い間隔では読まない）
@@ -1378,7 +1380,9 @@ async function loadAll(quiet){
 
 // ファイルを最新に読み直してから変更を当てて保存する（同時編集・競合に強くする）
 async function mutateFile(path, fn, message, init=''){
-  for(let attempt=0; attempt<3; attempt++){
+  if(PUMP.msgs.length<5) PUMP.msgs.push(message);
+  for(let attempt=0; attempt<4; attempt++){
+    if(attempt) await new Promise(r=>setTimeout(r, 400*attempt));   // 競合したら少し間をあけて読み直す（すぐだと GitHub が直前の書き込みをまだ返さないことがある）
     const cur=await S.be.read(path);
     const next=fn(cur?cur.text:init);
     if(next===false) throw Object.assign(new Error('対象が見つかりません'),{gone:true});
@@ -1386,7 +1390,7 @@ async function mutateFile(path, fn, message, init=''){
     try{ await S.be.write(path, next, cur&&cur.sha, message); return; }
     catch(e){ if(e.status===409||e.status===422){ continue; } throw e; }
   }
-  throw new Error('保存が競合しました。もう一度試してください');
+  throw Object.assign(new Error('保存が競合しました。もう一度試してください'), {conflict:true});
 }
 // 画面はすぐ変え、GitHubへの保存は裏で1件ずつ順番に行う
 const Q=[]; let qRunning=false;
@@ -1398,25 +1402,60 @@ function enqueue(label, local, remote){
   render(); if(label) toast(label);
   Q.push(remote); pump();
 }
+// 失敗の扱い（2026-11-28）：前は1件失敗すると後ろに並んでいた保存もまとめて捨てていた。
+//  ・通信の失敗（つながらない・5xx・429）：並びは残したまま、間をあけて自動で送り直す（画面は保存前の操作を出したまま。上に「保存できていません」の帯）
+//  ・その1件だけの失敗（ほかの端末で消えていた・競合が続いた など）：その1件だけ外して後ろを続け、最後に読み直して、何が保存されなかったかを出す
+//  ・トークンの失敗（401・403）：後ろも同じく失敗するので止め、読み直して知らせる
+const PUMP = {msgs:[], dropped:[], retry:0, timer:0};
+const isNetErr = e => !!e && !e.gone && !e.conflict && (e.status ? (e.status>=500 || e.status===429) : (e instanceof TypeError || /fetch|network|load failed|接続|通信/i.test(String(e.message||''))));
+const jobWhat = msgs => String((msgs||[])[0]||'').replace(/^dashboard:\s*/,'').replace(/^ノート:\s*/,'');
 async function pump(){
   if(qRunning) return;
-  qRunning=true; setSyncIndicator();
+  qRunning=true; setSyncIndicator(); clearTimeout(PUMP.timer);
   while(Q.length){
-    const job=Q.shift();
-    try{ await job(); }
-    catch(e){ handleErr(e); Q.length=0; qRunning=false; await loadAll(true); return; }
+    const job=Q[0]; PUMP.msgs=[];
+    try{ await job(); Q.shift(); PUMP.retry=0; }
+    catch(e){
+      console.error(e);
+      if(isNetErr(e)){ qRunning=false; PUMP.retry++; setSyncIndicator(); offlineBar(); PUMP.timer=setTimeout(pump, Math.min(120000, 5000*2**Math.min(PUMP.retry-1,5))); return; }
+      Q.shift(); PUMP.dropped.push({what:jobWhat(PUMP.msgs), e});
+      if(e.status===401 || e.status===403){ PUMP.dropped.push(...Q.splice(0).map(()=>({what:'', e}))); break; }
+    }
   }
-  qRunning=false; S.loadedAt=Date.now(); setSyncIndicator();
+  qRunning=false; S.loadedAt=Date.now(); setSyncIndicator(); offlineBar();
+  if(PUMP.dropped.length){ const d=PUMP.dropped.splice(0); reportDropped(d); await loadAll(true); }
 }
+function reportDropped(d){
+  const e=d[0].e, names=d.map(x=>x.what).filter(Boolean), list = names.length ? `（${names.slice(0,3).map(x=>x.length>40?x.slice(0,40)+'…':x).join('／')}${names.length>3?` ほか${names.length-3}件`:''}）` : '';
+  if(e.status===401 || e.status===403) return toast(`${errText(e)}。保存できなかった操作が ${d.length}件あります${list}`, true);
+  if(d.every(x=>x.e.gone)) return toast(`ほかの端末で先に変更・削除されていたため、保存しなかった操作があります${list}。最新の状態にしました`, true);
+  toast(`保存できなかった操作があります${list}：${errText(e)}。最新の状態にしました`, true);
+}
+// 通信の失敗で保存が残っているときの帯（押すとすぐ送り直す）
+function offlineBar(){
+  let b=document.getElementById('offbar');
+  if(!(Q.length && PUMP.retry>0)){ if(b) b.remove(); return; }
+  if(!b){ b=document.createElement('button'); b.id='offbar'; b.type='button'; b.onclick=()=>{ clearTimeout(PUMP.timer); pump(); }; document.body.appendChild(b); }
+  b.textContent=`保存できていません（通信がつながりません）：${Q.length}件。つながると自動で送ります。押すと今すぐ送り直します`;
+}
+window.addEventListener('online', ()=>{ if(Q.length && !qRunning){ clearTimeout(PUMP.timer); pump(); } });
 window.addEventListener('beforeunload', e=>{ if(qRunning||Q.length||remoteBusy()||unsavedWork()){ e.preventDefault(); e.returnValue=''; } });
 // 窓口（BOK・セラピストDB・アンケートの送信など）へ保存している最中か
 function remoteBusy(){ try{ return !!(S.modal && (S.modal.rdBusy || S.modal.saving)) || Object.values(BK).some(x=>x.saving) || (typeof SI!=='undefined' && SI.sending) || (typeof RV!=='undefined' && Object.values(RV.dr||{}).some(d=>d.saving)); }catch{ return false; } }  // 空室情報の直しかけ（まだ BOK に保存していない）も
-function handleErr(e){
-  console.error(e);
-  if(e.gone) return toast('他の端末で変更されていたため、最新の状態に更新しました', true);
-  if(e.status===401) return toast('トークンが無効です。設定から入れ直してください', true);
-  if(e.status===403) return toast('トークンの権限が足りません（Contents / Issues の読み書き）', true);
-  toast('保存に失敗したため、最新の状態に戻しました', true);
+function errText(e){
+  if(!e) return '不明なエラー';
+  if(e.status===401) return 'トークンが無効です。設定から入れ直してください';
+  if(e.status===403) return /rate limit/i.test(e.detail||'') ? 'GitHub の回数制限に達しました。しばらく待ってからもう一度' : 'トークンの権限が足りません（Contents / Issues の読み書き）';
+  if(e.status===404) return 'リポジトリが見つかりません（設定のリポジトリ名と、トークンの対象を確かめてください）';
+  if(e.conflict) return 'ほかの保存と重なりました。もう一度試してください';
+  if(isNetErr(e)) return '通信がつながりません。電波を確かめてください';
+  return e.message || '不明なエラー';
+}
+function handleErr(e){ console.error(e); toast(e && e.gone ? 'ほかの端末で変更されていたため、最新の状態に更新しました' : errText(e), true); }
+// 読み込みの失敗（保存の失敗とは分けて出す。同じ知らせは2分に1回まで）
+function loadFail(e){
+  console.error(e); S.loadErr=errText(e);
+  const now=Date.now(); if(now-(loadFail.at||0) > 120000 || !S.loadedAt){ loadFail.at=now; toast('最新を読み込めませんでした：'+S.loadErr, true); }
 }
 
 // ===== 操作 =====
@@ -1458,15 +1497,30 @@ function removeMember(name){
   enqueue('担当者から外しました', ()=>{ S.members=S.members.filter(x=>x!==name); }, ()=>membersFile(m=>{ const i=m.indexOf(name); if(i>=0) m.splice(i,1); }, `dashboard: 担当者から「${name}」を外す`));
 }
 
+const secOrInbox = (s, cat) => s.find(x=>x.name===cat) || s.find(x=>x.name==='インボックス') || s[0];
 function addTask(cat, t, parentText){
   const fn=s=>{
-    const sec=s.find(x=>x.name===cat);
+    const sec=secOrInbox(s, cat); if(!sec) return false;
     if(parentText!==undefined){ const p=sec.items.find(i=>i.text===parentText); if(!p) return false; p.subs.push({...t,notes:[...(t.notes||[])],subs:[]}); }
     else sec.items.push({...t,notes:[...(t.notes||[])],subs:[]});
   };
   enqueue('追加しました', ()=>fn(S.sections), ()=>opsTodo(fn, `dashboard: 「${t.text}」を${cat}に追加`));
 }
-function completeTask(ref){
+// 完了は押してすぐ保存せず、5秒「元に戻す」を出してから保存する（押し間違い・連打で隣のタスクが完了になるのを防ぐ）。
+// その間の行は薄く取り消し線。もう一度丸を押しても戻せる。画面を閉じる・ほかのアプリへ移るときは、待たずにすぐ保存する
+const PDONE = new Map();
+const pdKey = ref => JSON.stringify([ref.cat, ...refPath(ref), ref.text]);
+function doneLater(ref){
+  const k=pdKey(ref); if(PDONE.has(k)) return;
+  const commit=()=>{ if(!PDONE.has(k)) return; PDONE.delete(k); completeTask(ref, true); };
+  PDONE.set(k, {ref, commit, timer:setTimeout(commit, 5000)}); render();
+  toast(`「${ref.text.length>24?ref.text.slice(0,24)+'…':ref.text}」を完了にしました`, false, {undo:()=>undoDone(k), ms:5000});
+}
+function undoDone(k){ const p=PDONE.get(k); if(!p) return; clearTimeout(p.timer); PDONE.delete(k); render(); }
+function flushDone(){ for(const p of [...PDONE.values()]){ clearTimeout(p.timer); p.commit(); } }
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState==='hidden') flushDone(); });
+window.addEventListener('pagehide', flushDone);
+function completeTask(ref, quiet){
   const today=todayStr(), ym=monthOf(today);
   const label = ref.parent!==undefined ? `${ref.text}（${ref.parent}）` : ref.text;
   // このタスクで開いている実行（スレッド）があれば一緒に閉じる
@@ -1474,7 +1528,7 @@ function completeTask(ref){
   const below=[...refPath(ref), ref.text];
   const openRuns = S.runs.filter(r=>runOpen(r) && (runIs(r,ref) || (r.cat===ref.cat && samePath(runPath(r).slice(0,below.length), below)))).map(r=>r.id);
   const notes = findTask(S.sections, ref)?.task.notes || [];  // メモは完了ログのタスクの行の下に写す
-  enqueue('完了にしました', ()=>{ removeRef(ref)(S.sections); (S.done[ym]=S.done[ym]||[]).push({text:label,date:today}); for(const id of openRuns) patchRun(id,{status:'closed'})(S.runs); }, async ()=>{
+  enqueue(quiet?'':'完了にしました', ()=>{ removeRef(ref)(S.sections); (S.done[ym]=S.done[ym]||[]).push({text:label,date:today}); for(const id of openRuns) patchRun(id,{status:'closed'})(S.runs); }, async ()=>{
     if(openRuns.length) await runsFile(runs=>{ let hit=false; for(const id of openRuns){ if(patchRun(id,{status:'closed'})(runs)!==false) hit=true; } if(!hit) return false; }, `dashboard: 「${label}」の実行を閉じる`).catch(e=>{ if(!e.gone) throw e; });
     await opsTodo(removeRef(ref), `dashboard: 「${label}」を完了`);
     await mutateFile(`done/${ym}.md`, t=>{
@@ -1483,12 +1537,34 @@ function completeTask(ref){
     }, `dashboard: 「${label}」を完了ログに追加`);
   });
 }
+// サブタスクの変更（外した・名前を変えた・足した）だけを、最新のサブタスクの並びに当てる。触っていないサブタスクは最新のまま（ほかで完了にされていたら戻さない）
+function mergeSubs(latest, origTexts, edited, renames){
+  const from=new Map(renames.map(r=>[r.from, r.to])), keep=new Set(edited.map(x=>x.text));
+  for(const r of renames) keep.add(r.from);
+  let out=latest.filter(x=>!origTexts.includes(x.text) || keep.has(x.text));                 // 開いたときにあって、画面で外したものを消す
+  out=out.map(x=>from.has(x.text) ? {...x, text:from.get(x.text)} : x);                       // 名前を変えたもの
+  const have=new Set(out.map(x=>x.text)), renamedTo=new Set(renames.map(r=>r.to));
+  for(const e of edited) if(!origTexts.includes(e.text) && !renamedTo.has(e.text) && !have.has(e.text)){ out.push({...e, notes:[...(e.notes||[])], subs:e.subs||[]}); have.add(e.text); }   // 足したもの
+  return out;
+}
 function updateTask(ref, patch){
   const fn=s=>{
     const f=findTask(s,ref); if(!f) return false;
-    Object.assign(f.task, {text:patch.text, due:patch.due, prio:patch.prio, who:patch.who||null});
-    if(patch.notes) f.task.notes=[...patch.notes];
-    if(patch.subs) f.task.subs=JSON.parse(JSON.stringify(patch.subs));
+    const o=patch.orig;
+    if(!o){
+      Object.assign(f.task, {text:patch.text, due:patch.due, prio:patch.prio, who:patch.who||null});
+      if(patch.notes) f.task.notes=[...patch.notes];
+      if(patch.subs) f.task.subs=JSON.parse(JSON.stringify(patch.subs));
+    } else {
+      // 編集画面を開いたときの値（o）と比べて、変えた項目だけを最新のファイルに当てる（2026-11-28）。
+      // 前は開いたときの写しでまるごと置き換えていたので、開いている間にほかの端末や ▶ のスレッドが完了にしたサブタスクが生き返っていた
+      if(patch.text!==o.text) f.task.text=patch.text;
+      if((patch.due||null)!==(o.due||null)) f.task.due=patch.due||null;
+      if(!!patch.prio!==!!o.prio) f.task.prio=patch.prio;
+      if((patch.who||null)!==(o.who||null)) f.task.who=patch.who||null;
+      if(JSON.stringify(patch.notes||[])!==JSON.stringify(o.notes||[])) f.task.notes=[...(patch.notes||[])];
+      f.task.subs=mergeSubs(f.task.subs||[], o.subs||[], patch.subs||[], patch.subRenames||[]);
+    }
     // 親タスクを変える（同じカテゴリの中で、別のタスクの下へ／いちばん上へ）
     if(patch.moveTo && !samePath(patch.moveTo, refPath(ref))){
       const to=patch.moveTo, dest = to.length ? findTask(s, mkRef(ref.cat, to[to.length-1], to.slice(0,-1))) : null;
@@ -1531,27 +1607,29 @@ function runsRenamer(cat, oldPath, oldText, newCat, newPath, newText){
 function deleteTask(ref){
   enqueue('削除しました', ()=>removeRef(ref)(S.sections), ()=>opsTodo(removeRef(ref), `dashboard: 「${ref.text}」を削除`));
 }
-function toSomeday(ref){
-  const notes = findTask(S.sections, ref)?.task.notes || [];
-  const item = notes.length ? `${ref.text}（メモ: ${notes.join(' ／ ')}）` : ref.text;  // いつかやるは1行ずつなので、メモは後ろに付けて残す
+function toSomeday(ref, over){
+  const notes = over ? over.notes : (findTask(S.sections, ref)?.task.notes || []), title = (over && over.text) || ref.text;
+  const item = notes.length ? `${title}（メモ: ${notes.join(' ／ ')}）` : title;  // いつかやるは1行ずつなので、メモは後ろに付けて残す
+  // 先に いつかやる に足してから todo から消す（途中で失敗しても、どちらにも無い状態にならないように）
   enqueue('いつかやるに移しました', ()=>{ removeRef(ref)(S.sections); S.someday.push(item); }, async ()=>{
+    await somedayFile(it=>{ if(!it.includes(item)) it.push(item); }, `dashboard: 「${title}」をいつかやるに追加`);
     await opsTodo(removeRef(ref), `dashboard: 「${ref.text}」をいつかやるへ移動`);
-    await somedayFile(pushSome(item), `dashboard: 「${ref.text}」をいつかやるに追加`);
   });
 }
 function addSomeday(text){
   enqueue('追加しました', ()=>S.someday.push(text), ()=>somedayFile(pushSome(text), `dashboard: 「${text}」をいつかやるに追加`));
 }
 function removeSomeday(text, promoteCat){
-  const addFn=s=>{ s.find(x=>x.name===promoteCat).items.push({text,due:null,prio:false,subs:[]}); };
+  const addFn=s=>{ const sec=secOrInbox(s, promoteCat); if(!sec) return false; if(!sec.items.some(x=>x.text===text)) sec.items.push({text,due:null,prio:false,subs:[]}); };
+  // 先に足してから消す（途中で失敗しても、どちらにも無い状態にならないように）
   enqueue(promoteCat?`${promoteCat}に移しました`:'削除しました', ()=>{ dropSome(text)(S.someday); if(promoteCat) addFn(S.sections); }, async ()=>{
-    await somedayFile(dropSome(text), promoteCat?`dashboard: 「${text}」をいつかやるからtodoへ移動`:`dashboard: 「${text}」をいつかやるから削除`);
     if(promoteCat) await opsTodo(addFn, `dashboard: 「${text}」を${promoteCat}に追加`);
+    await somedayFile(dropSome(text), promoteCat?`dashboard: 「${text}」をいつかやるからtodoへ移動`:`dashboard: 「${text}」をいつかやるから削除`);
   });
 }
 function importIssue(iss, dest, due, prio){
   const picked=pickCategory(iss.title); const text = picked.cat===dest ? picked.text : iss.title.trim();
-  const addFn=s=>{ s.find(x=>x.name===dest).items.push({text,due:due||null,prio:!!prio,subs:[]}); };
+  const addFn=s=>{ const sec=secOrInbox(s, dest); if(!sec) return false; if(!sec.items.some(x=>x.text===text)) sec.items.push({text,due:due||null,prio:!!prio,subs:[]}); };   // 同じ表題がもうあれば足さない（Issue を閉じるのに失敗して、もう一度取り込んだとき）
   enqueue('取り込みました', ()=>{ S.issues=S.issues.filter(i=>i.number!==iss.number); if(dest==='someday') S.someday.push(text); else addFn(S.sections); }, async ()=>{
     if(dest==='someday') await somedayFile(pushSome(text), `inbox: Issue#${iss.number} ${text}をいつかやるに追加`);
     else await opsTodo(addFn, `inbox: Issue#${iss.number} ${text}を${dest}に追加`);
@@ -1931,8 +2009,9 @@ function taskRow(cat, t, opts={}){
     : `<span class="chip run ${RUN_ST[run.status].cls}" data-act="tab" data-k="runs">${icon('play')}${RUN_ST[run.status].label}</span>`);
   const notes=t.notes||[], NOTE_MAX=3;
   const notesHtml = notes.length ? `<ul class="tnotes">${notes.slice(0,NOTE_MAX).map(n=>`<li>${esc(n)}</li>`).join('')}${notes.length>NOTE_MAX?`<li class="more">ほか ${notes.length-NOTE_MAX}行</li>`:''}</ul>` : '';
-  let h=`<div class="task${sub?' sub':''}${notes.length?' hasnotes':''}"${sub?` style="--d:${path.length}"`:''}>
-    <button class="chk" title="完了にする" data-act="done" data-ref='${esc(JSON.stringify(ref))}' >${icon('check')}</button>
+  const pd=PDONE.has(pdKey(ref));
+  let h=`<div class="task${sub?' sub':''}${notes.length?' hasnotes':''}${pd?' pdone':''}"${sub?` style="--d:${path.length}"`:''}>
+    <button class="chk${pd?' on':''}" title="${pd?'完了をやめる（元に戻す）':'完了にする'}" data-act="done" data-ref='${esc(JSON.stringify(ref))}' >${icon('check')}</button>
     <div class="tbody" data-act="edit" data-ref='${esc(JSON.stringify(ref))}'>
       <div class="ttext">${esc(t.text)}${notesHtml}</div>${meta.length?`<div class="meta">${meta.join('')}</div>`:''}
     </div>${!run&&IS_MAC_DESKTOP?`<button class="runbtn" title="${sub?'このサブタスクを Claude で実行':'Claude で実行'}" data-act="run-open" data-ref='${esc(JSON.stringify(ref))}'>${icon('play')}</button>`:''}</div>`;
@@ -2050,7 +2129,8 @@ function addNote(cat, text, check, k='notes', body=''){
   noteOp('追加しました', n=>{ const c=findCat(n,cat); if(!c) return false; c.items.push({text, body:noteBody(body), check: check?false:null}); }, `「${cat}」に「${text.slice(0,30)}」を追加`, k);
 }
 function toggleNote(ref){
-  noteOp('', n=>{ const f=findNote(n,ref); if(!f || f.it.check===null) return false; f.it.check=!f.it.check; }, `「${ref.text.slice(0,30)}」のチェックを切り替え`, ref.doc);
+  // 押したときに見えていた状態（ref.chk）の反対にそろえる。ほかの端末で先に同じにされていたら何もしない（前は反転していたので、打ち消し合っていた）
+  noteOp('', n=>{ const f=findNote(n,ref); if(!f || f.it.check===null) return false; f.it.check = typeof ref.chk==='boolean' ? !ref.chk : !f.it.check; }, `「${ref.text.slice(0,30)}」を${ref.chk?'未対応に戻す':'対応済みにする'}`, ref.doc);
 }
 function updateNote(ref, patch){
   noteOp('更新しました', n=>{
@@ -2122,7 +2202,7 @@ function viewNotes(k='notes'){
     const closed = memo && !qq && shut.includes(c.name);
     const rows = shown.length ? shown.map(({it,ii})=>`<div class="nrow ${it.check===true?'done':''}" data-cat="${esc(c.name)}" data-i="${ii}">
         ${grip('note','つかんで並べ替え・ほかの区分へ移す')}
-        ${it.check===null?'':`<button class="nchk ${it.check?'on':''}" data-act="note-toggle" data-ref='${ref(c,it)}' title="${it.check?'未対応に戻す':'対応済みにする'}">${icon('check')}</button>`}
+        ${it.check===null?'':`<button class="nchk ${it.check?'on':''}" data-act="note-toggle" data-ref='${esc(JSON.stringify({doc:k, cat:c.name, text:it.text, chk:!!it.check}))}' title="${it.check?'未対応に戻す':'対応済みにする'}">${icon('check')}</button>`}
         <div class="nt" data-act="note-edit" data-ref='${ref(c,it)}'>${noteBodyLines(it.body).length?`<span class="ntt">${fmtNote(it.text)}</span><span class="ntb">${fmtNote(noteBody(it.body))}</span>`:fmtNote(it.text)}</div></div>`).join('')
       : '<div class="empty">まだありません</div>';
     const name = memo
@@ -2204,8 +2284,10 @@ function roomState(r){
 }
 function roomsDueCount(){ const t=todayStr(); return S.rooms ? S.rooms.filter(r=>r.next && r.next<=t).length : 0; }
 function cleanedRoom(name, next, every){
-  const t=todayStr();
-  roomOp('清掃済みにしました', rows=>{ const r=findRoom(rows,name); if(!r) return false; r.last=t; if(every!==undefined) r.every=every; r.next = next!==undefined ? next : (r.every ? addDays(t, r.every) : r.next); }, `dashboard: ${name} を清掃済みにする`);
+  const t=todayStr(), before=findRoom(S.rooms||[], name), prev = before ? {last:before.last, next:before.next, every:before.every} : null;
+  const nx = next!==undefined ? next : (before && (every!==undefined?every:before.every) ? addDays(t, every!==undefined?every:before.every) : before && before.next);
+  if(prev) setTimeout(()=>toast(`${name} を清掃済みにしました${nx?`（次回 ${mdw(nx)}）`:''}`, false, {undo:()=>roomOp('元に戻しました', rows=>{ const r=findRoom(rows,name); if(!r) return false; Object.assign(r, prev); }, `dashboard: ${name} の清掃済みを元に戻す`)}), 0);
+  roomOp('', rows=>{ const r=findRoom(rows,name); if(!r) return false; r.last=t; if(every!==undefined) r.every=every; r.next = next!==undefined ? next : (r.every ? addDays(t, r.every) : r.next); }, `dashboard: ${name} を清掃済みにする`);
 }
 function saveRoom(orig, v){
   roomOp(orig?'更新しました':'追加しました', rows=>{
@@ -4680,7 +4762,7 @@ function delSupply(ref){ supOp('消しました', d=>{ const f=supFind(d,ref); i
 // 「全部補充した」：注文中のものは届いていないので残す（注文中だけ残っているときはボタンを出さない）
 function roomSupplyDone(room){ supOp('このルームの補充を済みにしました', d=>{ const r=supRoom(d,room); if(!r || !supOpen(r).some(x=>!x.order)) return false; r.items.forEach(x=>{ if(!x.order) x.done=true; }); }, `dashboard: ${room} の補充をすべて済みにする${supOpen(supRoom(S.supplies,room)||{items:[]}).some(x=>x.order)?'（注文中のものは残す）':''}`); }
 // 注文中の付け外し：ルームの1行ごと
-function toggleSupOrder(ref){ supOp('', d=>{ const f=supFind(d,ref); if(!f || f.it.done) return false; f.it.order=!f.it.order; }, `dashboard: ${ref.room} の「${ref.name}」を${ref.order?'注文中から外す':'注文中にする'}`); }
+function toggleSupOrder(ref){ supOp('', d=>{ const f=supFind(d,ref); if(!f || f.it.done) return false; f.it.order = typeof ref.order==='boolean' ? !ref.order : !f.it.order; }, `dashboard: ${ref.room} の「${ref.name}」を${ref.order?'注文中から外す':'注文中にする'}`); }
 // 注文中の付け外し：品目ごとに、未補充の行をまとめて（在庫切れでまとめて注文したとき・届いたとき）
 function itemSupOrder(name, on){ supOp(on?'注文中にしました':'注文中を外しました', d=>{ let hit=false; d.rooms.forEach(r=>supOpen(r).forEach(x=>{ if(x.name===name && !!x.order!==on){ x.order=on; hit=true; } })); if(!hit) return false; }, `dashboard: 「${name}」の未補充の分を${on?'注文中にする':'注文中から外す'}`); }
 function clearDoneSupplies(){ supOp('済みを消しました', d=>{ let hit=false; d.rooms.forEach(r=>{ const n=r.items.length; r.items=r.items.filter(x=>!x.done); if(r.items.length!==n) hit=true; }); if(!hit) return false; }, 'dashboard: 補充済みを消す'); }
@@ -4999,7 +5081,7 @@ function render(){
       ${showStats&&S.filter?`<button class="filterchip" data-act="filter" data-k="${S.filter}">${esc(FILTERS[S.filter].label)}で絞り込み中 ${icon('x').replace('<svg','<svg width="12" height="12"')}</button>`:''}
     </div>
     ${S.tab==='board'||S.tab==='timeline'?whoBar():''}
-    ${waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='coupon'?viewCoupon():S.tab==='survey'?viewSurvey():S.tab==='guide'?viewGuide():S.tab==='db'?viewDb():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
+    ${S.loadErr && !S.loadedAt && !S.loading ? `<div class="bkcard" style="margin-top:8px"><b>読み込めませんでした</b><div class="hint" style="margin-top:6px">${esc(S.loadErr)}</div><div style="margin-top:10px"><button type="button" class="btn sm pri" data-act="reload">もう一度読み込む</button></div></div>` : waiting?'<div class="empty" style="padding:24px 4px">読み込んでいます…</div>':S.tab==='board'?viewBoard():S.tab==='notes'?viewNotes():S.tab==='memo'?viewNotes('memo'):S.tab==='rooms'?viewRooms():S.tab==='supplies'?viewSupplies():S.tab==='pw'?viewPw():S.tab==='coupon'?viewCoupon():S.tab==='survey'?viewSurvey():S.tab==='guide'?viewGuide():S.tab==='db'?viewDb():S.tab==='bok'?viewBok():S.tab==='timeline'?viewTimeline():S.tab==='someday'?viewSomeday():S.tab==='runs'?viewRuns():viewDone()}
   </main>
   ${S.tab==='notes'||S.tab==='memo'||S.tab==='rooms'||S.tab==='supplies'||S.tab==='pw'||S.tab==='coupon'||S.tab==='survey'||S.tab==='guide'||S.tab==='bok'||S.tab==='db'?'':`<button class="fab" data-act="add" title="タスクを追加">${icon('plus')}</button>`}
   ${S.modal?viewModal():''}`;
@@ -5040,6 +5122,7 @@ function tryCloseModal(){
   if(!S.modal) return;
   if(S.modal.rdBusy){ toast('保存しています。終わるまで待ってください',true); return; }
   if(S.modal.saving){ toast('保存しています。終わるまで待ってください',true); return; }
+  if(S.modal.type==='bkok' && S.modal.back){ S.modal=S.modal.back; render(); return; }   // 確認の窓をやめたら、前の窓（書きかけ）に戻る
   if(/^rd(p|ng)$/.test(S.modal.type) && S.modal.step==='confirm'){ S.modal.step='edit'; render(); return; }   // 保存の確認画面で外を押したら「戻る」と同じ
   if(!modalDirty()){ S.modal=null; render(); return; }
   if(document.getElementById('guard')) return;
@@ -5221,7 +5304,7 @@ function viewSetup(){ return `<div class="wrap"><div class="setup"><h1>Action OS
 
 function openEdit(ref){
   const f=findTask(S.sections, ref); if(!f) return;
-  S.modal={type:'edit', ref, draft:{text:f.task.text, notes:(f.task.notes||[]).join('\n'), cat:ref.cat, due:f.task.due||'', prio:f.task.prio, who:f.task.who||'', subs:(f.task.subs||[]).map(s=>({...s, orig:s.text})), moveTo:JSON.stringify(refPath(ref))}};
+  S.modal={type:'edit', ref, orig:{text:f.task.text, due:f.task.due||null, prio:!!f.task.prio, who:f.task.who||null, notes:[...(f.task.notes||[])], subs:(f.task.subs||[]).map(x=>x.text)}, draft:{text:f.task.text, notes:(f.task.notes||[]).join('\n'), cat:ref.cat, due:f.task.due||'', prio:f.task.prio, who:f.task.who||'', subs:(f.task.subs||[]).map(s=>({...s, orig:s.text})), moveTo:JSON.stringify(refPath(ref))}};
   render();
 }
 function syncDraft(){
@@ -5233,6 +5316,7 @@ function syncDraft(){
 }
 
 // ===== イベント =====
+const TAP_GUARD=new Set(['done','room-clean','sup-toggle','sup-order','sup-room-done','note-toggle']), tapAt={};
 let ovDown=null;
 document.addEventListener('pointerdown', e=>{ ovDown = e.target && e.target.classList && e.target.classList.contains('ov') ? e.target : null; }, true);
 document.addEventListener('click', async e=>{
@@ -5244,6 +5328,7 @@ document.addEventListener('click', async e=>{
   if(a==='guard-discard'){ closeGuard(); S.modal=null; render(); return; }
   if(a==='guard-save'){ closeGuard(); const f=modalForm(); if(f){ if(f.reportValidity()) f.requestSubmit(); } else document.querySelector('.ov .modal .actions .btn.pri:not([disabled])')?.click(); return; }   // form でない窓は、その窓の保存のボタンを押す
   if(el.tagName==='FORM' || el.tagName==='SELECT') return;
+  if(TAP_GUARD.has(a)){ const now=Date.now(); if(now-(tapAt[a]||0)<450) return; tapAt[a]=now; }
   if(a.startsWith('rd-')){ rdAct(a, el); return; }
   const ref = el.dataset.ref ? JSON.parse(el.dataset.ref) : null;
   switch(a){
@@ -5330,14 +5415,25 @@ document.addEventListener('click', async e=>{
     case 'logout': safeSet(LS.token,null); S.be=null; S.modal=null; render(); break;
     case 'add': S.modal={type:'add', draft:{text:'', notes:'', cat:INBOX, due:'', prio:false, who:(S.who&&S.who!=='__none')?S.who:'', subs:[]}}; render(); break;
     case 'close': tryCloseModal(); break;
-    case 'done': { const row=el.closest('.task'); row&&(row.style.opacity='.35'); completeTask(ref); break; }
+    case 'done': {
+      const k=pdKey(ref); if(PDONE.has(k)){ undoDone(k); break; }   // 完了待ちの行の丸をもう一度押したら戻す
+      const f=findTask(S.sections, ref); if(!f) break;
+      const kids=f.task.subs||[];
+      if(kids.length) bkConfirm({title:'サブタスクも一緒に完了にしますか？', ok:`${kids.length}件も一緒に完了にする`, html:`<p>「${esc(ref.text)}」の下に、まだサブタスクが <b>${kids.length}件</b>あります（${kids.slice(0,3).map(x=>esc(x.text)).join('、')}${kids.length>3?' ほか':''}）。</p><p class="sub">一緒に完了にすると、完了ログには「${esc(ref.text)}」の1行だけが残ります。サブタスクだけ先に片付けたいときは「やめる」を押して、サブタスクの丸を押してください。</p>`, run:()=>doneLater(ref)});
+      else doneLater(ref);
+      break; }
     case 'edit': openEdit(ref); break;
     case 'toggle': { const k=el.dataset.key; setOpen(k, !isOpen(k)); render(); break; }
     case 'set': { syncDraft(); const d=S.modal.draft, f=el.dataset.f, v=el.dataset.v; d[f]= f==='prio'? !!v : v; render(); break; }
     case 'sub-add': { syncDraft(); const d=S.modal.draft; if(d.newsub&&d.newsub.trim()) d.subs.push({text:d.newsub.trim(),due:null,prio:false}); d.newsub=''; const ni=document.querySelector('[data-newsub]'); if(ni) ni.value=''; render(); document.querySelector('[data-newsub]')?.focus(); break; }
     case 'sub-del': { syncDraft(); S.modal.draft.subs.splice(+el.dataset.i,1); render(); break; }
     case 'del': { const r=S.modal.ref; if(!confirm(`「${r.text}」を削除しますか？（完了ログには残りません）`)) return; S.modal=null; deleteTask(r); break; }
-    case 'to-someday': { const r=S.modal.ref; S.modal=null; toSomeday(r); break; }
+    case 'to-someday': {
+      syncDraft(); const m=S.modal, d=m.draft, f=findTask(S.sections, m.ref); const lost=[];
+      if(f){ const n=(f.task.subs||[]).length; if(n) lost.push(`サブタスク ${n}件`); if(d.due) lost.push('期限'); if(cleanWho(d.who)) lost.push('担当'); if(d.prio) lost.push('優先度（高）'); }
+      const go=()=>{ S.modal=null; toSomeday(m.ref, {text:d.text.replace(/📅|🔺|👤/gu,'').trim()||m.ref.text, notes:notesOf(d.notes)}); };
+      if(lost.length) bkConfirm({title:'いつかやるに移しますか？', ok:'移す', back:m, html:`<p>いつかやるは1行だけなので、<b>${lost.join('・')}</b>は残りません（表題とメモだけ移ります）。</p>`, run:go}); else go();
+      break; }
     case 'cat-up': moveCategory(el.dataset.name); break;
     case 'cat-del': { const n=el.dataset.name; const cnt=(S.sections.find(x=>x.name===n)?.items.length)||0;
       if(!confirm(`カテゴリ「${n}」を削除しますか？`+(cnt?`\n中のタスク${cnt}件は${INBOX}に移ります。`:''))) return; deleteCategory(n); break; }
@@ -5349,9 +5445,10 @@ document.addEventListener('click', async e=>{
     case 'some-del': if(confirm(`「${el.dataset.text}」を削除しますか？`)) removeSomeday(el.dataset.text); break;
     // 備品の補充
     case 'enable-supplies': enableFile('supplies.md', SUP_INIT, 'supplies', parseSupplies, '補充のタブを作りました'); break;
-    case 'sup-toggle': toggleSupply(ref); break;
+    case 'sup-toggle': toggleSupply(ref); toast(`${ref.room} の「${ref.name}」を${ref.done?'未補充に戻しました':'補充済みにしました'}`, false, {undo:()=>toggleSupply({...ref, done:!ref.done})}); break;
     case 'sup-del': if(confirm(`「${ref.name}」を補充リストから消しますか？`)) delSupply(ref); break;
-    case 'sup-room-done': roomSupplyDone(el.dataset.room); break;
+    case 'sup-room-done': { const room=el.dataset.room, r=S.supplies && supRoom(S.supplies, room), n=r ? supOpen(r).filter(x=>!x.order).length : 0;
+      bkConfirm({title:`${room} をすべて補充済みにしますか？`, ok:'補充済みにする', html:`<p>${room} の未補充 <b>${n}件</b>を、まとめて補充済みにします（注文中のものは残します）。</p>`, run:()=>roomSupplyDone(room)}); break; }
     case 'sup-order': toggleSupOrder(ref); break;
     case 'sup-item-order': { const n=el.dataset.name, on=!!el.dataset.on; if(confirm(on?`「${n}」の未補充の${el.dataset.n}室を、注文中にしますか？`:`「${n}」の注文中（${el.dataset.n}室）を外しますか？（届いたとき。補充はまだの扱いに戻ります）`)) itemSupOrder(n, on); break; }
     case 'sup-clear': if(confirm('補充済み（チェック済み）のものを消しますか？')) clearDoneSupplies(); break;
@@ -5587,7 +5684,7 @@ document.addEventListener('submit', async e=>{
     S.modal=null; render();
     const notes=notesOf(d.notes);
     if(m.type==='add') addTask(d.cat, {text, due:d.due||null, prio:d.prio, who, notes});
-    else { let moveTo=null; try{ moveTo=JSON.parse(d.moveTo||'null'); }catch{} updateTask(m.ref, {text, due:d.due||null, prio:d.prio, who, cat:d.cat, notes, subs, moveTo, subRenames}); }
+    else { let moveTo=null; try{ moveTo=JSON.parse(d.moveTo||'null'); }catch{} updateTask(m.ref, {text, due:d.due||null, prio:d.prio, who, cat:d.cat, notes, subs, moveTo, subRenames, orig:m.orig}); }
   }
   if(a==='save-settings'){
     const repo=f.repo.value.trim(); const token=f.token.value.trim()||safeGet(LS.token);
@@ -5611,7 +5708,7 @@ document.addEventListener('touchmove', e=>{ if(e.touches.length>1) e.preventDefa
 // ===== 新しい版の自動読み込み =====
 // 公開するとき deploy.py が、下の BUILD の値を中身から作った版の印（16進の12文字）に置きかえる。手元で開いたとき（?demo など）は dev のまま
 // 開いている画面の印と公開版の印が違えば、新しい版が出ている。ホーム画面のアイコンから開いた画面は閉じない限り古いままなので、自分で気づいて読み込み直す
-const BUILD = 'AOS_BUILD:178c9cdfd0e3';
+const BUILD = 'AOS_BUILD:ba924f85e416';
 const UPD = {at:0, newer:null};
 const UPD_RE = new RegExp("'AOS" + "_BUILD:([0-9a-f]{12})'");
 async function checkUpdate(force){
